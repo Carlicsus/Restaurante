@@ -1,0 +1,607 @@
+{
+	"info": {
+		"_postman_id": "6945ff15-9a43-4cc6-908f-2341d2896850",
+		"name": "Restaurante",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48159966",
+		"_collection_link": "https://altimetry-observer-37388238-8065986.postman.co/workspace/Carlos-Armando-Aranda-Hernandez~a2ad7501-34c6-4b8f-8693-4ae53de3c0d2/collection/48159966-6945ff15-9a43-4cc6-908f-2341d2896850?action=share&source=collection_link&creator=48159966"
+	},
+	"item": [
+		{
+			"name": "Menu",
+			"item": [
+				{
+					"name": "Tipo Menu",
+					"item": [
+						{
+							"name": "Registrar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"nombre\", \"Dulces\")\r",
+											"pm.variables.set(\"uuid_padre\", \"2f30d59570a74a898a4380ce16b1f5fd\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nombre\": \"{{nombre}}\",\r\n    \"padre\": \"{{uuid_padre}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/menu/tipo/nuevo",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"nuevo"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/menu/tipo/lista",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"lista"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Editar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"4d73c54033ff48079da50f169d764906\")\r",
+											"pm.variables.set(\"nuevo_nombre\", \"Desayunos\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nombre\": \"{{nuevo_nombre}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/menu/tipo/{{uuid}}/editar?activo=true",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"{{uuid}}",
+										"editar"
+									],
+									"query": [
+										{
+											"key": "activo",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ver información",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"4d73c54033ff48079da50f169d76490f\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/menu/tipo/{{uuid}}/informacion",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"{{uuid}}",
+										"informacion"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"4d73c54033ff48079da50f169d764906\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/menu/tipo/{{uuid}}/activar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"{{uuid}}",
+										"activar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Desactivar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"4d73c54033ff48079da50f169d764906\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/menu/tipo/{{uuid}}/desactivar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"{{uuid}}",
+										"desactivar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"4d73c54033ff48079da50f169d764906\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/menu/tipo/{{uuid}}/eliminar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"{{uuid}}",
+										"eliminar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Lista para usuario final",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/menu/tipo/ver?pagina=1&columnaOrden=dateCreated&orden=desc&max=10&estatus=1&query=pos",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"menu",
+										"tipo",
+										"ver"
+									],
+									"query": [
+										{
+											"key": "pagina",
+											"value": "1"
+										},
+										{
+											"key": "columnaOrden",
+											"value": "dateCreated"
+										},
+										{
+											"key": "orden",
+											"value": "desc"
+										},
+										{
+											"key": "max",
+											"value": "10"
+										},
+										{
+											"key": "estatus",
+											"value": "1"
+										},
+										{
+											"key": "query",
+											"value": "pos"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Platillos",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/platillo/lista",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"lista"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Registrar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"nombre\", \"Salami 3\")\r",
+											"pm.variables.set(\"menuTipo\", \"96cbc2d690b54f4c92a1555c33841959\")\r",
+											"pm.variables.set(\"fecha_disponible\", new Date(\"2025-11-06T00:00:00Z\").getTime())\r",
+											"pm.variables.set(\"costo\", \"25\")\r",
+											"pm.variables.set(\"descripcion\", \"Salami 3\")\r",
+											"pm.variables.set(\"platillos_disponibles\", \"15\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nombre\": \"{{nombre}}\",\r\n    \"menuTipo\": \"{{menuTipo}}\",\r\n    \"fechaDisponible\": \"{{fecha_disponible}}\",\r\n    \"costo\": \"{{costo}}\",\r\n    \"descripcion\": \"{{descripcion}}\",\r\n    \"platillosDisponibles\": \"{{platillos_disponibles}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/platillo/nuevo",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"nuevo"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ver informacion",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"bd244dee5dfe480e83cb95c26e5b396c\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/platillo/{{uuid}}/informacion",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"{{uuid}}",
+										"informacion"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Editar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"00be22e16da54504a232d0506c7ba038\")\r",
+											"pm.variables.set(\"nombre\", \"salami\")\r",
+											"pm.variables.set(\"menuTipo\", \"96cbc2d690b54f4c92a1555c33841959\")\r",
+											"pm.variables.set(\"fecha_disponible\", new Date(\"2025-11-06T00:00:00Z\").getTime())\r",
+											"pm.variables.set(\"costo\", \"25\")\r",
+											"pm.variables.set(\"descripcion\", \"salami\")\r",
+											"pm.variables.set(\"platillos_disponibles\", \"15\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nombre\": \"{{nombre}}\",\r\n    \"menuTipo\": \"{{menuTipo}}\",\r\n    \"fechaDisponible\": \"{{fecha_disponible}}\",\r\n    \"costo\": \"{{costo}}\",\r\n    \"descripcion\": \"{{descripcion}}\",\r\n    \"platillosDisponibles\": \"{{platillos_disponibles}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/platillo/{{uuid}}/editar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"{{uuid}}",
+										"editar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"bd244dee5dfe480e83cb95c26e5b396c\")\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/platillo/{{uuid}}/activar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"{{uuid}}",
+										"activar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Desactivar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"bd244dee5dfe480e83cb95c26e5b396c\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/platillo/{{uuid}}/desactivar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"{{uuid}}",
+										"desactivar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"bd244dee5dfe480e83cb95c26e5b396c\")"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/platillo/{{uuid}}/eliminar",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"{{uuid}}",
+										"eliminar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Lista para usuario final",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/platillo/ver?pagina=1&columnaOrden=costo&orden=desc&max=10&estatus=1&query=Ho",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"platillo",
+										"ver"
+									],
+									"query": [
+										{
+											"key": "pagina",
+											"value": "1"
+										},
+										{
+											"key": "columnaOrden",
+											"value": "costo"
+										},
+										{
+											"key": "orden",
+											"value": "desc"
+										},
+										{
+											"key": "max",
+											"value": "10"
+										},
+										{
+											"key": "estatus",
+											"value": "1"
+										},
+										{
+											"key": "query",
+											"value": "Ho"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}

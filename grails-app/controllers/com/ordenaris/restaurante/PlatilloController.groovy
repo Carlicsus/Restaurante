@@ -48,14 +48,25 @@ class PlatilloController {
         if( data.descripcion.size() > 80 ) {
             return respond([success:false, mensaje: "La descripcion no puede ser tan largo"], status: 400)
         }
-        if (data.fechaDisponible) {
+        if (data.fechaDisponible && data.fechaDisponible.soloNumeros()) {
             try {
                 fechaDisponible = new Date(data.fechaDisponible as Long)
+                def fechaActual = new Date()
+                if (fechaDisponible < fechaActual) {
+                    return respond([success: false, mensaje: "La fecha disponible no puede ser una fecha pasada"], status: 400)
+                }
+                println(fechaDisponible)
             } catch (e) {
+                println("Si entre")
                 return respond([success:false, mensaje:"Formato de fecha invalido"], status:400)
             }
         }
-        if( data.platillosDisponibles){
+        if( data.platillosDisponibles != null){
+            println("Estoy")
+
+            if (data.platillosDisponibles.trim() == '') {
+                return respond([success:false, mensaje: "Los platillos disponibles no pueden estar vacios"], status: 400)
+            }
             if (!data.platillosDisponibles.soloNumeros()){
                 return respond([success:false, mensaje: "Los platillos disponibles deben de ser numeros"], status: 400)
             }
@@ -158,8 +169,8 @@ class PlatilloController {
         if( !params.columnaOrden ) {
             return respond([success:false, mensaje: "El columnaOrden no puede ir vacio"], status: 400)
         }
-        if( !(params.columnaOrden in ["nombre", "status", "costo"]) ) {
-            return respond([success:false, mensaje: "El columnaOrden solo puede ser: nombre, status, costo"], status: 400)
+        if( !(params.columnaOrden in ["nombre", "status", "costo", "fechaDisponible", "platillosDisponibles"]) ) {
+            return respond([success:false, mensaje: "El columnaOrden solo puede ser: nombre, status, costo, fechaDisponible, platillosDisponibles"], status: 400)
         }
         if( !params.orden ) {
             return respond([success:false, mensaje: "El orden no puede ir vacio"], status: 400)
@@ -176,8 +187,8 @@ class PlatilloController {
         if( !(params.max.toInteger() in [ 2, 5, 10, 20, 50, 100 ]) ) {
             return respond([success:false, mensaje: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
         }
-        println "Ando aqui"
-        def respuesta = PlatilloService.paginarPlatillos( params.pagina.toInteger(), params.columnaOrden, params.orden, params.max.toInteger(), params.estatus?.toInteger(), params.query )
+        println (params.platillosdisponibles?.toInteger())
+        def respuesta = PlatilloService.paginarPlatillos( params.pagina.toInteger(), params.columnaOrden, params.orden, params.max.toInteger(), params.estatus?.toInteger(), params.platillosdisponibles?.toInteger(), params.query )
         return respond( respuesta.resp, status: respuesta.status )
     }
 

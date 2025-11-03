@@ -61,7 +61,8 @@ class PlatilloService {
                 nombre:nombre, 
                 tipoMenu: tipoPrincipal,
                 fechaDisponible: fechaDisponible, 
-                costo:costo, descripcion:descripcion, 
+                costo:(costo * 100),
+                descripcion:descripcion, 
                 platillosDisponibles:platillosDisponibles,
                 status: estado
             ]).save(flush:true, failOnError:true)
@@ -134,9 +135,15 @@ class PlatilloService {
             platillo.nombre = nombre
             platillo.tipoMenu = menuNuevo
             platillo.fechaDisponible = fechaDisponible
-            platillo.costo = costo
+            platillo.costo = (costo * 100)
             platillo.descripcion = descripcion
             platillo.platillosDisponibles = platillosDisponibles
+            if(platillosDisponibles==0){
+                platillo.status=0
+            }
+            if(platillosDisponibles>0 && platillo.status!=1){
+                platillo.status=1
+            }
             platillo.save()
 
             return [
@@ -157,7 +164,13 @@ class PlatilloService {
             if( !platillo ) {
                 return [
                     resp: [success:false, mensaje: "No se encontro el platillo"],
-                    status: 500
+                    status: 404
+                ]
+            }
+            if( platillo.status == 2){
+                return [
+                    resp: [success:false, mensaje: "El elemento esta eliminado"],
+                    status: 404
                 ]
             }
             platillo.status = estatus
@@ -174,13 +187,26 @@ class PlatilloService {
         }
     }
 
-    def paginarPlatillos( pagina, columnaOrden, orden, max, estatus, query ){
+    def paginarPlatillos( pagina, columnaOrden, orden, max, estatus, platillosdisponibles, query ){
         try{
-            println "Desde el servicio"
+            println "------"
+            println(platillosdisponibles as Boolean)
             def offset = pagina * max - max
             def list = Platillo.createCriteria().list{
-                if( estatus ) {
+                if( estatus || estatus==0) {
                     eq("status", estatus)
+                }
+                if( platillosdisponibles && platillosdisponibles==-1 ) {
+                    println("-1")
+                    eq("platillosDisponibles", platillosdisponibles)
+                }
+                if( platillosdisponibles && platillosdisponibles==0 ) {
+                    println("0")
+                    eq("platillosDisponibles", platillosdisponibles)
+                }
+                if( platillosdisponibles && platillosdisponibles>0 ) {
+                    println(">0")
+                    gt("platillosDisponibles", 0)
                 }
                 ne("status", 2)
                 if( query ) {

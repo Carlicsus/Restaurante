@@ -17,7 +17,7 @@ class MenuController {
     def nuevoTipo() {
         def data = request.JSON
         if( !data.nombre ) {
-            return respond([success:false, mensaje: "El nombre es si"], status: 400)
+            return respond([success:false, mensaje: "si xd"], status: 400)
         }
         if( data.nombre.soloNumeros() ) {
             return respond([success:false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)

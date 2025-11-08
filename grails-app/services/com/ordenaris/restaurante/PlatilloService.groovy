@@ -3,243 +3,290 @@ package com.ordenaris.restaurante
 import grails.gorm.transactions.Transactional
 
 @Transactional
-class PlatilloService {
+class DishService {
 
-    def listaPlatillos() {
-        try{
-            def list =TipoMenu.findAllByStatusNotEqualsAndTipoPrincipalIsNull(2);
+def listDishes() {
+    try {
+        // Buscar tipos de menú principales que tengan platillos
+        def list = MenuType.findAllByStatusNotEqualsAndParentTypeIsNull(2)
 
-            def lista = list.collect{ tipo ->
-                def submenu = TipoMenu.findAllByStatusNotEqualsAndTipoPrincipal(2, tipo).collect{ subtipo ->
-                    def platillos = Platillo.findAllByStatusNotEqualsAndTipoMenu(2,subtipo).collect{platillo ->
-                        return [
-                            uuid: platillo.uuid,
-                            nombre: platillo.nombre,
-                            descripcion: platillo.descripcion,
-                            status: platillo.status,
-                        ]
-                    }
-                    return mapTipoMenu(subtipo, platillos)
-                }
-                return mapTipoMenu( tipo, submenu )
+        def lista = list.collect { type ->
+            // Buscar platillos DIRECTAMENTE en este tipo de menú
+            def dishes = Dish.findAllByStatusNotEqualsAndMenuType(2, type).collect { dish ->
+                return [
+                    uuid: dish.uuid,
+                    name: dish.name,
+                    description: dish.description,
+                    cost: dish.cost / 100, 
+                    status: dish.status,
+                    availableDishes: dish.availableDishes,
+                    availableDate: dish.availableDate
+                ]
             }
-            return [
-                resp: [ success: true, tipoMenu: lista ],
-                status: 200
-            ]
-        }catch(e){
-            return [
-                resp: [ success: false, mensaje: e.getMessage() ],
-                status: 500
-            ]
-        }
-    }
+            
+            // Si este tipo de menú tiene platillos, incluirlo
+            if (dishes.size() > 0) {
+                return [
+                    uuid: type.uuid,
+                    name: type.name,
+                    dishes: dishes
+                ]
+            }
+            
+            // Si no tiene platillos directos, buscar en subtipos
+            def submenu = MenuType.findAllByStatusNotEqualsAndParentType(2, type).collect { subtype ->
+                def subdishes = Dish.findAllByStatusNotEqualsAndMenuType(2, subtype).collect { dish ->
+                    return [
+                        uuid: dish.uuid,
+                        name: dish.name,
+                        description: dish.description,
+                        cost: dish.cost / 100,
+                        status: dish.status,
+                        availableDishes: dish.availableDishes,
+                        availableDate: dish.availableDate
+                    ]
+                }
+                
+                if (subdishes.size() > 0) {
+                    return [
+                        uuid: subtype.uuid,
+                        name: subtype.name,
+                        dishes: subdishes
+                    ]
+                }
+                return null
+            }.findAll { it != null }
+            
+            if (submenu.size() > 0) {
+                return [
+                    uuid: type.uuid,
+                    name: type.name,
+                    submenu: submenu
+                ]
+            }
+            
+            return null
+        }.findAll { it != null }  // Filtrar tipos de menú sin platillos
 
-    def mapTipoMenu = { tipo, lista ->
-        def obj = [
-            uuid: tipo.uuid,
-            name: tipo.nombre
+        return [
+            resp: [success: true, data: lista],
+            status: 200
         ]
-        if( lista.size() > 0 ) {
-            if (lista[0].containsKey("descripcion")) {
-                obj.platillos = lista
+    } catch (e) {
+        return [
+            resp: [success: false, message: e.getMessage()],
+            status: 500
+        ]
+    }
+}
+
+    def mapMenuType = { type, list ->
+        def obj = [
+            uuid: type.uuid,
+            name: type.name
+        ]
+        if (list.size() > 0) {
+            if (list[0].containsKey("description")) {
+                obj.dishes = list
                 return obj
             }
-            obj.submenu = lista
+            obj.submenu = list
         }
-        return obj 
+        return obj
     }
 
-    def nuevoPlatillo( nombre, menuTipo, fechaDisponible, costo, descripcion, platillosDisponibles) {
-        try{
-            def tipoPrincipal
-            tipoPrincipal = TipoMenu.findByUuid(menuTipo)
+    def newDish(name, menuType, availableDate, cost, description, availableDishes) {
+        try {
+            def menuTypeObj = MenuType.findByUuid(menuType)
 
-            def estado = (fechaDisponible != null) ? 0 : 1
-            
-            def nuevo = new Platillo([
-                nombre:nombre, 
-                tipoMenu: tipoPrincipal,
-                fechaDisponible: fechaDisponible, 
-                costo:(costo * 100),
-                descripcion:descripcion, 
-                platillosDisponibles:platillosDisponibles,
-                status: estado
-            ]).save(flush:true, failOnError:true)
+            def status = (availableDate != null) ? 0 : 1
+
+            def newDish = new Dish([
+                name: name,
+                menuType: menuTypeObj,
+                availableDate: availableDate,
+                cost: (cost * 100),
+                description: description,
+                availableDishes: availableDishes,
+                status: status
+            ]).save(flush: true, failOnError: true)
+
             return [
-                resp: [ success: true, data: nuevo.uuid ],
+                resp: [success: true, data: newDish.uuid],
                 status: 200
             ]
-        }catch(e){ 
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }
     }
 
-    def informacionPlatillo( uuid ){
-        def platillo = Platillo.findByUuid(uuid)
-        if(!platillo) {
+    def dishInfo(uuid) {
+        def dish = Dish.findByUuid(uuid)
+        if (!dish) {
             return [
-                resp: [ success:false, mensaje: "El platillo no existe" ],
+                resp: [success: false, message: "Platillo no existe"],
                 status: 404
             ]
         }
-        if(platillo.status == 2){
+        if (dish.status == 2) {
             return [
-                resp: [ success:false, mensaje: "El platillo ha sido eliminado" ],
+                resp: [success: false, message: "El platillo ha sido eliminado"],
                 status: 404
             ]
         }
-        def subMenu = TipoMenu.findById(platillo.tipoMenu.id)
-        // def menu = TipoMenu.findById(submenu.tipoPrincipal.id)
 
-        def respuesta = [
-            uuid:platillo.uuid,
-            nombre:platillo.nombre, 
-            descripcion:platillo.descripcion, 
-            costo:platillo.costo, 
-            status:platillo.status,
-            platillosDisponibles:platillo.platillosDisponibles,
-            fechaDisponible: platillo.fechaDisponible,
-            subMenu: mapTipoMenu(subMenu,[])
+        def subMenu = MenuType.findById(dish.menuType.id)
+
+        def response = [
+            uuid: dish.uuid,
+            name: dish.name,
+            description: dish.description,
+            cost: dish.cost,
+            status: dish.status,
+            availableDishes: dish.availableDishes,
+            availableDate: dish.availableDate,
+            subMenu: mapMenuType(subMenu, [])
         ]
+
         return [
-            resp: [ success:true, data: respuesta ],
+            resp: [success: true, data: response],
             status: 200
         ]
     }
 
-    def editarPlatillo( nombre, menuTipo, fechaDisponible, costo, descripcion, platillosDisponibles, uuid ) {
-        try{
-            // select * from tipo_menu where uuid = UUID
-            def platillo = Platillo.findByUuid(uuid)
+    def editDish(name, menuType, availableDate, cost, description, availableDishes, uuid) {
+        try {
+            def dish = Dish.findByUuid(uuid)
 
-            if( !platillo ) {
+            if (!dish) {
                 return [
-                    resp: [ success: false, mensaje: "El platillo no existe" ],
+                    resp: [success: false, message: "El platillo no existe"],
                     status: 500
                 ]
             }
 
-            def menuNuevo = TipoMenu.findByUuid(menuTipo)
+            def newMenuType = MenuType.findByUuid(menuType)
 
-            if( !platillo ) {
+            if (!newMenuType) {
                 return [
-                    resp: [ success: false, mensaje: "El menu no existe" ],
+                    resp: [success: false, message: "El tipo de menú no existe"],
                     status: 500
                 ]
             }
 
-            platillo.nombre = nombre
-            platillo.tipoMenu = menuNuevo
-            platillo.fechaDisponible = fechaDisponible
-            platillo.costo = (costo * 100)
-            platillo.descripcion = descripcion
-            platillo.platillosDisponibles = platillosDisponibles
-            if(platillosDisponibles==0){
-                platillo.status=0
+            dish.name = name
+            dish.menuType = newMenuType
+            dish.availableDate = availableDate
+            dish.cost = (cost * 100)
+            dish.description = description
+            dish.availableDishes = availableDishes
+
+            if (availableDishes == 0) {
+                dish.status = 0
             }
-            if(platillosDisponibles>0 && platillo.status!=1){
-                platillo.status=1
+            if (availableDishes > 0 && dish.status != 1) {
+                dish.status = 1
             }
-            platillo.save()
+            dish.save()
 
             return [
-                resp: [ success: true ],
+                resp: [success: true],
                 status: 200
             ]
-        }catch(e){
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
-                status: 500
-            ]
-        } 
-    }
-
-    def editarEstatusPlatillo( estatus, uuid ) {
-        try{
-            def platillo = Platillo.findByUuid( uuid )
-            if( !platillo ) {
-                return [
-                    resp: [success:false, mensaje: "No se encontro el platillo"],
-                    status: 404
-                ]
-            }
-            if( platillo.status == 2){
-                return [
-                    resp: [success:false, mensaje: "El elemento esta eliminado"],
-                    status: 404
-                ]
-            }
-            platillo.status = estatus
-            platillo.save()
-            return [
-                resp: [success:true],
-                status: 200
-            ]
-        }catch(e){
-            return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }
     }
 
-    def paginarPlatillos( pagina, columnaOrden, orden, max, estatus, platillosdisponibles, query ){
-        try{
+    def editDishStatus(status, uuid) {
+        try {
+            def dish = Dish.findByUuid(uuid)
+            if (!dish) {
+                return [
+                    resp: [success: false, message: "El platillo no existe"],
+                    status: 404
+                ]
+            }
+            if (dish.status == 2) {
+                return [
+                    resp: [success: false, message: "El platillo ha sido eliminado"],
+                    status: 404
+                ]
+            }
+            dish.status = status
+            dish.save()
+            return [
+                resp: [success: true],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+
+    def paginateDishes(page, orderColumn, order, max, status, availableDishes, query) {
+        try {
             println "------"
-            println(platillosdisponibles as Boolean)
-            def offset = pagina * max - max
-            def list = Platillo.createCriteria().list{
-                if( estatus || estatus==0) {
-                    eq("status", estatus)
+            println(availableDishes as Boolean)
+            def offset = page * max - max
+
+            def list = Dish.createCriteria().list {
+                if (status || status == 0) {
+                    eq("status", status)
                 }
-                if( platillosdisponibles && platillosdisponibles==-1 ) {
+                if (availableDishes && availableDishes == -1) {
                     println("-1")
-                    eq("platillosDisponibles", platillosdisponibles)
+                    eq("availableDishes", availableDishes)
                 }
-                if( platillosdisponibles && platillosdisponibles==0 ) {
+                if (availableDishes && availableDishes == 0) {
                     println("0")
-                    eq("platillosDisponibles", platillosdisponibles)
+                    eq("availableDishes", availableDishes)
                 }
-                if( platillosdisponibles && platillosdisponibles>0 ) {
+                if (availableDishes && availableDishes > 0) {
                     println(">0")
-                    gt("platillosDisponibles", 0)
+                    gt("availableDishes", 0)
                 }
                 ne("status", 2)
-                if( query ) {
+                if (query) {
                     or {
-                        like("nombre", "%${query}%")
-                        like("descripcion", "%${query}%")
+                        like("name", "%${query}%")
+                        like("description", "%${query}%")
                     }
                 }
                 firstResult(offset)
                 maxResults(max)
-                order( columnaOrden, orden )
-            }.collect{platillo -> 
-                def subMenu = TipoMenu.findById(platillo.tipoMenu.id)
-                // def menu = TipoMenu.findById(submenu.tipoPrincipal.id)
+                order(orderColumn, order)
+            }.collect { dish ->
+                def subMenu = MenuType.findById(dish.menuType.id)
 
                 return [
-                    uuid:platillo.uuid,
-                    nombre:platillo.nombre, 
-                    descripcion:platillo.descripcion, 
-                    costo:platillo.costo, 
-                    status:platillo.status,
-                    platillosDisponibles:platillo.platillosDisponibles,
-                    fechaDisponible: platillo.fechaDisponible,
-                    subMenu: mapTipoMenu(subMenu,[])
+                    uuid: dish.uuid,
+                    name: dish.name,
+                    description: dish.description,
+                    cost: dish.cost,
+                    status: dish.status,
+                    availableDishes: dish.availableDishes,
+                    availableDate: dish.availableDate,
+                    subMenu: mapMenuType(subMenu, [])
                 ]
             }
+
             return [
-                resp: [ success: true, data: list ],
+                resp: [success: true, data: list],
                 status: 200
             ]
-        }catch(e){
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }

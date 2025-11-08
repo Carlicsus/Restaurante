@@ -10,10 +10,15 @@ class CustomerOrder {
     // Relación con User
     static belongsTo = [user: User]
 
+    static hasMany = [orderItems: OrderItem]
+
+    static hasOne = [sale: Sale]
+
+    
     static constraints = {
         uuid size: 32..32, unique: true
         user nullable: false
-        status inList: ["Pending", "Waiting", "Preparing", "Finished"], blank: false
+        status inList: ["Pending", "Waiting", "Preparing", "Finished", "Cancelled"], blank: false
         lastUpdated nullable: true
     }
 

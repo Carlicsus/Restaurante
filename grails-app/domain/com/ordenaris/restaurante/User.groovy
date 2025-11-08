@@ -14,7 +14,10 @@ class User {
     Date dateCreated
     Date lastUpdated
 
+    static hasMany = [customerOrders: CustomerOrder]
+
     static constraints = {
+
         uuid size: 32..32, unique: true
         name maxSize: 50, blank: false
         lastName maxSize: 60, blank: false

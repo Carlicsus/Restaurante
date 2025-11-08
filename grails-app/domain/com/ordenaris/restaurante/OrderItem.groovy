@@ -10,12 +10,12 @@ class OrderItem {
     Date lastUpdated
 
     // Relaciones
-    static belongsTo = [customerOrder: CustomerOrder, platillo: Platillo]
+    static belongsTo = [customerOrder: CustomerOrder, dish: Dish]  
 
     static constraints = {
         uuid size: 32..32, unique: true
         customerOrder nullable: false
-        platillo nullable: false
+        dish nullable: false
         unitPrice min: 0, max: 60000, nullable: false
         quantity min: 1, nullable: false
         status nullable: false
@@ -25,14 +25,15 @@ class OrderItem {
     static mapping = {
         uuid index: "order_item_uuid_idx"
         customerOrder index: "order_item_customer_order_idx"
-        platillo index: "order_item_platillo_idx"
+        dish index: "order_item_dish_idx"
         version false
         dateCreated column: "date_created"
         lastUpdated column: "last_updated"
         unitPrice column: "unit_price"
+        dish column: "dish_id"
     }
 
     String toString() {
-        return "${platillo.nombre} x${quantity} - \$${unitPrice}"
+        return "${dish.nombre} x${quantity} - \$${unitPrice}"
     }
 }

@@ -1,21 +1,21 @@
-FROM eclipse-temurin:8-jdk
+    FROM eclipse-temurin:8-jdk
 
-RUN apt-get update && apt-get install -y unzip curl && apt-get clean
+    RUN apt-get update && apt-get install -y unzip curl && apt-get clean
 
-RUN curl -L https://github.com/grails/grails-core/releases/download/v3.3.5/grails-3.3.5.zip -o /tmp/grails.zip \
-    && unzip /tmp/grails.zip -d /opt \
-    && rm /tmp/grails.zip
+    RUN curl -L https://github.com/grails/grails-core/releases/download/v3.3.5/grails-3.3.5.zip -o /tmp/grails.zip \
+        && unzip /tmp/grails.zip -d /opt \
+        && rm /tmp/grails.zip
 
-ENV GRAILS_HOME=/opt/grails-3.3.5
-ENV PATH="$PATH:$GRAILS_HOME/bin"
+    ENV GRAILS_HOME=/opt/grails-3.3.5
+    ENV PATH="$PATH:$GRAILS_HOME/bin"
 
-WORKDIR /app
+    WORKDIR /app
 
-COPY . .
+    COPY . .
 
-RUN grails compile
+    RUN grails compile
 
-EXPOSE 8080
+    EXPOSE 8080
 
-CMD grails run-app --stacktrace
+    CMD grails run-app --stacktrace
 

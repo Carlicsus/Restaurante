@@ -49,7 +49,7 @@ services:
       #Se especifica un volumen para que los node_modules no choquen entre si
       - exclude:/usr/local/apps/myapp/dev/node_modules/
     ports:
-      - "4020:4020"
+      - "4200:4200"
 
   #Configuracion para el docker "nginx" este se encargara de hacer "vivir" el back y el front en un mismo sitio
   nginx:

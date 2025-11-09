@@ -5,10 +5,10 @@ import grails.converters.*
 
 class PlatilloController {
     static responseFormats = ['json', 'xml']
-    def dishService  
+    def DishService  
 
-    def listDishes() {  
-        def response = dishService.listDishes()  
+    def listDishes() {
+        def response = DishService.listDishes()
         return respond(response.resp, status: response.status)
     }
 
@@ -75,7 +75,7 @@ class PlatilloController {
             availableDishes = data.availableDishes
         }
 
-        def response = dishService.newDish( 
+        def response = DishService.newDish(
             data.name,  
             data.menuType,  
             availableDate,  
@@ -146,7 +146,7 @@ class PlatilloController {
             availableDishes = data.availableDishes
         }
 
-        def response = dishService.editDish(
+        def response = DishService.editDish(
             data.name,
             data.menuType,
             availableDate,
@@ -159,7 +159,7 @@ class PlatilloController {
     }
 
     def editDishStatus() {
-        def response = dishService.editDishStatus(params.status, params.uuid)
+        def response = DishService.editDishStatus(params.status, params.uuid)
         return respond(response.resp, status: response.status)
     }
 
@@ -191,8 +191,8 @@ class PlatilloController {
         if (!(params.max.toInteger() in [2, 5, 10, 20, 50, 100])) {
             return respond([success: false, mensaje: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
         }
-        println(params.availableDishes?.toInteger())  
-        def response = dishService.paginateDishes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.availableDishes?.toInteger(), params.query)
+        println(params.availableDishes?.toInteger())
+        def response = DishService.paginateDishes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.availableDishes?.toInteger(), params.query)
         return respond(response.resp, status: response.status)
     }
 }

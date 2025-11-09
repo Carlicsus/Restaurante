@@ -5,10 +5,10 @@ import grails.converters.*
 
 class MenuController {
     static responseFormats = ['json', 'xml']
-    def menuService
+    def MenuService
 
     def listTypes() {
-        def response = menuService.listTypes()
+        def response = MenuService.listTypes()
         println response
         return respond(response.resp, status: response.status)
     }
@@ -27,7 +27,7 @@ class MenuController {
         if (data.parentType && data.parentType.size() != 32) {
             return respond([success: false, mensaje: "El parentType es invalido"], status: 400)
         }
-        def response = menuService.newType(data.name, data.parentType)
+        def response = MenuService.newType(data.name, data.parentType)
         return respond(response.resp, status: response.status)
     }
 
@@ -47,7 +47,7 @@ class MenuController {
             return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
         }
 
-        def response = menuService.editType(data.name, params.uuid)
+        def response = MenuService.editType(data.name, params.uuid)
         return respond(response.resp, status: response.status)
     }
 
@@ -55,12 +55,12 @@ class MenuController {
         if (params.uuid.size() != 32) {
             return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
         }
-        def response = menuService.typeInfo(params.uuid)
+        def response = MenuService.typeInfo(params.uuid)
         return respond(response.resp, status: response.status)
     }
 
     def editTypeStatus() {
-        def response = menuService.editTypeStatus(params.status, params.uuid)
+        def response = MenuService.editTypeStatus(params.status, params.uuid)
         return respond(response.resp, status: response.status)
     }
 
@@ -96,7 +96,7 @@ class MenuController {
             return respond([success: false, mensaje: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
         }
 
-        def response = menuService.paginateTypes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.query)
+        def response = MenuService.paginateTypes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.query)
         return respond(response.resp, status: response.status)
     }
 }

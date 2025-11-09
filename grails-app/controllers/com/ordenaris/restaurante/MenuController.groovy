@@ -1,101 +1,102 @@
 package com.ordenaris.restaurante
 
-
 import grails.rest.*
 import grails.converters.*
 
 class MenuController {
-	static responseFormats = ['json', 'xml']
+    static responseFormats = ['json', 'xml']
     def MenuService
 
-
-    def listaTipos() {
-        def respuesta = MenuService.listaTipos()
-        println respuesta
-        return respond( respuesta.resp, status: respuesta.status )
+    def listTypes() {
+        def response = MenuService.listTypes()
+        println response
+        return respond(response.resp, status: response.status)
     }
-    def nuevoTipo() {
+
+    def newType() {
         def data = request.JSON
-        if( !data.nombre ) {
-            return respond([success:false, mensaje: "El nombre es obligatorio"], status: 400)
+        if (!data.name) {
+            return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
         }
-        if( data.nombre.soloNumeros() ) {
-            return respond([success:false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
+        if (data.name.soloNumeros()) {
+            return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
         }
-        if( data.nombre.size() > 80 ) {
-            return respond([success:false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+        if (data.name.size() > 80) {
+            return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
         }
-        if( data.padre && data.padre.size() != 32 ) {
-            return respond([success:false, mensaje: "El padre es invalido"], status: 400)
+        if (data.parentType && data.parentType.size() != 32) {
+            return respond([success: false, mensaje: "El parentType es invalido"], status: 400)
         }
-        def respuesta = MenuService.nuevoTipo(data.nombre, data.padre)
-        return respond( respuesta.resp, status: respuesta.status )
+        def response = MenuService.newType(data.name, data.parentType)
+        return respond(response.resp, status: response.status)
     }
-    def editarTipo(){
+
+    def editType() {
         def data = request.JSON
 
-        if( !data.nombre ) {
-            return respond([success:false, mensaje: "El nombre es obligatorio"], status: 400)
+        if (!data.name) {
+            return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
         }
-        if( data.nombre.soloNumeros() ) {
-            return respond([success:false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
+        if (data.name.soloNumeros()) {
+            return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
         }
-        if( data.nombre.size() > 80 ) {
-            return respond([success:false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+        if (data.name.size() > 80) {
+            return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
         }
-        if( params.uuid.size() != 32 ) {
-            return respond([success:false, mensaje: "El uuid es invalido"], status: 400)
+        if (params.uuid.size() != 32) {
+            return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
         }
 
-        def respuesta = MenuService.editarTipo( data.nombre, params.uuid )
-        return respond(respuesta.resp, status: respuesta.status)
+        def response = MenuService.editType(data.name, params.uuid)
+        return respond(response.resp, status: response.status)
     }
 
-    def informacionTipo() {
-        if( params.uuid.size() != 32 ) {
-            return respond([success:false, mensaje: "El uuid es invalido"], status: 400)
+    def typeInfo() {
+        if (params.uuid.size() != 32) {
+            return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
         }
-        def respuesta = MenuService.informacionTipo( params.uuid )
-        return respond(respuesta.resp, status: respuesta.status)
+        def response = MenuService.typeInfo(params.uuid)
+        return respond(response.resp, status: response.status)
     }
 
-    def editarEstatusTipo(){
-        def respuesta = MenuService.editarEstatusTipo( params.estatus, params.uuid )
-        return respond( respuesta.resp, status: respuesta.status )
+    def editTypeStatus() {
+        def response = MenuService.editTypeStatus(params.status, params.uuid)
+        return respond(response.resp, status: response.status)
     }
-    def paginarTipos(){
-        if( !params.pagina ) {
-            return respond([success:false, mensaje: "La pagina no puede ir vacio"], status: 400)
+
+    def paginateTypes() {
+        if (!params.page) {
+            return respond([success: false, mensaje: "La pagina no puede ir vacio"], status: 400)
         }
-        if( !params.pagina.soloNumeros() ) {
-            return respond([success:false, mensaje: "La pagina debe contener solo numeros"], status: 400)
-        }
-        
-        if( !params.columnaOrden ) {
-            return respond([success:false, mensaje: "El columnaOrden no puede ir vacio"], status: 400)
-        }
-        if( !(params.columnaOrden in ["nombre", "status", "dateCreated"]) ) {
-            return respond([success:false, mensaje: "El columnaOrden solo puede ser: nombre, status, dateCreated"], status: 400)
+        if (!params.page.soloNumeros()) {
+            return respond([success: false, mensaje: "La pagina debe contener solo numeros"], status: 400)
         }
 
-        if( !params.orden ) {
-            return respond([success:false, mensaje: "El orden no puede ir vacio"], status: 400)
+        if (!params.orderColumn) {
+            return respond([success: false, mensaje: "El orderColumn no puede ir vacio"], status: 400)
         }
-        if( !(params.orden in ["asc", "desc"]) ) {
-            return respond([success:false, mensaje: "El orden solo puede ser: asc, desc"], status: 400)
+        if (!(params.orderColumn in ["name", "status", "dateCreated"])) {
+            return respond([success: false, mensaje: "El orderColumn solo puede ser: name, status, dateCreated"], status: 400)
         }
 
-        if( !params.max ) {
-            return respond([success:false, mensaje: "El max no puede ir vacio"], status: 400)
+        if (!params.order) {
+            return respond([success: false, mensaje: "El order no puede ir vacio"], status: 400)
         }
-        if( !params.max.soloNumeros() ) {
-            return respond([success:false, mensaje: "El max debe contener solo numeros"], status: 400)
+        if (!(params.order in ["asc", "desc"])) {
+            return respond([success: false, mensaje: "El order solo puede ser: asc, desc"], status: 400)
         }
-        if( !(params.max.toInteger() in [ 2, 5, 10, 20, 50, 100 ]) ) {
-            return respond([success:false, mensaje: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
+
+        if (!params.max) {
+            return respond([success: false, mensaje: "El max no puede ir vacio"], status: 400)
         }
-        
-        def respuesta = MenuService.paginarTipos( params.pagina.toInteger(), params.columnaOrden, params.orden, params.max.toInteger(), params.estatus?.toInteger(), params.query )
-        return respond( respuesta.resp, status: respuesta.status )
+        if (!params.max.soloNumeros()) {
+            return respond([success: false, mensaje: "El max debe contener solo numeros"], status: 400)
+        }
+        if (!(params.max.toInteger() in [2, 5, 10, 20, 50, 100])) {
+            return respond([success: false, mensaje: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
+        }
+
+        def response = MenuService.paginateTypes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.query)
+        return respond(response.resp, status: response.status)
     }
 }

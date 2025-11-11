@@ -1,4 +1,21 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# SYSTEM FILES (ambos proyectos)
+Thumbs.db
+.DS_Store
+
+# BACKEND (grails)
+.gradle
+build/
+out/
+.idea
+*.iml
+*.ipr
+*.iws
+.project
+.settings
+.classpath
+
+# FRONTEND (angular)
 
 # Compiled output
 /dist
@@ -37,6 +54,4 @@ yarn-error.log
 testem.log
 /typings
 
-# System files
-.DS_Store
-Thumbs.db
+.env

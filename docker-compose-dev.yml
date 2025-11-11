@@ -1,0 +1,78 @@
+
+version: '3.9'
+
+services:    
+
+  mysql5:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_TCP_PORT: ${MYSQL_PORT}
+    ports:
+      - "${MYSQL_PORT}:${MYSQL_PORT}"
+    volumes: 
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: dockerfile.dev
+    ports:
+      - "8080:8080"
+    volumes:
+    - ./backend/grails-app:/app/grails-app
+    - ./backend/src:/app/src
+    - ./backend/conf:/app/conf
+    environment:
+      # Variables para conectar a MySQL
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - mysql5
+    
+  
+
+  #Configuracion para el docker "frontend"
+  frontend:
+    #Este docker sera construido en base a un archivo Dockerfile ubicado en la raiz de la carpeta "/frontend""
+    build:
+      context: ./frontend
+      dockerfile: dockerfile.dev
+    environment:
+      - NODE_OPTIONS=--max_old_space_size=4096
+    volumes:
+      #Se especifica un volumen para que los cambios en el anfitrion sean reflejados tambien en la ubicacion del proyecto en docker
+      - ./frontend:/usr/local/apps/myapp/dev
+      #Se especifica un volumen para que los node_modules no choquen entre si
+      - exclude:/usr/local/apps/myapp/dev/node_modules/
+    ports:
+      - "4200:4200"
+
+  #Configuracion para el docker "nginx" este se encargara de hacer "vivir" el back y el front en un mismo sitio
+  nginx:
+    #Se especifica que este docker hara uso del docker "backend" y "frontend" asi que debe de esperar su construcción
+    depends_on:
+      - frontend
+      - backend
+    #Este docker debe de reciniciarse si hay un error o un reincio en el host
+    restart: always
+    #Se construira en base a un Dockerfile ubicado en la raiz de la carpeta "/nginx" (Dentro de .config viene la configuracion usando el docker "frontend y backend")
+    build:
+      context: ./nginx
+      dockerfile: dockerfile.dev
+    #Se enruta el puerto en el que corre nginx al 3050 del anfitrion
+    ports:
+      - "3050:80"
+
+volumes:
+  #Estos son volumenes nombrados que son usados en la construccion de los dockers anteriores
+  exclude:
+  node_modules_front:
+  mysql_data:

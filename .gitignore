@@ -1,5 +1,9 @@
+
+# SYSTEM FILES (ambos proyectos)
 Thumbs.db
 .DS_Store
+
+# BACKEND (grails)
 .gradle
 build/
 out/
@@ -10,5 +14,44 @@ out/
 .project
 .settings
 .classpath
-/grails-app/conf/application.yml
 
+# FRONTEND (angular)
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+.env

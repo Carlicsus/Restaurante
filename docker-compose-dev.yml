@@ -1,17 +1,21 @@
 
 version: '3.9'
+
 services:    
 
   mysql5:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 12345
-      MYSQL_DATABASE: grails_db
-      MYSQL_USER: grails
-      MYSQL_PASSWORD: 12345
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_TCP_PORT: ${MYSQL_PORT}
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT}:${MYSQL_PORT}"
+    volumes: 
+      - mysql_data:/var/lib/mysql
 
   backend:
     build: 
@@ -25,11 +29,11 @@ services:
     - ./backend/conf:/app/conf
     environment:
       # Variables para conectar a MySQL
-      DB_HOST: mysql5
-      DB_PORT: 3306
-      DB_NAME: grails_db
-      DB_USER: grails
-      DB_PASS: 12345
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     depends_on:
       - mysql5
     
@@ -71,3 +75,4 @@ volumes:
   #Estos son volumenes nombrados que son usados en la construccion de los dockers anteriores
   exclude:
   node_modules_front:
+  mysql_data:

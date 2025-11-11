@@ -4,41 +4,41 @@ class UrlMappings {
 
     static mappings = {
         group "/menu", {
-            group "/tipo", {
-                post "/nuevo"(controller: "menu", action: "nuevoTipo")
-                get "/lista"(controller: "menu", action: "listaTipos")
-                get "/ver"(controller: "menu", action: "paginarTipos")
+            group "/type", {
+                post "/new"(controller: "menu", action: "newType")
+                get "/list"(controller: "menu", action: "listTypes")
+                get "/view"(controller: "menu", action: "paginateTypes")
                 group "/$uuid", {
-                    get "/informacion"(controller: "menu", action: "informacionTipo")
-                    patch "/editar"(controller: "menu", action: "editarTipo")
-                    patch "/activar"(controller: "menu", action: "editarEstatusTipo"){
-                        estatus = 1
+                    get "/info"(controller: "menu", action: "typeInfo")  
+                    patch "/edit"(controller: "menu", action: "editType")  
+                    patch "/activate"(controller: "menu", action: "editTypeStatus"){  
+                        status = 1  
                     }
-                    patch "/desactivar"(controller: "menu", action: "editarEstatusTipo") {
-                        estatus = 0
+                    patch "/deactivate"(controller: "menu", action: "editTypeStatus") {  
+                        status = 0  
                     }
-                    delete "/eliminar"(controller: "menu", action: "editarEstatusTipo") {
-                        estatus = 2
+                    delete "/delete"(controller: "menu", action: "editTypeStatus") {
+                        status = 2
                     }
                 }
             }
         }
 
-        group "/platillo", {
-            post "/nuevo"(controller: "platillo", action: "nuevoPlatillo")
-            get "/lista"(controller: "platillo", action: "listaPlatillos")
-            get "/ver"(controller: "platillo", action: "paginarPlatillos")
+        group "/dish", {  
+            post "/new"(controller: "platillo", action: "newDish")  
+            get "/list"(controller: "platillo", action: "listDishes")  
+            get "/view"(controller: "platillo", action: "paginateDishes")  
             group "/$uuid", {
-                get "/informacion"(controller: "platillo", action: "informacionPlatillo")
-                patch "/editar"(controller: "platillo", action: "editarPlatillo")
-                patch "/activar"(controller: "platillo", action: "editarEstatusPlatillo"){
-                    estatus = 1
+                get "/info"(controller: "platillo", action: "dishInfo")  
+                patch "/edit"(controller: "platillo", action: "editDish")  
+                patch "/activate"(controller: "platillo", action: "editDishStatus"){  
+                    status = 1 
                 }
-                patch "/desactivar"(controller: "platillo", action: "editarEstatusPlatillo") {
-                    estatus = 0
+                patch "/deactivate"(controller: "platillo", action: "editDishStatus") {  
+                    status = 0
                 }
-                delete "/eliminar"(controller: "platillo", action: "editarEstatusPlatillo") {
-                    estatus = 2
+                delete "/delete"(controller: "platillo", action: "editDishStatus") {
+                    status = 2
                 }
             }
         }
@@ -47,4 +47,5 @@ class UrlMappings {
         "500"(view: '/error')
         "404"(view: '/notFound')
     }
+
 }

@@ -1,7 +1,7 @@
 package restaurante_carlos
 
-import com.ordenaris.restaurante.TipoMenu
-import com.ordenaris.restaurante.Platillo
+import com.ordenaris.restaurante.MenuType
+import com.ordenaris.restaurante.Dish
 import java.util.regex.*
 class BootStrap {
 
@@ -13,12 +13,12 @@ class BootStrap {
             return match.matches()
         }
 
-        if( TipoMenu.count() == 0 ) {
-            new TipoMenu([ nombre: "Desayuno" ]).save(flush:true)
-            new TipoMenu([ nombre: "Comida" ]).save(flush:true)
-            new TipoMenu([ nombre: "Especiales" ]).save(flush:true)
-            new TipoMenu([ nombre: "Postres" ]).save(flush:true)
-            new TipoMenu([ nombre: "Bebidas" ]).save(flush:true)
+        if( MenuType.count() == 0 ) {
+            new MenuType([ name: "Desayuno" ]).save(flush:true)
+            new MenuType([ name: "Comida" ]).save(flush:true)
+            new MenuType([ name: "Especiales" ]).save(flush:true)
+            new MenuType([ name: "Postres" ]).save(flush:true)
+            new MenuType([ name: "Bebidas" ]).save(flush:true)
         }
 
         

@@ -5,164 +5,163 @@ import grails.gorm.transactions.Transactional
 @Transactional
 class MenuService {
 
-    def listaTipos() {
-        try{
-            // select * from tipo_menu;
-            // def list = TipoMenu.list();
+    def listTypes() {
+        try {
+            // select * from menu_type;
+            // def list = MenuType.list();
 
-            // select * from tipo_menu where status = 1 or status = 0;
-            // select * from tipo_menu where status != 2;
-            // select * from tipo_menu where id_principal = null and status != 2;
-            def list =TipoMenu.findAllByStatusNotEqualsAndTipoPrincipalIsNull(2);
+            // select * from menu_type where status = 1 or status = 0;
+            // select * from menu_type where status != 2;
+            // select * from menu_type where parent_type_id = null and status != 2;
+            def list = MenuType.findAllByStatusNotEqualsAndParentTypeIsNull(2)
 
-            def lista = list.collect{ tipo ->
-                def submenu = TipoMenu.findAllByStatusNotEqualsAndTipoPrincipal(2, tipo).collect{ subtipo ->
-                    return mapTipoMenu(subtipo, [])
+            def lista = list.collect { type ->
+                def submenu = MenuType.findAllByStatusNotEqualsAndParentType(2, type).collect { subtype ->
+                    return mapMenuType(subtype, [])
                 }
-                return mapTipoMenu( tipo, submenu )
+                return mapMenuType(type, submenu)
             }
             return [
-                resp: [ success: true, data: lista ],
+                resp: [success: true, data: lista],
                 status: 200
             ]
-        }catch(e){
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }
     }
 
-    def mapTipoMenu = { tipo, lista ->
+    def mapMenuType = { type, list ->
         def obj = [
-            name: tipo.nombre,
-            status: tipo.status,
-            uuid: tipo.uuid,
+            name: type.name,
+            status: type.status,
+            uuid: type.uuid,
         ]
-        if( lista.size() > 0 ) {
-            obj.submenu = lista
+        if (list.size() > 0) {
+            obj.submenu = list
         }
-        return obj 
+        return obj
     }
 
-    def nuevoTipo( nombre, padre ) {
-        try{
-            def tipoPrincipal
-            if( padre ) {
-                tipoPrincipal = TipoMenu.findByUuid(padre)
+    def newType(name, parentType) {
+        try {
+            def parentMenuType
+            if (parentType) {
+                parentMenuType = MenuType.findByUuid(parentType)
             }
-            def nuevo = new TipoMenu([nombre:nombre, tipoPrincipal: tipoPrincipal]).save(flush:true, failOnError:true)
+            def newType = new MenuType([name: name, parentType: parentMenuType]).save(flush: true, failOnError: true)
             return [
-                resp: [ success: true, data: nuevo.uuid ],
+                resp: [success: true, data: newType.uuid],
                 status: 200
             ]
-        }catch(e){ 
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }
     }
 
-    def editarTipo( nombre, uuid ) {
-        try{
-            // select * from tipo_menu where uuid = UUID
-            def tipoMenu = TipoMenu.findByUuid(uuid)
-            println tipoMenu
+    def editType(name, uuid) {
+        try {
+            // select * from menu_type where uuid = UUID
+            def menuType = MenuType.findByUuid(uuid)
+            println menuType
 
-            if( !tipoMenu ) {
+            if (!menuType) {
                 return [
-                    resp: [ success: false, mensaje: "El tipo menu no existe" ],
+                    resp: [success: false, message: "Menu tipo no encontrado"],
                     status: 500
                 ]
             }
 
-            tipoMenu.nombre = nombre
-            tipoMenu.save()
+            menuType.name = name
+            menuType.save()
             return [
-                resp: [ success: true ],
+                resp: [success: true],
                 status: 200
             ]
-        }catch(e){
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
-        } 
+        }
     }
 
-    def informacionTipo( uuid ){
-        def menu = TipoMenu.findByUuid(uuid)
-        def lista = []
-        if(!menu) {
+    def typeInfo(uuid) {
+        def menu = MenuType.findByUuid(uuid)
+        def list = []
+        if (!menu) {
             return [
-                resp: [ success:false, mensaje: "El menu no existe" ],
+                resp: [success: false, message: "Menu tipo no encontrado"],
                 status: 404
             ]
         }
-        if(menu.status == 2){
+        if (menu.status == 2) {
             return [
-                resp: [ success:false, mensaje: "El menu ha sido eliminado" ],
+                resp: [success: false, message: "Menu tipo ha sido eliminado"],
                 status: 404
             ]
         }
-        if( !menu.tipoPrincipal ) {
-            lista = TipoMenu.findAllByStatusNotEqualsAndTipoPrincipal(2, menu).collect{ subtipo -> mapTipoMenu( subtipo, [] ) }
+        if (!menu.parentType) {
+            list = MenuType.findAllByStatusNotEqualsAndParentType(2, menu).collect { subtype -> mapMenuType(subtype, []) }
         }
-        def respuesta = mapTipoMenu( menu, lista )
+        def response = mapMenuType(menu, list)
         return [
-            resp: [ success:true, data: respuesta ],
+            resp: [success: true, data: response],
             status: 200
         ]
     }
 
-    def editarEstatusTipo( estatus, uuid ) {
-        try{
-            def menu = TipoMenu.findByUuid( uuid )
-            if( !menu ) {
+    def editTypeStatus(status, uuid) {
+        try {
+            def menu = MenuType.findByUuid(uuid)
+            if (!menu) {
                 return [
-                    resp: [success:false, mensaje: "No se encontro el menu"],
+                    resp: [success: false, message: "Menu tipo no encontrado"],
                     status: 500
                 ]
             }
-            menu.status = estatus
+            menu.status = status
             menu.save()
             return [
-                resp: [success:true],
+                resp: [success: true],
                 status: 200
             ]
-        }catch(e){
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }
     }
 
-    def paginarTipos( pagina, columnaOrden, orden, max, estatus, query ){
-        try{
-
-            def offset = pagina * max - max
-            def list = TipoMenu.createCriteria().list{
-                isNull("tipoPrincipal")
-                if( estatus ) {
-                    eq("status", estatus)
+    def paginateTypes(page, orderColumn, order, max, status, query) {
+        try {
+            def offset = page * max - max
+            def list = MenuType.createCriteria().list {
+                isNull("parentType")
+                if (status) {
+                    eq("status", status)
                 }
                 ne("status", 2)
-                if( query ) {
-                    like("nombre", "%${query}%")
+                if (query) {
+                    like("name", "%${query}%")
                 }
                 firstResult(offset)
                 maxResults(max)
-                order( columnaOrden, orden )
-            }.collect{tipo -> mapTipoMenu(tipo, [])}
+                order(orderColumn, order)
+            }.collect { type -> mapMenuType(type, []) }
             return [
-                resp: [ success: true, data: list ],
+                resp: [success: true, data: list],
                 status: 200
             ]
-        }catch(e){
+        } catch (e) {
             return [
-                resp: [ success: false, mensaje: e.getMessage() ],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }

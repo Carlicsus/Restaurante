@@ -6,8 +6,6 @@ import grails.converters.*
 class FinanceController {
     static responseFormats = ['json', 'xml']
     def financeService
-
-    // =================== MANEJO DE NUEVOS REGISTROS DE USUARIO ===================
     
     def getPendingUserRegistrations() {
         def response = financeService.getPendingUserRegistrations()
@@ -55,7 +53,6 @@ class FinanceController {
         return respond(response.resp, status: response.status)
     }
 
-    // =================== MOSTRAR DEUDAS DE USUARIOS ===================
     
     def getAllUserDebts() {
         def response = financeService.getAllUserDebts()

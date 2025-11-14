@@ -44,13 +44,11 @@ class UrlMappings {
         }
 
         group "/finance", {
-            // Manejo de registros de usuario
+
             get "/user-registrations/pending"(controller:"finance", action: "getPendingUserRegistrations")
             get "/user-registrations/$userUuid/details"(controller: "finance", action: "getUserRegistrationDetails")
             put "/user-registrations/approve"(controller: "finance", action: "approveUserRegistration")
             put "/user-registrations/reject"(controller: "finance", action: "rejectUserRegistration")
-
-            // Mostrar deudas de usuarios
             get "/debts/all"(controller: "finance", action: "getAllUserDebts")
             get "/debts/with-debts"(controller: "finance", action: "getUsersWithDebts")
             get "/debts/$userUuid/details"(controller: "finance", action: "getUserDebtDetails")

@@ -4,8 +4,6 @@ import grails.gorm.transactions.Transactional
 
 @Transactional
 class FinanceService {
-
-    // =================== MANEJO DE NUEVOS REGISTROS DE USUARIO ===================
     
     def getPendingUserRegistrations() {
         try {
@@ -160,7 +158,6 @@ class FinanceService {
         }
     }
 
-    // =================== MOSTRAR DEUDAS DE USUARIOS ===================
     
     def getAllUserDebts() {
         try {
@@ -382,8 +379,6 @@ class FinanceService {
             ]
         }
     }
-
-    // =================== MÉTODOS AUXILIARES ===================
     
     private Integer calculateDaysSince(Date date) {
         if (!date) return 0

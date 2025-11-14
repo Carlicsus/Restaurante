@@ -43,6 +43,19 @@ class UrlMappings {
             }
         }
 
+        group "/sale", {  
+            get "/list"(controller: "sale", action: "listSales") 
+            get "/date"(controller: "sale", action: "getSalesByDateRange")
+            get "/$customerOrderId"(controller: "sale", action: "getSalesByCustomerOrder")
+            group "/$uuid", {
+                get "/info"(controller: "sale", action: "saleInfo")  
+                patch "/edit"(controller: "sale", action: "updateSale")  
+                patch "/payed"(controller: "sale", action: "updateSaleStatus"){  
+                    status = 1 
+                }
+            }
+        }
+
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')
         "404"(view: '/notFound')

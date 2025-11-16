@@ -34,6 +34,6 @@ class OrderItem {
     }
 
     String toString() {
-        return "${dish.nombre} x${quantity} - \$${unitPrice}"
+        return "${dish.name} x${quantity} - \$${unitPrice}"
     }
 }

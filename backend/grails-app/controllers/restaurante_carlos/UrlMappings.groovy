@@ -43,6 +43,33 @@ class UrlMappings {
             }
         }
 
+        group "/order", {
+            post "/newOrder"(controller: "ordersModule", action: "newOrder")
+            get "/listOrders"(controller: "ordersModule", action: "listOrders")
+            group "/$uuid", {
+                get "/info"(controller: "ordersModule", action: "orderInfo")
+                //patch "/edit"(controller: "ordersModule", action: "editOrder")
+                group "/edit/$uuidDish",{
+                    patch "/dish"(controller: "ordersModule", action: "editOrder")
+                }
+                patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
+                    status = "Cancelled"
+                }
+                patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
+                    status = "Preparing"
+                }
+                patch "/finish"(controller: "ordersModule", action: "editOrderStatus") {
+                    status = "Finished"
+                }
+                patch "/wait"(controller: "ordersModule", action: "editOrderStatus") {
+                    status = "Waiting"
+                }
+                patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
+                    status = "Pending"
+                }
+            }
+        }
+
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')
         "404"(view: '/notFound')

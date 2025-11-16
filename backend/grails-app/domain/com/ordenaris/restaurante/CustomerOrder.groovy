@@ -19,6 +19,7 @@ class CustomerOrder {
         uuid size: 32..32, unique: true
         user nullable: false
         status inList: ["Pending", "Waiting", "Preparing", "Finished", "Cancelled"], blank: false
+        sale nullable: true
         lastUpdated nullable: true
     }
 

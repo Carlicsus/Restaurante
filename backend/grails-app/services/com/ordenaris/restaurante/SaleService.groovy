@@ -22,7 +22,6 @@ class SaleService {
             def newSale = new Sale([
                 total: total,
                 customerOrderId: customerOrderId,
-                status: status ?: "ACTIVE"
             ]).save(flush: true, failOnError: true)
             
             return [
@@ -73,7 +72,6 @@ class SaleService {
             def list = Sale.createCriteria().list {
                 eq("customerOrderId", customerOrderId)
                 between("dateCreated", startDate, endDate)
-                ne("status", "DELETED")
                 order("dateCreated", "desc")
             }.collect { sale -> mapSale(sale) }
             
@@ -89,16 +87,22 @@ class SaleService {
         }
     }
 
-    def getSalesByCustomerOrder(customerOrderId) {
+    def getSalesByCustomerOrder(customerOrderId, type) {
         try {
-            def list = Sale.findAllByCustomerOrderIdAndStatusNotEquals(customerOrderId, "DELETED")
+            def list
+
+            if ( type==1 ) {
+                list = Sale.findAllByCustomerOrderIdAndStatusNotEquals(customerOrderId, "Payed")
+            } else {
+                list = Sale.findAllByCustomerOrderIdAndStatusNotEquals(customerOrderId, "Pending")
+            }
             
-            def lista = list.collect { sale ->
+            def listOfSales = list.collect { sale ->
                 return mapSale(sale)
             }
             
             return [
-                resp: [success: true, data: lista],
+                resp: [success: true, data: listOfSales],
                 status: 200
             ]
         } catch (e) {

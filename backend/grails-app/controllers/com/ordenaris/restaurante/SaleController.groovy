@@ -46,8 +46,11 @@ class SaleController {
         if (!params.customerOrderId || params.customerOrderId.size() != 32) {
             return respond([success: false, mensaje: "El customerOrderId es inválido"], status: 400)
         }
+        if (!params.type) {
+            return respond([success: false, mensaje: "Es necesario incluir el tipo"], status: 400)
+        } 
 
-        def response = SaleService.getSalesByCustomerOrder(params.customerOrderId)
+        def response = SaleService.getSalesByCustomerOrder(params.customerOrderId, params.type)
         return respond(response.resp, status: response.status)
     }
 }

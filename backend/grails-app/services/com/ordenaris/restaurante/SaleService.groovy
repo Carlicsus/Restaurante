@@ -5,25 +5,6 @@ import grails.gorm.transactions.Transactional
 @Transactional
 class SaleService {
 
-    def listSales() {
-        try {
-            def list = Sale.findAllByStatusNotEquals("DELETED")
-            
-            def listSales = list.collect { sale ->
-                return mapSale(sale)
-            }
-            return [
-                resp: [success: true, data: listSales],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.getMessage()],
-                status: 500
-            ]
-        }
-    }
-
     def mapSale = { sale ->
         return [
             id: sale.id,
@@ -87,35 +68,10 @@ class SaleService {
         }
     }
 
-    def updateSaleStatus(status, uuid) {
-        try {
-            def sale = Sale.findByUuid(uuid)
-            
-            if (!sale) {
-                return [
-                    resp: [success: false, message: "Venta no encontrada"],
-                    status: 404
-                ]
-            }
-            
-            sale.status = status
-            sale.save(flush: true, failOnError: true)
-            
-            return [
-                resp: [success: true],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.getMessage()],
-                status: 500
-            ]
-        }
-    }
-
-    def getSalesByDateRange(startDate, endDate) {
+    def getSalesByDateRange(startDate, endDate, customerOrderId) {
         try {
             def list = Sale.createCriteria().list {
+                eq("customerOrderId", customerOrderId)
                 between("dateCreated", startDate, endDate)
                 ne("status", "DELETED")
                 order("dateCreated", "desc")

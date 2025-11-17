@@ -44,17 +44,10 @@ class UrlMappings {
         }
 
         group "/finance", {
-
-            get "/user-registrations/pending"(controller:"finance", action: "getPendingUserRegistrations")
-            get "/user-registrations/$userUuid/details"(controller: "finance", action: "getUserRegistrationDetails")
-            put "/user-registrations/approve"(controller: "finance", action: "approveUserRegistration")
-            put "/user-registrations/reject"(controller: "finance", action: "rejectUserRegistration")
-            get "/debts/all"(controller: "finance", action: "getAllUserDebts")
-            get "/debts/with-debts"(controller: "finance", action: "getUsersWithDebts")
-            get "/debts/$userUuid/details"(controller: "finance", action: "getUserDebtDetails")
-            post "/debts/add"(controller: "finance", action: "addDebtToUser")
-            post "/debts/pay"(controller: "finance", action: "payUserDebt")
-        
+            get "/debtors/all"(controller: "finance", action: "getAllDebtors")
+            get "/debtors/$userUuid/details"(controller: "finance", action: "getDebtorDetails")
+            post "/orders/pay-specific"(controller: "finance", action: "paySpecificOrder")
+            post "/orders/pay-all-user"(controller: "finance", action: "payAllUserOrders")
         }
 
         "/"(controller: 'application', action:'index')

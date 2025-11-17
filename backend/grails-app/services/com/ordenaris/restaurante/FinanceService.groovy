@@ -4,12 +4,25 @@ import grails.gorm.transactions.Transactional
 
 @Transactional
 class FinanceService {
-    
-    def getPendingUserRegistrations() {
+
+    def getAllDebtors() {
         try {
-            def pendingUsers = User.findAllByRegistrationStatus('Pending', [sort: 'dateCreated', order: 'desc'])
-            
-            def registrations = pendingUsers.collect { user ->
+            def usersWithPendingOrders = Sale.createCriteria().list {
+                eq('status', 'Pending')
+                projections {
+                    distinct('customerOrder.user')
+                }
+            }
+
+            def debtorsData = usersWithPendingOrders.collect { user ->
+                def pendingSales = Sale.createCriteria().list {
+                    eq('status', 'Pending')
+                    customerOrder {
+                        eq('user', user)
+                    }
+                }
+                def totalDebt = pendingSales.sum { it.total } ?: 0
+
                 [
                     userUuid: user.uuid,
                     name: user.name,
@@ -17,195 +30,39 @@ class FinanceService {
                     fullName: "${user.name} ${user.lastName}",
                     workerNumber: user.workerNumber,
                     email: user.email,
-                    phone: user.phone,
-                    registrationDate: user.dateCreated,
-                    daysSinceRegistration: calculateDaysSince(user.dateCreated)
+                    totalPendingAmount: totalDebt,
+                    pendingOrdersCount: pendingSales.size(),
+                    registrationStatus: user.registrationStatus
                 ]
-            }
+            }.findAll { it.totalPendingAmount > 0 } 
 
-            return [
-                resp: [
-                    success: true, 
-                    data: registrations, 
-                    count: registrations.size(),
-                    message: "Registros pendientes obtenidos exitosamente"
-                ],
-                status: 200
-            ]
-        } catch (Exception e) {
-            return [
-                resp: [success: false, message: "Error al obtener registros pendientes: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
-
-    def approveUserRegistration(String userUuid) {
-        try {
-            def user = User.findByUuid(userUuid)
-            if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
-            }
-
-            if (user.registrationStatus != 'Pending') {
-                return [
-                    resp: [success: false, message: "El registro del usuario no está pendiente"],
-                    status: 400
-                ]
-            }
-
-            user.registrationStatus = 'Approved'
-            user.save(flush: true)
-
-            return [
-                resp: [
-                    success: true, 
-                    mensaje: "Usuario aprobado exitosamente",
-                    data: [
-                        userUuid: user.uuid,
-                        fullName: "${user.name} ${user.lastName}",
-                        status: user.registrationStatus
-                    ]
-                ],
-                status: 200
-            ]
-        } catch (Exception e) {
-            return [
-                resp: [success: false, message: "Error al aprobar usuario: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
-
-    def rejectUserRegistration(String userUuid, String reason) {
-        try {
-            def user = User.findByUuid(userUuid)
-            if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
-            }
-
-            if (user.registrationStatus != 'Pending') {
-                return [
-                    resp: [success: false, message: "El registro del usuario no está pendiente"],
-                    status: 400
-                ]
-            }
-
-            user.registrationStatus = 'Rejected'
-            user.save(flush: true)
-
-            return [
-                resp: [
-                    success: true, 
-                    mensaje: "Usuario rechazado exitosamente",
-                    data: [
-                        userUuid: user.uuid,
-                        fullName: "${user.name} ${user.lastName}",
-                        status: user.registrationStatus,
-                        reason: reason
-                    ]
-                ],
-                status: 200
-            ]
-        } catch (Exception e) {
-            return [
-                resp: [success: false, message: "Error al rechazar usuario: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
-
-    def getUserRegistrationDetails(String userUuid) {
-        try {
-            def user = User.findByUuid(userUuid)
-            if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
-            }
-
-            def userDetails = [
-                userUuid: user.uuid,
-                name: user.name,
-                lastName: user.lastName,
-                fullName: "${user.name} ${user.lastName}",
-                workerNumber: user.workerNumber,
-                email: user.email,
-                phone: user.phone,
-                registrationStatus: user.registrationStatus,
-                registrationDate: user.dateCreated,
-                lastUpdate: user.lastUpdated,
-                daysSinceRegistration: calculateDaysSince(user.dateCreated),
-                currentDebt: user.currentDebt ?: 0
-            ]
-
-            return [
-                resp: [success: true, data: userDetails, message: "Detalles obtenidos exitosamente"],
-                status: 200
-            ]
-        } catch (Exception e) {
-            return [
-                resp: [success: false, message: "Error al obtener detalles: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
-
-    
-    def getAllUserDebts() {
-        try {
-            def usersWithDebts = User.createCriteria().list {
-                gt('currentDebt', 0)
-                eq('registrationStatus', 'Approved')
-                order('currentDebt', 'desc')
-            }
-
-            def debtData = usersWithDebts.collect { user ->
-                [
-                    userUuid: user.uuid,
-                    name: user.name,
-                    lastName: user.lastName,
-                    fullName: "${user.name} ${user.lastName}",
-                    workerNumber: user.workerNumber,
-                    email: user.email,
-                    currentDebt: user.currentDebt,
-                    lastUpdate: user.lastUpdated
-                ]
-            }
-
-            def totalDebt = usersWithDebts.sum { it.currentDebt } ?: 0
+            debtorsData = debtorsData.sort { -it.totalPendingAmount }
 
             return [
                 resp: [
                     success: true,
                     data: [
-                        users: debtData,
+                        debtors: debtorsData,
                         summary: [
-                            totalUsers: debtData.size(),
-                            totalDebtAmount: totalDebt,
-                            averageDebt: debtData.size() > 0 ? (totalDebt / debtData.size()).round(2) : 0
+                            totalDebtors: debtorsData.size(),
+                            totalDebtAmount: debtorsData.sum { it.totalPendingAmount } ?: 0,
+                            averageDebt: debtorsData.size() > 0 ? (debtorsData.sum { it.totalPendingAmount } / debtorsData.size()).round(2) : 0
                         ]
                     ],
-                    message: "Deudas de usuarios obtenidas exitosamente"
+                    message: "Deudores obtenidos exitosamente"
                 ],
                 status: 200
             ]
         } catch (Exception e) {
             return [
-                resp: [success: false, message: "Error al obtener deudas: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
                 status: 500
             ]
         }
     }
 
-    def getUserDebtDetails(String userUuid) {
+
+    def getDebtorDetails(String userUuid) {
         try {
             def user = User.findByUuid(userUuid)
             if (!user) {
@@ -215,8 +72,7 @@ class FinanceService {
                 ]
             }
 
-            // Obtener ventas pendientes del usuario
-            def pendingSales = Sale.createCriteria().list {
+            def pendingOrders = Sale.createCriteria().list {
                 eq('status', 'Pending')
                 customerOrder {
                     eq('user', user)
@@ -224,170 +80,155 @@ class FinanceService {
                 order('dateCreated', 'desc')
             }
 
-            def userDebtDetails = [
+            def ordersData = pendingOrders.collect { sale ->
+                def orderItems = OrderItem.findAllByCustomerOrder(sale.customerOrder)
+                [
+                    saleUuid: sale.uuid,
+                    orderUuid: sale.customerOrder.uuid,
+                    amount: sale.total,
+                    orderStatus: sale.customerOrder.status,
+                    dateCreated: sale.dateCreated,
+                    daysPending: calculateDaysSince(sale.dateCreated),
+                    items: orderItems.collect { item ->
+                        [
+                            dishName: item.dish?.nombre ?: "Plato desconocido",
+                            quantity: item.quantity,
+                            unitPrice: item.unitPrice,
+                            subtotal: item.quantity * item.unitPrice
+                        ]
+                    }
+                ]
+            }
+
+            def debtorDetails = [
                 user: [
                     userUuid: user.uuid,
                     fullName: "${user.name} ${user.lastName}",
                     workerNumber: user.workerNumber,
                     email: user.email,
-                    currentDebt: user.currentDebt ?: 0,
+                    phone: user.phone,
                     registrationStatus: user.registrationStatus
                 ],
-                pendingSales: pendingSales.collect { sale ->
-                    [
-                        saleUuid: sale.uuid,
-                        amount: sale.total,
-                        orderUuid: sale.customerOrder.uuid,
-                        orderStatus: sale.customerOrder.status,
-                        dateCreated: sale.dateCreated,
-                        daysPending: calculateDaysSince(sale.dateCreated)
-                    ]
-                },
+                pendingOrders: ordersData,
                 summary: [
-                    currentDebt: user.currentDebt ?: 0,
-                    pendingSalesAmount: pendingSales.sum { it.total } ?: 0,
-                    totalPendingAmount: (user.currentDebt ?: 0) + (pendingSales.sum { it.total } ?: 0)
+                    totalPendingOrders: ordersData.size(),
+                    totalPendingAmount: ordersData.sum { it.amount } ?: 0,
+                    oldestOrderDate: ordersData ? ordersData.min { it.dateCreated }?.dateCreated : null
                 ]
             ]
 
             return [
-                resp: [success: true, data: userDebtDetails, message: "Detalles de deuda obtenidos exitosamente"],
+                resp: [success: true, data: debtorDetails, message: "Detalles del deudor obtenidos exitosamente"],
                 status: 200
             ]
         } catch (Exception e) {
             return [
-                resp: [success: false, message: "Error al obtener detalles de deuda: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al obtener detalles del deudor: ${e.getMessage()}"],
                 status: 500
             ]
         }
     }
 
-    def getUsersWithDebts(Integer minimumDebt) {
+
+    def paySpecificOrder(String saleUuid) {
         try {
-            def users = User.createCriteria().list {
-                ge('currentDebt', minimumDebt)
-                eq('registrationStatus', 'Approved')
-                order('currentDebt', 'desc')
-            }
-
-            def usersData = users.collect { user ->
-                [
-                    userUuid: user.uuid,
-                    fullName: "${user.name} ${user.lastName}",
-                    workerNumber: user.workerNumber,
-                    email: user.email,
-                    currentDebt: user.currentDebt,
-                    riskLevel: calculateRiskLevel(user.currentDebt),
-                    lastUpdate: user.lastUpdated
-                ]
-            }
-
-            return [
-                resp: [
-                    success: true, 
-                    data: usersData, 
-                    count: usersData.size(),
-                    message: "Usuarios con deudas obtenidos exitosamente"
-                ],
-                status: 200
-            ]
-        } catch (Exception e) {
-            return [
-                resp: [success: false, message: "Error al obtener usuarios con deudas: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
-
-    def addDebtToUser(String userUuid, Integer amount, String description) {
-        try {
-            def user = User.findByUuid(userUuid)
-            if (!user) {
+            def sale = Sale.findByUuid(saleUuid)
+            if (!sale) {
                 return [
-                    resp: [success: false, message: "Usuario no encontrado"],
+                    resp: [success: false, message: "Venta no encontrada"],
                     status: 404
                 ]
             }
 
-            def previousDebt = user.currentDebt ?: 0
-            user.currentDebt = previousDebt + amount
-            user.save(flush: true)
-
-            return [
-                resp: [
-                    success: true,
-                    message: "Deuda agregada exitosamente",
-                    data: [
-                        userUuid: userUuid,
-                        fullName: "${user.name} ${user.lastName}",
-                        previousDebt: previousDebt,
-                        addedAmount: amount,
-                        newDebt: user.currentDebt,
-                        description: description
-                    ]
-                ],
-                status: 200
-            ]
-        } catch (Exception e) {
-            return [
-                resp: [success: false, message: "Error al agregar deuda: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
-
-    def payUserDebt(String userUuid, Integer amount) {
-        try {
-            def user = User.findByUuid(userUuid)
-            if (!user) {
+            if (sale.status != 'Pending') {
                 return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
-            }
-
-            def currentDebt = user.currentDebt ?: 0
-            if (amount > currentDebt) {
-                return [
-                    resp: [success: false, message: "El monto de pago excede la deuda actual"],
+                    resp: [success: false, message: "Esta orden ya ha sido pagada"],
                     status: 400
                 ]
             }
 
-            user.currentDebt = currentDebt - amount
-            user.save(flush: true)
+            sale.status = 'Paid'
+            sale.save(flush: true)
 
             return [
                 resp: [
                     success: true,
-                    message: "Pago de deuda procesado exitosamente",
+                    message: "Orden pagada exitosamente",
                     data: [
-                        userUuid: userUuid,
-                        fullName: "${user.name} ${user.lastName}",
-                        previousDebt: currentDebt,
-                        paidAmount: amount,
-                        remainingDebt: user.currentDebt,
-                        fullyPaid: user.currentDebt == 0
+                        saleUuid: sale.uuid,
+                        orderUuid: sale.customerOrder.uuid,
+                        userFullName: "${sale.customerOrder.user.name} ${sale.customerOrder.user.lastName}",
+                        amount: sale.total,
+                        paidDate: new Date()
                     ]
                 ],
                 status: 200
             ]
         } catch (Exception e) {
             return [
-                resp: [success: false, message: "Error al procesar pago: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al procesar el pago: ${e.getMessage()}"],
                 status: 500
             ]
         }
     }
-    
+
+
+    def payAllUserOrders(String userUuid) {
+        try {
+            def user = User.findByUuid(userUuid)
+            if (!user) {
+                return [
+                    resp: [success: false, message: "Usuario no encontrado"],
+                    status: 404
+                ]
+            }
+
+            def pendingOrders = Sale.createCriteria().list {
+                eq('status', 'Pending')
+                customerOrder {
+                    eq('user', user)
+                }
+            }
+
+            if (!pendingOrders) {
+                return [
+                    resp: [success: false, message: "No hay órdenes pendientes para este usuario"],
+                    status: 400
+                ]
+            }
+
+            def totalAmount = pendingOrders.sum { it.total }
+            def orderCount = pendingOrders.size()
+
+            pendingOrders.each { sale ->
+                sale.status = 'Paid'
+                sale.save(flush: true)
+            }
+
+            return [
+                resp: [
+                    success: true,
+                    message: "Todas las órdenes han sido pagadas exitosamente",
+                    data: [
+                        userUuid: user.uuid,
+                        userFullName: "${user.name} ${user.lastName}",
+                        paidOrdersCount: orderCount,
+                        totalAmountPaid: totalAmount,
+                        paidDate: new Date()
+                    ]
+                ],
+                status: 200
+            ]
+        } catch (Exception e) {
+            return [
+                resp: [success: false, message: "Error al procesar los pagos: ${e.getMessage()}"],
+                status: 500
+            ]
+        }
+    }
+
     private Integer calculateDaysSince(Date date) {
         if (!date) return 0
         return ((new Date().time - date.time) / (1000 * 60 * 60 * 24)).intValue()
-    }
-
-    private String calculateRiskLevel(Integer debt) {
-        if (!debt || debt <= 10000) return "Bajo"
-        if (debt <= 50000) return "Medio"
-        return "Alto"
     }
 }

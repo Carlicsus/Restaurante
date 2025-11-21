@@ -24,6 +24,10 @@ repositories {
     maven { url "https://repo.grails.org/grails/core" }
 }
 
+ext{
+   springSecurityRestVersion = '2.0.0.M2'
+}
+
 dependencies {
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"
@@ -46,6 +50,9 @@ dependencies {
     compile "org.hibernate:hibernate-core:5.1.5.Final"
     compile "org.grails.plugins:views-json"
     compile "org.grails.plugins:views-json-templates"
+    compile 'org.grails.plugins:spring-security-core:3.2.3'
+    compile "org.grails.plugins:spring-security-rest:${springSecurityRestVersion}"
+    compile "org.grails.plugins:spring-security-rest-gorm:${springSecurityRestVersion}"
     console "org.grails:grails-console"
     profile "org.grails.profiles:rest-api"
     runtime "org.glassfish.web:el-impl:2.1.2-b03"

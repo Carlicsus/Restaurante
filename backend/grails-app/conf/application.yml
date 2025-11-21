@@ -36,7 +36,7 @@ dataSource:
 environments:
   development:
     dataSource:
-      dbCreate: update
+      dbCreate: create-drop
       url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=false&useUnicode=yes&characterEncoding=UTF-8
       username: ${MYSQL_USER}
       password: ${MYSQL_PASSWORD}

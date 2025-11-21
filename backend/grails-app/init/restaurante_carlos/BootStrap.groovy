@@ -2,6 +2,9 @@ package restaurante_carlos
 
 import com.ordenaris.restaurante.MenuType
 import com.ordenaris.restaurante.Dish
+import com.ordenaris.security.User
+import com.ordenaris.security.UserRole
+import com.ordenaris.security.Role
 import java.util.regex.*
 class BootStrap {
 
@@ -20,6 +23,22 @@ class BootStrap {
             new MenuType([ name: "Postres" ]).save(flush:true)
             new MenuType([ name: "Bebidas" ]).save(flush:true)
         }
+
+        def adminRole = Role.findOrSaveByAuthority('ROLE_ADMIN')
+        def userRole = Role.findOrSaveByAuthority('ROLE_USER')
+
+        def testUser = User.findOrSaveByUsernameAndPassword('me', 'password')
+
+        UserRole.create testUser, adminRole
+
+        UserRole.withSession {
+            it.flush()
+            it.clear()
+        }
+
+        assert User.count() == 1
+        assert Role.count() == 2
+        assert UserRole.count() == 1
 
         
 

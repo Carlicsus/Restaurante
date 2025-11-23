@@ -11,13 +11,14 @@ class SaleService {
             dateCreated: sale.dateCreated,
             total: sale.total,
             customerOrderId: sale.customerOrderId,
-            uuid: sale.uuid,
-            lastUpdated: sale.lastUpdated,
-            status: sale.status
+            status: sale.status,
+            dateCreated: sale.dateCreated,
+            lastUpdated: sale.lastUpdated
         ]
+        return obj
     }
 
-    def createSale(total, customerOrderId, status) {
+    def createAutoSale(total, customerOrderId, status) {
         try {
             def newSale = new Sale([
                 total: total,
@@ -36,7 +37,7 @@ class SaleService {
         }
     }
 
-    def getSaleInfo(uuid) {
+    def getOneSaleInfo(uuid) {
         try {
             def sale = Sale.findByUuid(uuid)
             
@@ -67,10 +68,13 @@ class SaleService {
         }
     }
 
-    def getSalesByDateRange(startDate, endDate, customerOrderId) {
+    def getUserSalesByDateRange(startDate, endDate, customerOrderId) {
         try {
+            def sale = Sale.findByCustomerOrderId(customerOrderId)
+            def orders = CustomerOrder.findAllByUserId(sale.userId)
+            def orderIds = orders.collect { it.id }
             def list = Sale.createCriteria().list {
-                eq("customerOrderId", customerOrderId)
+                in("customerOrderId", orderIds)
                 between("dateCreated", startDate, endDate)
                 order("dateCreated", "desc")
             }.collect { sale -> mapSale(sale) }
@@ -87,20 +91,26 @@ class SaleService {
         }
     }
 
-    def getSalesByCustomerOrder(customerOrderId, type) {
+    def getSalesByUser(customerOrderId, typeSale) {
         try {
-            def list
+            def sale = Sale.findByCustomerOrderId(customerOrderId)
+            def list = CustomerOrder.findAllByUserId(sale.userId)
 
-            if ( type==1 ) {
-                list = Sale.findAllByCustomerOrderIdAndStatusNotEquals(customerOrderId, "Payed")
+            if ( typeSale == 1 ) {
+                def orderIds = list.collect { it.id }
+                def listOfSales = Sale.createCriteria().list {
+                    in("customerOrderId", orderIds)
+                    ne("status", "Pending")
+                    order("dateCreated", "desc")
+                }.collect { sale -> mapSale(sale) }
             } else {
-                list = Sale.findAllByCustomerOrderIdAndStatusNotEquals(customerOrderId, "Pending")
+                def orderIds = list.collect { it.id }
+                def listOfSales = Sale.createCriteria().list {
+                    in("customerOrderId", orderIds)
+                    ne("status", "Payed")
+                    order("dateCreated", "desc")
+                }.collect { sale -> mapSale(sale) }
             }
-            
-            def listOfSales = list.collect { sale ->
-                return mapSale(sale)
-            }
-            
             return [
                 resp: [success: true, data: listOfSales],
                 status: 200

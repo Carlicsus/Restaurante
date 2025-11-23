@@ -7,15 +7,15 @@ class SaleController {
     static responseFormats = ['json', 'xml']
     def SaleService  
 
-    def saleInfo() {  
+    def getOneSaleInfo() {  
         if (!params.uuid || params.uuid.size() != 32) {
             return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
         }
-        def response = SaleService.getSaleInfo(params.uuid)  
+        def response = SaleService.getOneSaleInfo(params.uuid)  
         return respond(response.resp, status: response.status)
     }
 
-    def getSalesByDateRange() {
+    def getUserSalesByDateRange() {
         def data = request.JSON
         if (!data.customerOrderId || params.customerOrderId.size() != 32) {
             return respond([success: false, mensaje: "Se requiere un identificador de usuario valido"], status: 400)
@@ -35,22 +35,22 @@ class SaleController {
                 return respond([success: false, mensaje: "La fecha de inicio no puede ser mayor a la fecha de fin"], status: 400)
             }
 
-            def response = SaleService.getSalesByDateRange(startDate, endDate, data.customerOrderId)
+            def response = SaleService.getUserSalesByDateRange(startDate, endDate, params.uuid)
             return respond(response.resp, status: response.status)
         } catch (e) {
             return respond([success: false, mensaje: "Formato de fecha inválido"], status: 400)
         }
     }
 
-    def getSalesByCustomerOrder() {
+    def getSalesByUser() {
         if (!params.customerOrderId || params.customerOrderId.size() != 32) {
             return respond([success: false, mensaje: "El customerOrderId es inválido"], status: 400)
         }
-        if (!params.type) {
+        if (!params.typeOrder) {
             return respond([success: false, mensaje: "Es necesario incluir el tipo"], status: 400)
         } 
 
-        def response = SaleService.getSalesByCustomerOrder(params.customerOrderId, params.type)
+        def response = SaleService.getSalesByUser(params.customerOrderId, params.typeOrder)
         return respond(response.resp, status: response.status)
     }
 }

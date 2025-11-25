@@ -12,7 +12,6 @@ class FinanceController {
         return respond(response.resp, status: response.status)
     }
 
-
     def getDebtorDetails() {
         if (!params.userUuid) {
             return respond([success: false, message: "El UUID del usuario es obligatorio"], status: 400)
@@ -24,29 +23,27 @@ class FinanceController {
         return respond(response.resp, status: response.status)
     }
 
-
     def paySpecificOrder() {
-        def data = request.JSON
-        if (!data.saleUuid) {
+        def saleUuid = request.JSON.saleUuid ?: params.saleUuid
+        if (!saleUuid) {
             return respond([success: false, message: "El UUID de la venta es obligatorio"], status: 400)
         }
-        if (data.saleUuid.size() != 32) {
+        if (saleUuid.size() != 32) {
             return respond([success: false, message: "El UUID de la venta es inválido"], status: 400)
         }
-        def response = financeService.paySpecificOrder(data.saleUuid)
+        def response = financeService.paySpecificOrder(saleUuid)
         return respond(response.resp, status: response.status)
     }
 
-
     def payAllUserOrders() {
-        def data = request.JSON
-        if (!data.userUuid) {
+        def userUuid = request.JSON.userUuid ?: params.userUuid
+        if (!userUuid) {
             return respond([success: false, message: "El UUID del usuario es obligatorio"], status: 400)
         }
-        if (data.userUuid.size() != 32) {
+        if (userUuid.size() != 32) {
             return respond([success: false, message: "El UUID del usuario es inválido"], status: 400)
         }
-        def response = financeService.payAllUserOrders(data.userUuid)
+        def response = financeService.payAllUserOrders(userUuid)
         return respond(response.resp, status: response.status)
     }
 }

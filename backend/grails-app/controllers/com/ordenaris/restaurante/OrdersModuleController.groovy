@@ -40,7 +40,12 @@ class OrdersModuleController {
         def dataP = params
         def dataR = request.JSON
 
-        if (!dataP.uuid || !dataP.uuidDish ) {
+        def orderCustomer = CustomerOrder.findByUuid(dataP.uuid)
+        if (orderCustomer.status == "Finished" || orderCustomer.status == "Cancelled" || orderCustomer == "Pending") {
+            return respond([success: false, message: "La orden ya no puede ser editada"], status: 404)
+        }
+        if (!dataR){
+            if (!dataP.uuid || !dataP.uuidDish ) {
             if (!dataP.uuid) {
                 return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
             }
@@ -48,7 +53,6 @@ class OrdersModuleController {
                 return respond([success: false, message: "Falta el UUID del platillo en la orden"], status: 400)
             }
         }
-        if (!dataR) {
             return respond([success: false, message: "Faltan los datos para editar la orden"], status: 400)
         }
         if (!dataR.dishId) {
@@ -75,11 +79,11 @@ class OrdersModuleController {
             return respond([success: false, message: "Falta el nuevo estado de la orden"], status: 400)
         }
         //println data.status
-        if (!(data.status in ["Cancelled", "Preparing", "Waiting", "Pending", "Finished"])) {
+        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"])) {
             //println data.status
             return respond([success: false, message: "Estado de orden invalido"], status: 400)
         }
-        if (data.status in ["Cancelled", "Preparing", "Waiting", "Pending", "Finished"]) {
+        if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
             def order = CustomerOrder.findByUuid(data.uuid)
             if (!order) {
                 return respond([success: false, message: "Orden no encontrada"], status: 404)
@@ -93,5 +97,9 @@ class OrdersModuleController {
         }
         def serviceResponse = orderModuleService.editOrderStatus(data)
         return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    def editCarShoping(){
+        
     }
 }

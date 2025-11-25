@@ -29,14 +29,14 @@ class OrderModuleService {
             }]
     }
     def listOrders() {
-        def orders = CustomerOrder.findAllByStatus("Pending")
+        def orders = CustomerOrder.findAllByStatus("Queue")
         def formattedOrders = orders.collect { order ->
             mapOrder(order) 
         }
         return [
                 resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
                 status: 200
-            ]    
+            ]
     }
     def newOrder(data) {
         try {
@@ -68,22 +68,42 @@ class OrderModuleService {
     def editOrder(dataP, dataR) {
         try {
             def order = CustomerOrder.findByUuid(dataP.uuid)
-            def orderItem = OrderItem.findByUuid(dataP.uuidDish)
-            if (!orderItem) {
-                return [resp: [success: false, message: 'Item de la orden no encontrado'], status: 404]
+            if (dataP.uuidDish){
+                def orderItem = OrderItem.findByUuid(dataP.uuidDish)
+                if (!orderItem) {
+                    return [resp: [success: false, message: 'Item de la orden no encontrado'], status: 404]
+                }
+                def newDishId = dataR.dishId
+                if (!newDishId) {
+                    return [resp: [success: false, message: 'Falta el ID del nuevo platillo'], status: 400]
+                }
+                def newDishObject = Dish.get(newDishId)
+                //println newDishObject
+                orderItem.dish = newDishObject
+                orderItem.unitPrice = newDishObject.cost
+                orderItem.quantity = dataR.numberOrders
+                orderItem.status = dataR.status 
+                orderItem.save(flush: true, failOnError: true)
             }
-            def newDishId = dataR.dishId
-            if (!newDishId) {
-                return [resp: [success: false, message: 'Falta el ID del nuevo platillo'], status: 400]
+            else{
+            def orderItem = OrderItem.findAllByCustomerOrder(order)
+            def dish = Dish.get(dataR.dishId)
+            /*
+            println orderItem.unitPrice
+            println dish.cost
+            println dataR
+            println order.id
+            */
+            def orderItems = new OrderItem([
+                unitPrice: dish.cost,
+                dish: dataR.dishId,
+                quantity: dataR.numberOrders,
+                customerOrder: order.id
+            ]).save(flush: true, failOnError: true)
             }
-            def newDishObject = Dish.get(newDishId)
-            //println newDishObject
-            orderItem.dish = newDishObject
-            orderItem.unitPrice = newDishObject.cost
-            orderItem.quantity = dataR.numberOrders
-            orderItem.status = dataR.status 
-            orderItem.save(flush: true, failOnError: true)
-   
+            
+            //order.save(flush: true, failOnError: true)
+
             return [
                 resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
                 status: 200
@@ -101,7 +121,7 @@ class OrderModuleService {
             if (!order) {
                 return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
             }
-            if (data.status in ["Cancelled", "Preparing", "Waiting", "Pending", "Finished"]) {
+            if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
                 order.status = data.status
                 order.save(flush: true, failOnError: true)
             return [

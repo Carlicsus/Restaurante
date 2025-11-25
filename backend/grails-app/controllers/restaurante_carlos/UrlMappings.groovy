@@ -52,6 +52,7 @@ class UrlMappings {
                 group "/edit/$uuidDish",{
                     patch "/dish"(controller: "ordersModule", action: "editOrder")
                 }
+                patch "/edit"(controller: "ordersModule", action: "editOrder")
                 patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
                     status = "Cancelled"
                 }
@@ -62,7 +63,7 @@ class UrlMappings {
                     status = "Finished"
                 }
                 patch "/wait"(controller: "ordersModule", action: "editOrderStatus") {
-                    status = "Waiting"
+                    status = "Queue"
                 }
                 patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
                     status = "Pending"

@@ -3,7 +3,7 @@ import java.util.UUID
 
 class CustomerOrder {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
-    String status = "Pending" // Pending, Waiting, Preparing, Finished
+    String status = "Pending" // Pending, Queue, Preparing, Finished
     Date dateCreated
     Date lastUpdated
 
@@ -18,7 +18,7 @@ class CustomerOrder {
     static constraints = {
         uuid size: 32..32, unique: true
         user nullable: false
-        status inList: ["Pending", "Waiting", "Preparing", "Finished", "Cancelled"], blank: false
+        status inList: ["Pending", "Queue", "Preparing", "Finished", "Cancelled"], blank: false
         sale nullable: true
         lastUpdated nullable: true
     }

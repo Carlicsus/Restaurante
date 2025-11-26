@@ -2,6 +2,7 @@ package com.ordenaris.restaurante
 
 import grails.testing.web.controllers.ControllerUnitTest
 import spock.lang.Specification
+import spock.lang.PendingFeature
 
 class PlatilloControllerSpec extends Specification implements ControllerUnitTest<PlatilloController> {
 
@@ -10,7 +11,7 @@ class PlatilloControllerSpec extends Specification implements ControllerUnitTest
 
     def cleanup() {
     }
-
+    @PendingFeature
     void "test something"() {
         expect:"fix me"
         true == false

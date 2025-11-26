@@ -10,6 +10,11 @@ buildscript {
     }
 }
 
+plugins {
+    id 'org.asciidoctor.convert' version '1.5.3'
+}
+
+
 version "0.1"
 group "restaurante_carlos"
 
@@ -53,6 +58,7 @@ dependencies {
     compile 'org.grails.plugins:spring-security-core:3.2.3'
     compile "org.grails.plugins:spring-security-rest:${springSecurityRestVersion}"
     compile "org.grails.plugins:spring-security-rest-gorm:${springSecurityRestVersion}"
+    compile "org.grails.plugins:views-json:1.2.10"
     console "org.grails:grails-console"
     profile "org.grails.profiles:rest-api"
     runtime "org.glassfish.web:el-impl:2.1.2-b03"
@@ -77,9 +83,5 @@ bootRun {
     systemProperty springProfilesActive, System.getProperty(springProfilesActive)
 }
 
-tasks.withType(Test) {
-    systemProperty "geb.env", System.getProperty('geb.env')
-    systemProperty "geb.build.reportsDir", reporting.file("geb/integrationTest")
-    systemProperty "webdriver.chrome.driver", System.getProperty('webdriver.chrome.driver')
-    systemProperty "webdriver.gecko.driver", System.getProperty('webdriver.gecko.driver')
-}
+apply from: "gradle/env.gradle"
+apply from: 'gradle/restdocs.gradle'

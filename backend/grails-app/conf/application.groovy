@@ -1,39 +1,45 @@
-
+import grails.util.Environment
 
 // Added by the Spring Security Core plugin:
 grails.plugin.springsecurity.userLookup.userDomainClassName = 'com.ordenaris.security.User'
 grails.plugin.springsecurity.userLookup.authorityJoinClassName = 'com.ordenaris.security.UserRole'
 grails.plugin.springsecurity.authority.className = 'com.ordenaris.security.Role'
-grails.plugin.springsecurity.controllerAnnotations.staticRules = [
-	[pattern: '/',               access: ['permitAll']],
-	[pattern: '/error',          access: ['permitAll']],
-	[pattern: '/index',          access: ['permitAll']],
-	[pattern: '/index.gsp',      access: ['permitAll']],
-	[pattern: '/shutdown',       access: ['permitAll']],
-	[pattern: '/assets/**',      access: ['permitAll']],
-	[pattern: '/**/js/**',       access: ['permitAll']],
-	[pattern: '/**/css/**',      access: ['permitAll']],
-	[pattern: '/**/images/**',   access: ['permitAll']],
-	[pattern: '/**/favicon.ico', access: ['permitAll']],
-	[pattern: '/api/logout',     access: ['isAuthenticated()']]
+//common
+def controllerAnnotationsStaticRuleMaps = [
+    [pattern: '/',                  access: ['permitAll']],
+    [pattern: '/error',             access: ['permitAll']],
+    [pattern: '/index',             access: ['permitAll']],
+    [pattern: '/login/auth',        access: ['denyAll']], //lock down spring security login form url
+    //spring rest security api end-point
+    [pattern: '/api/logout',        access: ['isAuthenticated()']],
+    //Spring boot Actuator management end-points
+    [pattern: '/api/management/**', access:['ROLE_ADMIN']]
 ]
 
-grails.plugin.springsecurity.filterChain.chainMap = [
-	[pattern: '/assets/**',      filters: 'none'],
-	[pattern: '/**/js/**',       filters: 'none'],
-	[pattern: '/**/css/**',      filters: 'none'],
-	[pattern: '/**/images/**',   filters: 'none'],
-	[pattern: '/**/favicon.ico', filters: 'none'],
-	[pattern: '/**',             filters: 'JOINED_FILTERS']
+//env specific
+if (Environment.current == Environment.PRODUCTION) {
+    controllerAnnotationsStaticRuleMaps << [pattern: '/static/docs/**', access:['permitAll']] //TODO: denyAll
+//    controllerAnnotationsStaticRuleMaps << [pattern: '/**',             access:['permitAll']] //TODO: denyAll
+} else {
+    controllerAnnotationsStaticRuleMaps << [pattern: '/static/docs/**', access:['permitAll']]
+//    controllerAnnotationsStaticRuleMaps << [pattern: '/**',             access:['permitAll']]
+}
+
+grails.plugin.springsecurity.controllerAnnotations.staticRules = controllerAnnotationsStaticRuleMaps
+
+//Spring Security REST API plugin config
+String statelessFilters = 'JOINED_FILTERS, -exceptionTranslationFilter, -authenticationProcessingFilter, -securityContextPersistenceFilter, -rememberMeAuthenticationFilter'
+
+def filterChainChainMaps = [
+    //Stateless chain
+    [pattern: '/api/**', filters: statelessFilters],
+	[pattern: '/static/docs/**', filters: statelessFilters],
+    //[pattern: '/**',     filters: statelessFilters]
+    //[pattern: '/**',     filters: statelessFilters]
+    //Traditional stateful chain - We are stateless, no stateful chain is required
 ]
 
-grails.plugin.springsecurity.filterChain.chainMap = [
-	//Stateless chain
-	[ pattern: '/api/**', filters: 'JOINED_FILTERS,-anonymousAuthenticationFilter,-exceptionTranslationFilter,-authenticationProcessingFilter,-securityContextPersistenceFilter,-rememberMeAuthenticationFilter'],
-
-	//Traditional chain
-	//[ pattern: '/**', filters: 'JOINED_FILTERS,-restTokenValidationFilter,-restExceptionTranslationFilter']
-]
+grails.plugin.springsecurity.filterChain.chainMap = filterChainChainMaps
 
 grails.plugin.springsecurity.rest.token.storage.useGorm = true
 grails.plugin.springsecurity.rest.token.storage.gorm.tokenDomainClassName = 'com.ordenaris.security.AuthenticationToken'

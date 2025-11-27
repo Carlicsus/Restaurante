@@ -88,12 +88,6 @@ class OrderModuleService {
             else{
             def orderItem = OrderItem.findAllByCustomerOrder(order)
             def dish = Dish.get(dataR.dishId)
-            /*
-            println orderItem.unitPrice
-            println dish.cost
-            println dataR
-            println order.id
-            */
             def orderItems = new OrderItem([
                 unitPrice: dish.cost,
                 dish: dataR.dishId,
@@ -101,9 +95,7 @@ class OrderModuleService {
                 customerOrder: order.id
             ]).save(flush: true, failOnError: true)
             }
-            
-            //order.save(flush: true, failOnError: true)
-
+            //order.save(flush: true, failOnError: true
             return [
                 resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
                 status: 200

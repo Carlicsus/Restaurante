@@ -1,32 +1,28 @@
-package com.ordenaris.restaurante
+package com.ordenaris.shoppingCart
 import java.util.UUID
-
-class CustomerOrder {
+import com.ordenaris.restaurante.User
+class ShoppingCart {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
-    String status = "Pending" // Pending, Queue, Preparing, Finished
+    String status = "Pending"
     Date dateCreated
     Date lastUpdated
 
     // Relación con User
     static belongsTo = [user: User]
 
-    static hasMany = [orderItems: OrderItem]
-
-    static hasOne = [sale: Sale]
-
+    static hasMany = [shoppingCartItem: ShoppingCartItem]
     
     static constraints = {
         uuid size: 32..32, unique: true
         user nullable: false
-        status inList: ["Pending", "Queue", "Preparing", "Finished", "Cancelled"], blank: false
-        sale nullable: true
+        status inList: ["Pending", "Delete", "Finished"], blank: false
         lastUpdated nullable: true
     }
 
     static mapping = {
-        uuid index: "customer_order_uuid_idx"
-        user index: "customer_order_user_idx"
         version false
+        uuid index: "shopping_cart_uuid_idx"
+        user index: "shopping_cart_user_idx"
         dateCreated column: "date_created"
         lastUpdated column: "last_updated"
     }

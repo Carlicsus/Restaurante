@@ -48,7 +48,6 @@ class UrlMappings {
             get "/listOrders"(controller: "ordersModule", action: "listOrders")
             group "/$uuid", {
                 get "/info"(controller: "ordersModule", action: "orderInfo")
-                //patch "/edit"(controller: "ordersModule", action: "editOrder")
                 group "/edit/$uuidDish",{
                     patch "/dish"(controller: "ordersModule", action: "editOrder")
                 }
@@ -62,11 +61,27 @@ class UrlMappings {
                 patch "/finish"(controller: "ordersModule", action: "editOrderStatus") {
                     status = "Finished"
                 }
-                patch "/wait"(controller: "ordersModule", action: "editOrderStatus") {
+                patch "/queue"(controller: "ordersModule", action: "editOrderStatus") {
                     status = "Queue"
                 }
-                patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
+                /*patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
                     status = "Pending"
+                }
+                */
+            }
+        }
+        group "/shoppingCart", {
+            get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+            post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
+            group "/$uuidSC", {
+                get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
+                post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
+                delete "/deleteItem/$uuidDish"(controller: "shoppingCart", action: "deleteItemShoppingCart")
+                patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
+                    status = "Finished"
+                }
+                delete "/delete"(controller: "shoppingCart", action: "editStatusShoppingCart"){
+                    status = "Delete"
                 }
             }
         }

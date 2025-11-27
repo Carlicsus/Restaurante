@@ -70,14 +70,14 @@ class BootStrap {
             new Dish(
                 name: "Chilaquiles Rojos con Pollo",
                 description: "Con queso, crema y cebolla",
-                cost: 85,
+                cost: 8500,
                 menuType: mtDesayuno
             ).save(failOnError: true)
 
             new Dish(
                 name: "Huevos con Jamón",
                 description: "Huevos revueltos acompañados de frijoles",
-                cost: 65,
+                cost: 6500,
                 availableDishes: 20,
                 menuType: mtDesayuno
             ).save(failOnError: true)
@@ -86,7 +86,7 @@ class BootStrap {
             new Dish(
                 name: "Tacos al Pastor",
                 description: "Orden de 3 tacos con todo",
-                cost: 60,
+                cost: 6000,
                 availableDishes: 30,
                 menuType: mtComida
             ).save(failOnError: true)
@@ -94,7 +94,7 @@ class BootStrap {
             new Dish(
                 name: "Enchiladas Suizas",
                 description: "Orden de 4 enchiladas con pollo y queso",
-                cost: 80,
+                cost: 8000,
                 availableDishes: 15,
                 menuType: mtComida
             ).save(failOnError: true)
@@ -102,7 +102,7 @@ class BootStrap {
             new Dish(
                 name: "Sopa de Tortilla",
                 description: "Caldo de jitomate con tiras de tortilla, aguacate y crema",
-                cost: 65,
+                cost: 6500,
                 availableDishes: 20,
                 menuType: mtComida
             ).save(failOnError: true)
@@ -111,7 +111,7 @@ class BootStrap {
             new Dish(
                 name: "Mole Poblano con Pollo",
                 description: "Platillo especial de la casa con arroz",
-                cost: 120,
+                cost: 12000,
                 availableDishes: 12,
                 menuType: mtEspeciales
             ).save(failOnError: true)
@@ -119,7 +119,7 @@ class BootStrap {
             new Dish(
                 name: "Arrachera Norteña",
                 description: "Corte de 250g con guacamole y cebollitas cambray",
-                cost: 180,
+                cost: 18000,
                 availableDishes: 8,
                 menuType: mtEspeciales,
                 availableDate: new Date() + 7 
@@ -129,7 +129,7 @@ class BootStrap {
             new Dish(
                 name: "Flan Napolitano",
                 description: "Rebanada de flan casero con caramelo",
-                cost: 40,
+                cost: 4000,
                 availableDishes: 15,
                 menuType: mtPostres
             ).save(failOnError: true)
@@ -137,7 +137,7 @@ class BootStrap {
             new Dish(
                 name: "Pastel de Chocolate",
                 description: "Deliciosa rebanada de pastel húmedo",
-                cost: 50,
+                cost: 5000,
                 availableDishes: 10,
                 menuType: mtPostres
             ).save(failOnError: true)
@@ -146,21 +146,21 @@ class BootStrap {
             new Dish(
                 name: "Agua de Horchata 1L",
                 description: "Agua fresca de arroz con canela",
-                cost: 35,
+                cost: 3500,
                 menuType: mtBebidas
             ).save(failOnError: true)
 
             new Dish(
                 name: "Agua de Jamaica 1L",
                 description: "Agua fresca de flor de jamaica",
-                cost: 35,
+                cost: 3500,
                 menuType: mtBebidas
             ).save(failOnError: true)
                 
             new Dish(
                 name: "Refresco de Lata (355ml)",
                 description: "Coca-Cola, Sprite, Manzana",
-                cost: 25,
+                cost: 25000,
                 menuType: mtBebidas
             ).save(failOnError: true)
                 

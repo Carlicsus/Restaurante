@@ -26,7 +26,7 @@ class OrdersModuleController {
                 return respond([success: false, message: "Falta el ID del platillo"], status: 400)
             }
             if(!item.numberOrders || item.numberOrders <= 0){
-                return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o 0"], status: 400)
+                return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
             }
             if(item.numberOrders > 5){
                 return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
@@ -41,7 +41,10 @@ class OrdersModuleController {
         def dataR = request.JSON
 
         def orderCustomer = CustomerOrder.findByUuid(dataP.uuid)
-        if (orderCustomer.status == "Finished" || orderCustomer.status == "Cancelled" || orderCustomer == "Pending") {
+        if (!orderCustomer) {
+            return respond([success: false, message: "Orden no encontrada o no existe"], status: 404)
+        }
+        if (orderCustomer.status == "Finished" || orderCustomer.status == "Cancelled" || orderCustomer.status == "Preparing") {
             return respond([success: false, message: "La orden ya no puede ser editada"], status: 404)
         }
         if (!dataR){
@@ -59,7 +62,7 @@ class OrdersModuleController {
             return respond([success: false, message: "Falta el ID del nuevo platillo"], status: 400)
         }
         if (!dataR.numberOrders || dataR.numberOrders < 1) {
-            return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o 0"], status: 400)
+            return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
         }
         if (dataR.numberOrders > 5) {
             return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
@@ -97,9 +100,5 @@ class OrdersModuleController {
         }
         def serviceResponse = orderModuleService.editOrderStatus(data)
         return respond(serviceResponse.resp, status: serviceResponse.status)
-    }
-
-    def editCarShoping(){
-        
     }
 }

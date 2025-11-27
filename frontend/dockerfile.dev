@@ -1,24 +1,18 @@
 FROM node:22-alpine3.19
 
-# Zona horaria
 ENV TZ=America/Mexico_City
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /app
 
-# Instalar Angular CLI 19 (fijado)
 RUN npm install -g @angular/cli@19
 
-# Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias del proyecto
 RUN npm install && npm cache clean --force
 
-# Limite de memoria
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 
-# Copiar el resto del proyecto
 COPY . .
 
 EXPOSE 4200

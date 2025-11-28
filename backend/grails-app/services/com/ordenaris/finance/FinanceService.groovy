@@ -1,6 +1,9 @@
-package com.ordenaris.restaurante
+package com.ordenaris.finance
 
 import grails.gorm.transactions.Transactional
+import com.ordenaris.restaurante.User
+import com.ordenaris.restaurante.Sale
+import com.ordenaris.restaurante.OrderItem
 
 @Transactional
 class FinanceService {

@@ -44,8 +44,8 @@ class UrlMappings {
         }
 
         group "/finance", {
-            get "/debtors/all"(controller: "finance", action: "getAllDebtors")
-            get "/debtors/$userUuid/details"(controller: "finance", action: "getDebtorDetails")
+            get "/debtors/all"(controller: "finance", action: "listDebtors")
+            get "/debtors/$userUuid/details"(controller: "finance", action: "debtorDetails")
             post "/orders/pay-specific"(controller: "finance", action: "paySpecificOrder")
             post "/orders/pay-all-user"(controller: "finance", action: "payAllUserOrders")
         }

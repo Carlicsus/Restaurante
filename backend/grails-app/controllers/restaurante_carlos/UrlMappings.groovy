@@ -3,7 +3,7 @@ package restaurante_carlos
 class UrlMappings {
 
     static mappings = {
-        group "/menu", {
+        group "/api/menu", {
             group "/type", {
                 post "/new"(controller: "menu", action: "newType")
                 get "/list"(controller: "menu", action: "listTypes")
@@ -24,7 +24,7 @@ class UrlMappings {
             }
         }
 
-        group "/dish", {  
+        group "/api/dish", {  
             post "/new"(controller: "platillo", action: "newDish")  
             get "/list"(controller: "platillo", action: "listDishes")  
             get "/view"(controller: "platillo", action: "paginateDishes")  

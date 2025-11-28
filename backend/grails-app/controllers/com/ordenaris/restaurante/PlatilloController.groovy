@@ -2,7 +2,9 @@ package com.ordenaris.restaurante
 
 import grails.rest.*
 import grails.converters.*
+import grails.plugin.springsecurity.annotation.Secured
 
+@Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
 class PlatilloController {
     static responseFormats = ['json', 'xml']
     def DishService  

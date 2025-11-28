@@ -85,7 +85,8 @@ class SaleService {
 
     def getSalesByUser(userId, typeSale) {
         try {
-            def list = CustomerOrder.findAllByUserId(userId)
+            def user = User.findById(userId)
+            def list = CustomerOrder.findAllByUser(user.id)
 
             if ( typeSale == 1 ) {
                 def orderIds = list.collect { it.id }

@@ -43,9 +43,12 @@ class SaleController {
     }
 
     def getSalesByUser() {
-        if (!params.userId || params.userId.soloNumeros()) {
-            return respond([success: false, mensaje: "El userId es inválido"], status: 400)
+        if (!params.userId ) {
+            return respond([success: false, mensaje: "Se necesita un usuario"], status: 400)
         }
+        // if (params.userId.soloNumeros()) {
+        //     return respond([success: false, mensaje: "El usuario es inválido"], status: 400)
+        // }
         if (!params.typeOrder) {
             return respond([success: false, mensaje: "Es necesario incluir el tipo"], status: 400)
         } 

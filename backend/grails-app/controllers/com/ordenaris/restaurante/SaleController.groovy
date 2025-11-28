@@ -17,7 +17,7 @@ class SaleController {
 
     def getUserSalesByDateRange() {
         def data = request.JSON
-        if (!data.customerOrderId || params.customerOrderId.size() != 32) {
+        if (!params.userId || params.userId.soloNumeros()) {
             return respond([success: false, mensaje: "Se requiere un identificador de usuario valido"], status: 400)
         }
         if (!data.startDate) {
@@ -35,7 +35,7 @@ class SaleController {
                 return respond([success: false, mensaje: "La fecha de inicio no puede ser mayor a la fecha de fin"], status: 400)
             }
 
-            def response = SaleService.getUserSalesByDateRange(startDate, endDate, params.uuid)
+            def response = SaleService.getUserSalesByDateRange(startDate, endDate, params.userId)
             return respond(response.resp, status: response.status)
         } catch (e) {
             return respond([success: false, mensaje: "Formato de fecha inválido"], status: 400)
@@ -43,14 +43,14 @@ class SaleController {
     }
 
     def getSalesByUser() {
-        if (!params.customerOrderId || params.customerOrderId.size() != 32) {
-            return respond([success: false, mensaje: "El customerOrderId es inválido"], status: 400)
+        if (!params.userId || params.userId.soloNumeros()) {
+            return respond([success: false, mensaje: "El userId es inválido"], status: 400)
         }
         if (!params.typeOrder) {
             return respond([success: false, mensaje: "Es necesario incluir el tipo"], status: 400)
         } 
 
-        def response = SaleService.getSalesByUser(params.customerOrderId, params.typeOrder)
+        def response = SaleService.getSalesByUser(params.userId, params.typeOrder)
         return respond(response.resp, status: response.status)
     }
 }

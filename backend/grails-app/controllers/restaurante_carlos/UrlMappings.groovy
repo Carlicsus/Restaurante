@@ -43,12 +43,12 @@ class UrlMappings {
             }
         }
 
-        group "/sale", {  
-            get "/date/$uuid"(controller: "sale", action: "getUserSalesByDateRange")
-            get "/$customerOrderId"(controller: "sale", action: "getSalesByUser") {
+        group "/api/sale", {  
+            get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
+            get "/$userId"(controller: "sale", action: "getSalesByUser") {
                 typeOrder = 1
             }
-            get "/$customerOrderId"(controller: "sale", action: "getSalesByUser") {
+            get "/$userId"(controller: "sale", action: "getSalesByUser") {
                 typeOrder = 0
             }
             get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  

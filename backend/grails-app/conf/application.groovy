@@ -43,10 +43,9 @@ grails.plugin.springsecurity.filterChain.chainMap = filterChainChainMaps
 
 // JWT CONFIG
 grails.plugin.springsecurity.rest.token.storage.jwt.useSignedJwt = true
-grails.plugin.springsecurity.rest.token.storage.jwt.secret = '574ac47ccb36efc596bb6754366ff682469bca50a3cd406681e96ac2e6ed9fda'
+grails.plugin.springsecurity.rest.token.storage.jwt.secret = System.getenv('API_KEY')
 grails.plugin.springsecurity.rest.token.storage.jwt.expiration = 3600 // 1 hora
 grails.plugin.springsecurity.rest.token.generation.jwt.algorithm = 'HS256'
-grails.plugin.springsecurity.rest.token.generation.includePrincipal = false
 
 // Use Bearer Token
 grails.plugin.springsecurity.rest.token.validation.useBearerToken = true

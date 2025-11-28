@@ -17,6 +17,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
+    command: >
+      bash -c "
+        chmod +x /docker-entrypoint-initdb.d/*.sh || true;
+        exec docker-entrypoint.sh mysqld
+      "
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -42,6 +47,7 @@ services:
       MYSQL_DATABASE_PROD: ${MYSQL_DATABASE_PROD}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      API_KEY: ${API_KEY}
       SERVER_PORT: 8080
     depends_on:
       mysql5:

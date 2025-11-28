@@ -3,13 +3,21 @@ package com.ordenaris.restaurant
 import grails.rest.*
 import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
+import grails.plugin.springsecurity.SpringSecurityService
 
 @Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
 class MenuController {
     static responseFormats = ['json', 'xml']
     def MenuService
+    SpringSecurityService springSecurityService
 
     def listTypes() {
+        def auth = springSecurityService.principal
+
+        println "ID DEL USUARIO: ${auth.id}"
+        println "USERNAME: ${auth.username}"
+        println "ROLES: ${auth.authorities}"
+
         def response = MenuService.listTypes()
         println response
         return respond(response.resp, status: response.status)

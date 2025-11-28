@@ -8,14 +8,26 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_DEV}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_TCP_PORT: ${MYSQL_PORT}
     ports:
       - "${MYSQL_PORT}:${MYSQL_PORT}"
-    volumes: 
+    volumes:
       - mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    command: >
+      bash -c "
+        chmod +x /docker-entrypoint-initdb.d/*.sh || true;
+        exec docker-entrypoint.sh mysqld
+      "
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   backend:
     build: 
@@ -28,30 +40,32 @@ services:
     - ./backend/src:/app/src
     - ./backend/conf:/app/conf
     environment:
-      # Variables para conectar a MySQL
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DATABASE_DEV: ${MYSQL_DATABASE_DEV}
+      MYSQL_DATABASE_TEST: ${MYSQL_DATABASE_TEST}
+      MYSQL_DATABASE_PROD: ${MYSQL_DATABASE_PROD}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      API_KEY: ${API_KEY}
+      SERVER_PORT: 8080
     depends_on:
-      - mysql5
+      mysql5:
+        condition: service_healthy
     
-  
-
   #Configuracion para el docker "frontend"
   frontend:
-    #Este docker sera construido en base a un archivo Dockerfile ubicado en la raiz de la carpeta "/frontend""
     build:
       context: ./frontend
       dockerfile: dockerfile.dev
+
     environment:
       - NODE_OPTIONS=--max_old_space_size=4096
+
     volumes:
-      #Se especifica un volumen para que los cambios en el anfitrion sean reflejados tambien en la ubicacion del proyecto en docker
-      - ./frontend:/usr/local/apps/myapp/dev
-      #Se especifica un volumen para que los node_modules no choquen entre si
-      - exclude:/usr/local/apps/myapp/dev/node_modules/
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+
     ports:
       - "4200:4200"
 
@@ -73,6 +87,5 @@ services:
 
 volumes:
   #Estos son volumenes nombrados que son usados en la construccion de los dockers anteriores
-  exclude:
-  node_modules_front:
+  node_modules:
   mysql_data:

@@ -30,7 +30,7 @@ repositories {
 }
 
 ext{
-   springSecurityRestVersion = '2.0.0.M2'
+   springSecurityRestVersion = '2.0.0.RC1'
 }
 
 dependencies {
@@ -57,7 +57,7 @@ dependencies {
     compile "org.grails.plugins:views-json-templates"
     compile 'org.grails.plugins:spring-security-core:3.2.3'
     compile "org.grails.plugins:spring-security-rest:${springSecurityRestVersion}"
-    compile "org.grails.plugins:spring-security-rest-gorm:${springSecurityRestVersion}"
+    compile 'com.nimbusds:nimbus-jose-jwt:9.37.3'
     compile "org.grails.plugins:views-json:1.2.10"
     console "org.grails:grails-console"
     profile "org.grails.profiles:rest-api"

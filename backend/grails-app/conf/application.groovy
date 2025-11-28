@@ -41,9 +41,16 @@ def filterChainChainMaps = [
 
 grails.plugin.springsecurity.filterChain.chainMap = filterChainChainMaps
 
-grails.plugin.springsecurity.rest.token.storage.useGorm = true
-grails.plugin.springsecurity.rest.token.storage.gorm.tokenDomainClassName = 'com.ordenaris.security.AuthenticationToken'
-grails.plugin.springsecurity.rest.token.validation.useBearerToken = false
-grails.plugin.springsecurity.rest.token.validation.headerName = 'X-Auth-Token'
+// JWT CONFIG
+grails.plugin.springsecurity.rest.token.storage.jwt.useSignedJwt = true
+grails.plugin.springsecurity.rest.token.storage.jwt.secret = '574ac47ccb36efc596bb6754366ff682469bca50a3cd406681e96ac2e6ed9fda'
+grails.plugin.springsecurity.rest.token.storage.jwt.expiration = 3600 // 1 hora
+grails.plugin.springsecurity.rest.token.generation.jwt.algorithm = 'HS256'
+grails.plugin.springsecurity.rest.token.generation.includePrincipal = false
+
+// Use Bearer Token
+grails.plugin.springsecurity.rest.token.validation.useBearerToken = true
+grails.plugin.springsecurity.rest.token.validation.headerName = 'Authorization'
+grails.plugin.springsecurity.rest.token.validation.enableAnonymousAccess = false
 //Para que el endpoint /api/logout funcione con get no solo con post
 //grails.plugin.springsecurity.logout.postOnly = false

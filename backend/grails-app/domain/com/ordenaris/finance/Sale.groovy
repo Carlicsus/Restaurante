@@ -1,5 +1,6 @@
-package com.ordenaris.restaurante
+package com.ordenaris.finance
 import java.util.UUID
+import com.ordenaris.order.CustomerOrder
 
 class Sale {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')

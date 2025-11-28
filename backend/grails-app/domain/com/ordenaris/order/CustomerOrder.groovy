@@ -1,6 +1,7 @@
-package com.ordenaris.restaurante
+package com.ordenaris.order
 import java.util.UUID
 import com.ordenaris.security.User
+import com.ordenaris.finance.Sale
 
 class CustomerOrder {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
@@ -35,3 +36,4 @@ class CustomerOrder {
         return "Order ${uuid} - ${status} (${user.name})"
     }
 }
+

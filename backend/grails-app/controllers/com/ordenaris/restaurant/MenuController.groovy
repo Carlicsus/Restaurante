@@ -1,4 +1,4 @@
-package com.ordenaris.restaurante
+package com.ordenaris.restaurant
 
 import grails.rest.*
 import grails.converters.*

@@ -1,4 +1,4 @@
-package com.ordenaris.restaurante
+package com.ordenaris.restaurant
 import java.util.UUID
 
 class MenuType {

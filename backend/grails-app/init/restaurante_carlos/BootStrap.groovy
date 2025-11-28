@@ -1,7 +1,7 @@
 package restaurante_carlos
 
-import com.ordenaris.restaurante.MenuType
-import com.ordenaris.restaurante.Dish
+import com.ordenaris.restaurant.MenuType
+import com.ordenaris.restaurant.Dish
 import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
 import com.ordenaris.security.Role

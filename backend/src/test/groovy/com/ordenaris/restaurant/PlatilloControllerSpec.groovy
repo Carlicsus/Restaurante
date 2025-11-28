@@ -1,10 +1,10 @@
-package com.ordenaris.restaurante
+package com.ordenaris.restaurant
 
 import grails.testing.web.controllers.ControllerUnitTest
 import spock.lang.Specification
 import spock.lang.PendingFeature
 
-class MenuControllerSpec extends Specification implements ControllerUnitTest<MenuController> {
+class PlatilloControllerSpec extends Specification implements ControllerUnitTest<PlatilloController> {
 
     def setup() {
     }

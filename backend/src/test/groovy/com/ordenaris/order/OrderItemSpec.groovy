@@ -1,8 +1,7 @@
-package com.ordenaris.restaurante
+package com.ordenaris.order
 
 import grails.testing.gorm.DomainUnitTest
 import spock.lang.Specification
-import spock.lang.PendingFeature
 
 class OrderItemSpec extends Specification implements DomainUnitTest<OrderItem> {
 
@@ -11,7 +10,7 @@ class OrderItemSpec extends Specification implements DomainUnitTest<OrderItem> {
 
     def cleanup() {
     }
-    @PendingFeature
+
     void "test something"() {
         expect:"fix me"
             true == false

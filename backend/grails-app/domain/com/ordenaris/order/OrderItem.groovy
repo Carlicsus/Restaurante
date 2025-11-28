@@ -1,5 +1,6 @@
-package com.ordenaris.restaurante
+package com.ordenaris.order
 import java.util.UUID
+import com.ordenaris.restaurant.Dish
 
 class OrderItem {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')

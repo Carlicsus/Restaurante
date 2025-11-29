@@ -4,7 +4,14 @@ version: '3.9'
 services:    
 
   mysql5:
-    image: mysql:5.7
+    build:
+      context: ./database
+      dockerfile: dockerfile.dev
+      args:
+        MYSQL_DATABASE_DEV: ${MYSQL_DATABASE_DEV}
+        MYSQL_DATABASE_TEST: ${MYSQL_DATABASE_TEST}
+        MYSQL_DATABASE_PROD: ${MYSQL_DATABASE_PROD}
+        MYSQL_USER: ${MYSQL_USER}
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -16,12 +23,6 @@ services:
       - "${MYSQL_PORT}:${MYSQL_PORT}"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./database:/docker-entrypoint-initdb.d
-    command: >
-      bash -c "
-        chmod +x /docker-entrypoint-initdb.d/*.sh || true;
-        exec docker-entrypoint.sh mysqld
-      "
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s

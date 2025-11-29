@@ -4,18 +4,31 @@ version: '3.9'
 services:    
 
   mysql5:
-    image: mysql:5.7
+    build:
+      context: ./database
+      dockerfile: dockerfile.dev
+      args:
+        MYSQL_DATABASE_DEV: ${MYSQL_DATABASE_DEV}
+        MYSQL_DATABASE_TEST: ${MYSQL_DATABASE_TEST}
+        MYSQL_DATABASE_PROD: ${MYSQL_DATABASE_PROD}
+        MYSQL_USER: ${MYSQL_USER}
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_DEV}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_TCP_PORT: ${MYSQL_PORT}
     ports:
       - "${MYSQL_PORT}:${MYSQL_PORT}"
-    volumes: 
+    volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   backend:
     build: 
@@ -28,17 +41,19 @@ services:
     - ./backend/src:/app/src
     - ./backend/conf:/app/conf
     environment:
-      # Variables para conectar a MySQL
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DATABASE_DEV: ${MYSQL_DATABASE_DEV}
+      MYSQL_DATABASE_TEST: ${MYSQL_DATABASE_TEST}
+      MYSQL_DATABASE_PROD: ${MYSQL_DATABASE_PROD}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      API_KEY: ${API_KEY}
+      SERVER_PORT: 8080
     depends_on:
-      - mysql5
+      mysql5:
+        condition: service_healthy
     
-  
-
   #Configuracion para el docker "frontend"
   frontend:
     build:

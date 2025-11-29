@@ -1,0 +1,17 @@
+FROM tomcat:9.0-jdk8-temurin
+
+# Variables
+ENV APP_NAME=backend
+ENV WAR_FILE=${APP_NAME}.war
+
+# Tomcat webapps clean
+RUN rm -rf /usr/local/tomcat/webapps/*
+
+# Copia el WAR construido en Grails al contenedor
+COPY build/libs/*.war /usr/local/tomcat/webapps/ROOT.war
+
+# Exponer el puerto del Tomcat
+EXPOSE 8080
+
+# Arranca Tomcat
+CMD ["catalina.sh", "run"]

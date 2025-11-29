@@ -1,4 +1,4 @@
-package com.ordenaris.restaurante
+package com.ordenaris.finance
 
 import grails.gorm.transactions.Transactional
 
@@ -115,3 +115,4 @@ class SaleService {
         }
     }
 }
+

@@ -30,7 +30,8 @@ class UrlMappings {
             get "/view"(controller: "platillo", action: "paginateDishes")  
             group "/$uuid", {
                 get "/info"(controller: "platillo", action: "dishInfo")  
-                patch "/edit"(controller: "platillo", action: "editDish")  
+                patch "/edit"(controller: "platillo", action: "editDish")
+                post "/clone"(controller:"platillo", action:"cloneDish")  
                 patch "/activate"(controller: "platillo", action: "editDishStatus"){  
                     status = 1 
                 }

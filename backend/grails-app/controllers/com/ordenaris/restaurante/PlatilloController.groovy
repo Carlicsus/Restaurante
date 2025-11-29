@@ -195,4 +195,35 @@ class PlatilloController {
         def response = DishService.paginateDishes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.availableDishes?.toInteger(), params.query)
         return respond(response.resp, status: response.status)
     }
+
+    def cloneDish() {
+    def data = request.JSON
+
+    if (params.uuid.size() != 32) {
+        return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
+    }
+
+    if (!data.name) {
+        return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
+    }
+
+    if (data.name.soloNumeros()) {
+        return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
+    }
+
+    if (data.name.size() > 80) {
+        return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+    }
+
+    def newCost = null
+    if (data.cost) {
+        if (data.cost instanceof String && !data.cost.soloNumeros()) {
+            return respond([success: false, mensaje: "El costo debe contener solo numeros"], status: 400)
+        }
+        newCost = data.cost.toInteger()
+    }
+
+    def response = DishService.cloneDish(params.uuid, data.name, newCost)
+    return respond(response.resp, status: response.status)
+}
 }

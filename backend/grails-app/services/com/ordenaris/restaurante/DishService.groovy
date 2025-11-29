@@ -290,5 +290,45 @@ def listDishes() {
                 status: 500
             ]
         }
+
+
+    }
+
+    def cloneDish (uuid, newName, newCost, newDescription){
+        try{
+            def originalDish = Dish.findByUuid(uuid)
+            if(!originalDish){
+                return[
+                    resp:[success: false, message: "El platillo no existe"],
+                    status:404
+                ]
+            }
+            if(originalDish.status == 2){
+                return[
+                    resp:[success:false, mensage: "El platillo ha sido eliminado"],
+                    status:404
+                ]
+            }
+            def cloneDish = new Dish([
+                name:newName,
+                MenuType:originalDish.MenuType,
+                availableDate:originalDish.availableDate,
+                cost:newCost != null ? newCost * 100 : originalDish.cost,
+                description:newDescription != null ? newDescription : originalDish.description,
+                availableDishes:originalDish.availableDishes,
+                status:originalDish.status
+            ]).save(flush:true, failOnError:true)
+
+            return[
+                resp:[success:true,data: clonedDish.uuid],
+                status:200
+            ]
+        
+        }catch(e){
+            return[
+                resp:[success:false. message: e.getMessage()],
+                status:500,
+            ]
+        }
     }
 }

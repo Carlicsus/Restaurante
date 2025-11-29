@@ -1,8 +1,16 @@
 package restaurante_carlos
 
+<<<<<<< HEAD
 import com.ordenaris.restaurante.MenuType
 import com.ordenaris.restaurante.Dish
 import com.ordenaris.restaurante.User
+=======
+import com.ordenaris.restaurant.MenuType
+import com.ordenaris.restaurant.Dish
+import com.ordenaris.security.User
+import com.ordenaris.security.UserRole
+import com.ordenaris.security.Role
+>>>>>>> develop
 import java.util.regex.*
 class BootStrap {
 
@@ -23,6 +31,7 @@ class BootStrap {
             println "MenuType cargados."
         }
 
+<<<<<<< HEAD
         if (User.count() == 0) {
             println "Iniciando carga de User..."
             
@@ -34,6 +43,33 @@ class BootStrap {
                 password: "password123",
                 phone: "5512345678"
             ).save(failOnError: true)
+=======
+        def adminRole = Role.findOrSaveByAuthority('ROLE_ADMIN')
+        def chefRole = Role.findOrSaveByAuthority('ROLE_CHEF')
+        def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
+        def userRole = Role.findOrSaveByAuthority('ROLE_USER')
+
+        def adminUser = User.findOrSaveByUsernameAndPassword('admin', 'admin')
+        def chefUser = User.findOrSaveByUsernameAndPassword('chef', 'chef')
+        def financeUser = User.findOrSaveByUsernameAndPassword('finance', 'finance')
+        def userUser = User.findOrSaveByUsernameAndPassword('user', 'user')
+
+        UserRole.create adminUser, adminRole
+        UserRole.create chefUser, chefRole
+        UserRole.create financeUser, financeRole
+        UserRole.create userUser, userRole
+
+        UserRole.withSession {
+            it.flush()
+            it.clear()
+        }
+
+        assert User.count() == 4
+        assert Role.count() == 4
+        assert UserRole.count() == 4
+
+        
+>>>>>>> develop
 
             new User(
                 name: "Juan",

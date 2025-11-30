@@ -43,7 +43,23 @@ class UrlMappings {
                     status = 2
                 }
             }
+
+            group "/sale", {  
+                get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
+                get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 1
+                }
+                get "/payed/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 2
+                }
+                get "/all/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 3
+                }
+                get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
+            }
+
         }
+
 
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')

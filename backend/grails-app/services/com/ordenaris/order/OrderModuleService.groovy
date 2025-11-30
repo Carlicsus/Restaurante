@@ -16,7 +16,7 @@ class OrderModuleService {
             lastUpdated: order.lastUpdated,
             user: [
                 uuid: order.user?.uuid,
-                name: order.user?.name,
+                username: order.user?.username,
                 email: order.user?.email
             ],
             items: order.orderItems.collect { item ->
@@ -41,13 +41,13 @@ class OrderModuleService {
                 status: 200
             ]
     }
-    def newOrder(data) {
+    def newOrder(data, auth) {
         try {
-            def user = User.get(data.user_id)
+            def user = User.get(auth.id)
             if (!user) {
                 return [resp: [success: false, message: 'Usuario no encontrado'], status: 404]
             }
-            def customerOrder = new CustomerOrder([user:data.user_id]).save(flush: true, failOnError: true)
+            def customerOrder = new CustomerOrder([user:auth.id]).save(flush: true, failOnError: true)
 
             for (order in data) {
                 //println order.dishId

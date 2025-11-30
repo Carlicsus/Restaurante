@@ -1,13 +1,14 @@
 package com.ordenaris.restaurante
-
-
+import grails.plugin.springsecurity.annotation.Secured
+import grails.plugin.springsecurity.SpringSecurityService
 import grails.rest.*
 import grails.converters.*
-
+@Secured(['permitAll'])
 class OrdersModuleController {
 	static responseFormats = ['json']
 	def orderModuleService
-
+    SpringSecurityService springSecurityService
+    private getAuth() { springSecurityService.principal }
     def listOrders(){
         def serviceResponse = orderModuleService.listOrders()
         return respond(serviceResponse.resp, status: serviceResponse.status)
@@ -32,7 +33,7 @@ class OrdersModuleController {
                 return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
             }
         }
-        def serviceResponse = orderModuleService.newOrder(data)
+        def serviceResponse = orderModuleService.newOrder(data, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status) 
     }
 

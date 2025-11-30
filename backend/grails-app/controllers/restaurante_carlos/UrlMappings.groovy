@@ -24,7 +24,6 @@ class UrlMappings {
                     }
                 }
             }
-
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")  
@@ -43,58 +42,54 @@ class UrlMappings {
                     }
                 }
             }
-
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
             }
-        }
-
-        group "/order", {
-            post "/newOrder"(controller: "ordersModule", action: "newOrder")
-            get "/listOrders"(controller: "ordersModule", action: "listOrders")
-            group "/$uuid", {
-                get "/info"(controller: "ordersModule", action: "orderInfo")
-                group "/edit/$uuidDish",{
-                    patch "/dish"(controller: "ordersModule", action: "editOrder")
-                }
-                patch "/edit"(controller: "ordersModule", action: "editOrder")
-                patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
-                    status = "Cancelled"
-                }
-                patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
-                    status = "Preparing"
-                }
-                patch "/finish"(controller: "ordersModule", action: "editOrderStatus") {
-                    status = "Finished"
-                }
-                patch "/queue"(controller: "ordersModule", action: "editOrderStatus") {
-                    status = "Queue"
-                }
-                /*patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
-                    status = "Pending"
-                }
-                */
-            }
-        }
-        group "/shoppingCart", {
-            get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
-            post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
-            group "/$uuidSC", {
-                get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
-                post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
-                delete "/deleteItem/$uuidDish"(controller: "shoppingCart", action: "deleteItemShoppingCart")
-                patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
-                    status = "Finished"
-                }
-                delete "/delete"(controller: "shoppingCart", action: "editStatusShoppingCart"){
-                    status = "Delete"
+            group "/order", {
+                post "/newOrder"(controller: "ordersModule", action: "newOrder")
+                get "/listOrders"(controller: "ordersModule", action: "listOrders")
+                group "/$uuid", {
+                    get "/info"(controller: "ordersModule", action: "orderInfo")
+                    group "/edit/$uuidDish",{
+                        patch "/dish"(controller: "ordersModule", action: "editOrder")
+                    }
+                    patch "/edit"(controller: "ordersModule", action: "editOrder")
+                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Cancelled"
+                    }
+                    patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Preparing"
+                    }
+                    patch "/finish"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Finished"
+                    }
+                    patch "/queue"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Queue"
+                    }
+                    /*patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Pending"
+                    }
+                    */
                 }
             }
+            group "/shoppingCart", {
+                get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+                post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
+                group "/$uuidSC", {
+                    get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
+                    post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
+                    delete "/deleteItem/$uuidDish"(controller: "shoppingCart", action: "deleteItemShoppingCart")
+                    patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
+                        status = "Finished"
+                    }
+                    delete "/delete"(controller: "shoppingCart", action: "editStatusShoppingCart"){
+                        status = "Delete"
+                    }
+                }
+            }
         }
-
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')
         "404"(view: '/notFound')
     }
-
 }

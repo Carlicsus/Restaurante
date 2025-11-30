@@ -14,7 +14,7 @@ class ShoppingCartService {
         lastUpdated: cart.lastUpdated,
         user: [
             uuid: cart.user?.uuid,
-            name: cart.user?.name,
+            username: cart.user?.username,
             email: cart.user?.email
         ],
         dishes: cart.shoppingCartItem.collect { item ->
@@ -41,13 +41,13 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
-    def newOrderShoppingCart(data) {
+    def newOrderShoppingCart(data, auth) {
         try {
             if (!data) {
                 return [resp: [success: false, message: "Datos invalidos"], status: 400]
             }
-            def user = User.get(data.user_id)
-            def shoppingCart = new ShoppingCart([user: data.user_id]).save(flush: true, failOnError: true)
+            def user = User.get(auth.id)
+            def shoppingCart = new ShoppingCart([user: auth.id]).save(flush: true, failOnError: true)
             //println shoppingCart
             for (item in data){
                 def dish = Dish.findById(item.dishId)
@@ -57,7 +57,7 @@ class ShoppingCartService {
                 }
                 
                 def shoppingCartItemEntry = new ShoppingCartItem([
-                    userId: item.user_id,
+                    userId: auth.id,
                     dish: dish.id,
                     quantity: item.numberOrders,
                     unitPrice: dish.cost,
@@ -72,16 +72,24 @@ class ShoppingCartService {
     }
     def editStatusShoppingCart(data){
         try {
-        def shoppingCart = ShoppingCart.findByUuid(data.uuidSP)
+        def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
+        println shoppingCart
         def shoppingCartItems = ShoppingCartItem.findAllByShoppingCart(shoppingCart)
         if (!shoppingCart) {
             return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
         }
+/*
+        if (data.status == "Finished" || data.status == "Delete") {
+            return [resp: [success: false, message: "No se pueden actualizar datos para actualizar el estado del carrito de compras"], status: 400]
+        }
+*/
         if (data.status == "Finished") {
+            def user = User.findById(shoppingCart.user.id) 
             def newOrder = new CustomerOrder([
-                user: shoppingCart.user,
+                user: user,
                 status: "Queue"
-            ]).save(flush: true, failOnError: true)
+            ])
+            //.save(flush: true, failOnError: true)
             println newOrder
             if (!newOrder) {
                 return [resp: [success: false, message: "No se pudo crear la orden a partir del carrito de compras"], status: 500]

@@ -1,14 +1,16 @@
 package com.ordenaris.shoppingCart
-
-
 import grails.rest.*
 import grails.converters.*
-
+import grails.plugin.springsecurity.annotation.Secured
+import grails.plugin.springsecurity.SpringSecurityService
+@Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
 class ShoppingCartController {
 	static responseFormats = ['json']
     def shoppingCartService
-
+    SpringSecurityService springSecurityService
+    private getAuth() { springSecurityService.principal }
     def listOrderShoppingCart(){
+        println "ID DEL USUARIO: ${auth.id}"
         def serviceResponse = shoppingCartService.listOrderShoppingCart() 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
@@ -31,12 +33,13 @@ class ShoppingCartController {
                 }
             }
         }
-        def serviceResponse = shoppingCartService.newOrderShoppingCart(data) 
+        def serviceResponse = shoppingCartService.newOrderShoppingCart(data, auth) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
     def editStatusShoppingCart(){
         def data = params
-         if (!data.uuidSP) {
+        println data
+         if (!data.uuidSC) {
             return respond([success: false, message: "Falta el UUID del carrito de compras"], status: 400)
         }
         if (!data) {

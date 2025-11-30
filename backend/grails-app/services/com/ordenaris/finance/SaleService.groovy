@@ -4,88 +4,105 @@ import grails.gorm.transactions.Transactional
 import com.ordenaris.security.User
 import com.ordenaris.finance.Sale
 import com.ordenaris.order.OrderItem
+import org.hibernate.FetchMode
 
 @Transactional
 class SaleService {
 
-    def listDebtors() {
-        try {
-            def pendingSales = Sale.findAllByStatus("Pending")
-            def usersWithPendingOrders = pendingSales*.customerOrder*.user.unique()
+def listDebtors() {
+    try {
+        def pendingSales = Sale.createCriteria().list {
+            customerOrder {
+                orderItems {
+                    eq("status", true)    
+                }
+                user {
+                }
+            }
+            eq("status", "Pending")
+        }
 
-            def debtorsData = usersWithPendingOrders.collect { user ->
-                def userPendingSales = pendingSales.findAll { it.customerOrder.user.id == user.id }
-                def totalDebt = userPendingSales.sum { it.total } ?: 0
+        pendingSales = pendingSales.unique { it.id }
 
-                def userMap = mapUser(user)
-                userMap.totalPendingAmount = totalDebt
-                userMap.pendingOrdersCount = userPendingSales.size()
-                return userMap
-            }.findAll { it.totalPendingAmount > 0 }
+        def debtorsData = pendingSales.groupBy { it.customerOrder?.user }.findAll { u, sales -> u != null }.collect { u, sales ->
 
-            debtorsData = debtorsData.sort { -it.totalPendingAmount }
+            def orderIds = sales*.customerOrder?.id.findAll { it != null }
+        
+            def orderItems = OrderItem.createCriteria().list {
+                inList("customerOrder.id", orderIds)
+                eq("status", true)
+            }
+            def totalDebt = orderItems.sum { (it.unitPrice ?: 0) * (it.quantity ?: 0) } ?: 0
 
-            return [
-                resp: [
-                    success: true,
-                    data: [
-                        debtors: debtorsData,
-                        summary: [
-                            totalDebtors: debtorsData.size(),
-                            totalDebtAmount: debtorsData.sum { it.totalPendingAmount } ?: 0,
-                            averageDebt: debtorsData.size() > 0 ? ((debtorsData.sum { it.totalPendingAmount } / debtorsData.size()) as BigDecimal).setScale(2, BigDecimal.ROUND_HALF_UP) : 0
-                        ]
-                    ],
-                    message: "Deudores obtenidos exitosamente"
+            [
+                username: u.username,
+                pendingOrdersCount: sales.size(),
+                totalPendingAmount: totalDebt
+            ]
+        }.findAll { it.totalPendingAmount > 0 }
+
+        debtorsData = debtorsData.sort { -it.totalPendingAmount }
+
+        return [
+            resp: [
+                success: true,
+                data: [
+                    debtors: debtorsData,
+                    summary: [
+                        totalDebtors: debtorsData.size(),
+                        totalDebtAmount: debtorsData.sum { it.totalPendingAmount } ?: 0,
+                    ]
                 ],
-                status: 200
+                message: "Deudores obtenidos exitosamente"
+            ],
+            status: 200
+        ]
+    } catch (e) {
+        return [
+            resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
+            status: 500
+        ]
+    }
+}
+
+def getDetailsByusername(String username) {
+    try {
+        def user = User.findByUsername(username)
+        if (!user) {
+            return [
+                resp: [success: false, message: "Usuario no encontrado"],
+                status: 404
             ]
-        } catch (e) {
+        }
+        def pendingSales = Sale.createCriteria().list {
+            eq("status", "Pending")
+            customerOrder {
+                eq("user.id", user.id)
+            }
+        }
+        def ordersData = pendingSales.collect { sale -> mapOrder(sale) }
+
+        def debtorDetails = [
+            user: mapUser(user),
+            pendingOrders: ordersData,
+            summary: [
+                totalPendingOrders: ordersData.size(),
+                totalPendingAmount: ordersData.sum { it.amount } ?: 0,
+                oldestOrderDate: ordersData ? ordersData.min { it.dateCreated }?.dateCreated : null
+            ]
+        ]
+
+        return [
+            resp: [success: true, data: debtorDetails, message: "Detalles del deudor obtenidos exitosamente"],
+            status: 200
+        ]
+    }catch (e) {
             return [
                 resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
                 status: 500
             ]
         }
-    }
-
-    def getDebtorDetailsByUsername(String username) {
-        try {
-            def user = User.findByUsername(username)
-            if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
-            }
-
-            def pendingOrders = Sale.findAllByStatus("Pending").findAll { it.customerOrder.user.id == user.id }
-
-            def ordersData = pendingOrders.collect { sale ->
-                mapOrder(sale)
-            }
-
-            def debtorDetails = [
-                user: mapUser(user),
-                pendingOrders: ordersData,
-                summary: [
-                    totalPendingOrders: ordersData.size(),
-                    totalPendingAmount: ordersData.sum { it.amount } ?: 0,
-                    oldestOrderDate: ordersData ? ordersData.min { it.dateCreated }?.dateCreated : null
-                ]
-            ]
-
-            return [
-                resp: [success: true, data: debtorDetails, message: "Detalles del deudor obtenidos exitosamente"],
-                status: 200
-            ]
-        }catch (e) {
-            log.error("Error en getDebtorDetails: ${e}", e)
-            return [
-                resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
-                status: 500
-            ]
-        }
-    }
+}
 
     def paySingleSale(String saleUuid) {
         try {
@@ -122,53 +139,58 @@ class SaleService {
         }
     }
 
-    def payAllSalesForUser(String username) {
-        try {
-            def user = User.findByUsername(username)
-            if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
-            }
-
-            def pendingOrders = Sale.findAllByStatus("Pending").findAll { it.customerOrder.user.id == user.id }
-
-            if (!pendingOrders) {
-                return [
-                    resp: [success: false, message: "No hay ventas pendientes para este usuario"],
-                    status: 400
-                ]
-            }
-
-            def totalAmount = pendingOrders.sum { it.total }
-            def orderCount = pendingOrders.size()
-
-            pendingOrders.each { sale ->
-                sale.status = 'Paid'
-                sale.save(flush: true)
-            }
-
+def payAllSalesForUser(String username) {
+    try {
+        def user = User.findByUsername(username)
+        if (!user) {
             return [
-                resp: [
-                    success: true,
-                    message: "Todas las órdenes han sido pagadas exitosamente",
-                    data: [
-                        user: mapUser(user),
-                        paidOrdersCount: orderCount,
-                        totalAmountPaid: totalAmount,
-                        paidDate: new Date()
-                    ]
-                ],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: "Error al procesar los pagos: ${e.getMessage()}"],
-                status: 500
+                resp: [success: false, message: "Usuario no encontrado"],
+                status: 404
             ]
         }
+
+        def pendingSales = Sale.createCriteria().list {
+            eq("status", "Pending")
+            customerOrder {
+                eq("user.id", user.id)
+            }
+        }
+
+        if (!pendingSales) {
+            return [
+                resp: [success: false, message: "No hay ventas pendientes para este usuario"],
+                status: 400
+            ]
+        }
+
+        def totalAmount = pendingSales.sum { it.total }
+        def orderCount = pendingSales.size()
+
+        pendingSales.each { sale ->
+            sale.status = 'Paid'
+            sale.save(flush: true)
+        }
+
+        return [
+            resp: [
+                success: true,
+                message: "Todas las órdenes han sido pagadas exitosamente",
+                data: [
+                    user: mapUser(user),
+                    paidOrdersCount: orderCount,
+                    totalAmountPaid: totalAmount,
+                    paidDate: new Date()
+                ]
+            ],
+            status: 200
+        ]
+    } catch (e) {
+        return [
+            resp: [success: false, message: "Error al procesar los pagos: ${e.getMessage()}"],
+            status: 500
+        ]
     }
+}
 
     def mapUser(User user) {
         [

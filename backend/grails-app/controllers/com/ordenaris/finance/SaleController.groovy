@@ -15,11 +15,11 @@ class SaleController {
         return respond(response.resp, status: response.status)
     }
 
-    def getDebtorDetailsByUsername() {
+    def getDetailsByusername() {
         if (!params.username) {
             return respond([success: false, message: "El nombre de usuario es obligatorio"], status: 400)
         }
-        def response = saleService.getDebtorDetailsByUsername(params.username)
+        def response = saleService.getDetailsByusername(params.username)
         return respond(response.resp, status: response.status)
     }
 

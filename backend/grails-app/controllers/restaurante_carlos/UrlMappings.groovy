@@ -50,7 +50,7 @@ class UrlMappings {
 
             group "/finance", {
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
-                get "/debtors/$username/details"(controller: "sale", action: "getDebtorDetailsByUsername")
+                get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
             }

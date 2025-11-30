@@ -17,7 +17,7 @@ class OrdersModuleController {
 
     def newOrder(){
         def data = request.JSON
-        
+
         for (item in data){
             if(!item){
                 return respond([success: false, message: "Datos invalidos"], status: 400)
@@ -74,8 +74,8 @@ class OrdersModuleController {
 
     def editOrderStatus(){
         def data = params
-        //println data
-        if (!data.uuid) {
+        println data
+        if (!data.uuidOrder) {
             return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
         }
         if (!data.status) {
@@ -87,7 +87,7 @@ class OrdersModuleController {
             return respond([success: false, message: "Estado de orden invalido"], status: 400)
         }
         if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
-            def order = CustomerOrder.findByUuid(data.uuid)
+            def order = CustomerOrder.findByUuid(data.uuidOrder)
             if (!order) {
                 return respond([success: false, message: "Orden no encontrada"], status: 404)
             }

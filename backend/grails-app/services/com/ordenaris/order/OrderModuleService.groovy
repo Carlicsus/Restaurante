@@ -70,7 +70,7 @@ class OrderModuleService {
     }
     def editOrder(dataP, dataR) {
         try {
-            def order = CustomerOrder.findByUuid(dataP.uuid)
+            def order = CustomerOrder.findByUuid(dataP.uuidOrder)
             if (dataP.uuidDish){
                 def orderItem = OrderItem.findByUuid(dataP.uuidDish)
                 if (!orderItem) {
@@ -112,7 +112,7 @@ class OrderModuleService {
     }
     def editOrderStatus(data) {
         try {
-            def order = CustomerOrder.findByUuid(data.uuid)
+            def order = CustomerOrder.findByUuid(data.uuidOrder)
             if (!order) {
                 return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
             }

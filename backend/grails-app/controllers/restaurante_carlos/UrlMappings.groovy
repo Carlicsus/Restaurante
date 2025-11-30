@@ -63,7 +63,7 @@ class UrlMappings {
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
-                group "/$uuid", {
+                group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
                     group "/edit/$uuidDish",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")

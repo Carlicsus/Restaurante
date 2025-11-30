@@ -56,8 +56,10 @@ class UrlMappings {
                 get "/payed/$userId"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 2
                 }
+                get "/all/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 3
+                }
                 get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
-                
             }
 
         }

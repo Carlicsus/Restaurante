@@ -1,34 +1,28 @@
-package com.ordenaris.order
+package com.ordenaris.shoppingCart
 import java.util.UUID
 import com.ordenaris.security.User
-import com.ordenaris.finance.Sale
-
-class CustomerOrder {
+class ShoppingCart {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
-    String status = "Queue" // Queue, Preparing, Finished
+    String status = "Pending"
     Date dateCreated
     Date lastUpdated
 
     // Relación con User
     static belongsTo = [user: User]
 
-    static hasMany = [orderItems: OrderItem]
-
-    static hasOne = [sale: Sale]
-
+    static hasMany = [shoppingCartItem: ShoppingCartItem]
     
     static constraints = {
         uuid size: 32..32, unique: true
         user nullable: false
-        status inList: ["Queue", "Preparing", "Finished", "Cancelled"], blank: false
-        sale nullable: true
+        status inList: ["Pending", "Delete", "Finished"], blank: false
         lastUpdated nullable: true
     }
 
     static mapping = {
-        uuid index: "customer_order_uuid_idx"
-        user index: "customer_order_user_idx"
         version false
+        uuid index: "shopping_cart_uuid_idx"
+        user index: "shopping_cart_user_idx"
         dateCreated column: "date_created"
         lastUpdated column: "last_updated"
     }
@@ -37,4 +31,3 @@ class CustomerOrder {
         return "Order ${id} - ${status} (${user.username})"
     }
 }
-

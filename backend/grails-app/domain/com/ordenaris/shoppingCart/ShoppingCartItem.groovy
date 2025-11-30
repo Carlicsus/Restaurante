@@ -1,8 +1,7 @@
-package com.ordenaris.order
+package com.ordenaris.shoppingCart
 import java.util.UUID
 import com.ordenaris.restaurant.Dish
-
-class OrderItem {
+class ShoppingCartItem {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
     Integer unitPrice 
     Integer quantity
@@ -11,11 +10,11 @@ class OrderItem {
     Date lastUpdated
 
     // Relaciones
-    static belongsTo = [customerOrder: CustomerOrder, dish: Dish]  
+    static belongsTo = [shoppingCart: ShoppingCart, dish: Dish]  
 
     static constraints = {
         uuid size: 32..32, unique: true
-        customerOrder nullable: false
+        shoppingCart nullable: false
         dish nullable: false
         unitPrice min: 0, max: 60000, nullable: false
         quantity min: 1, nullable: false
@@ -24,9 +23,9 @@ class OrderItem {
     }
 
     static mapping = {
-        uuid index: "order_item_uuid_idx"
-        customerOrder index: "order_item_customer_order_idx"
-        dish index: "order_item_dish_idx"
+        uuid index: "shopping_cart_uuid_idx"
+        shoppingCart index: "shopping_cart_item_shopping_cart_idx"
+        dish index: "shopping_cart_dish_idx"
         version false
         dateCreated column: "date_created"
         lastUpdated column: "last_updated"
@@ -37,4 +36,5 @@ class OrderItem {
     String toString() {
         return "${dish.name} x${quantity} - \$${unitPrice}"
     }
+
 }

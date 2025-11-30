@@ -123,7 +123,7 @@ def listDishes() {
         }
     }
 
-    def dishInfo(uuid) {
+    def dishInfo(uuid, requestedStatus = null) {
         def dish = Dish.findByUuid(uuid)
         if (!dish) {
             return [
@@ -138,8 +138,6 @@ def listDishes() {
             ]
         }
 
-        def subMenu = MenuType.findById(dish.menuType.id)
-
         def response = [
             uuid: dish.uuid,
             name: dish.name,
@@ -148,9 +146,11 @@ def listDishes() {
             status: dish.status,
             availableDishes: dish.availableDishes,
             availableDate: dish.availableDate,
-            subMenu: mapMenuType(subMenu, [])
         ]
-
+        if(requestedStatus != null && requestedStatus == 1 ){
+            def subMenu = MenuType.findById(dish.menuType.id)
+            response.subMenu = mapMenuType(subMenu, [])
+        }
         return [
             resp: [success: true, data: response],
             status: 200
@@ -290,5 +290,8 @@ def listDishes() {
                 status: 500
             ]
         }
+
+
     }
+
 }

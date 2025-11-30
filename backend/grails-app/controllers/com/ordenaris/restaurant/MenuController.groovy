@@ -23,6 +23,15 @@ class MenuController {
         return respond(response.resp, status: response.status)
     }
 
+    def listSubmenusByParent() {
+        if (params.uuid?.size() != 32) {
+            return respond([success: false, mensaje: "El Uuid es inválido"], status: 400)
+        }
+        def response = MenuService.listSubmenusByParent(params.uuid)
+        return respond(response.resp, status: response.status)
+    }
+
+
     def newType() {
         def data = request.JSON
         if (!data.name) {

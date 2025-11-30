@@ -1,0 +1,828 @@
+{
+	"info": {
+		"_postman_id": "3cb5e7f3-2a4e-4dd5-9642-04e1335f8139",
+		"name": "Restaurante API Final",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48160047",
+		"_collection_link": "https://a-zacek-gc-3443421.postman.co/workspace/Guti%C3%A9rrez-Cruz-%C3%81ngel-Zacek's-Wo~fcfd307e-be02-48b5-8598-7585357be809/collection/48160047-3cb5e7f3-2a4e-4dd5-9642-04e1335f8139?action=share&source=collection_link&creator=48160047"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var r = pm.response.json();",
+									"pm.collectionVariables.set(\"jwtAdmin\", r.access_token);",
+									"console.log(\"TOKEN ADMIN actualizado:\", r.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Chef",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var r = pm.response.json();",
+									"pm.collectionVariables.set(\"jwtChef\", r.access_token);",
+									"console.log(\"TOKEN CHEF actualizado:\", r.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"chef\",\n  \"password\": \"chef\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Menu",
+			"item": [
+				{
+					"name": "Tipo Menu",
+					"item": [
+						{
+							"name": "Registrar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"name\", \"NuevoTipo\");",
+											"pm.variables.set(\"parent\", \"\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{name}}\",\n  \"parentType\": \"{{parent}}\"\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/menu/type/new",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"new"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/list",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Paginar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/view?page=1&orderColumn=name&order=asc&max=10",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"view"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "orderColumn",
+											"value": "name"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "max",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ver Información",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_AQUI_UN_UUID_REAL\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/info",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"info"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Editar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_AQUI_UUID_EDITAR\");",
+											"pm.variables.set(\"new_name\", \"NombreEditado\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{new_name}}\"\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/edit",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"edit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_UUID_ACTIVAR\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/activate",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"activate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Desactivar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_UUID_DESACTIVAR\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/deactivate",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"deactivate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_UUID_ELIMINAR\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/delete",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Platillos",
+			"item": [
+				{
+					"name": "Registrar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"name\", \"Nuevo platillo\");",
+									"pm.variables.set(\"menuType\", \"PON_AQUI_UN_UUID_MENUTYPE\");",
+									"pm.variables.set(\"availableDate\", new Date().getTime());",
+									"pm.variables.set(\"cost\", \"25\");",
+									"pm.variables.set(\"description\", \"Descripcion prueba\");",
+									"pm.variables.set(\"availableDishes\", \"10\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{name}}\",\n  \"menuType\": \"{{menuType}}\",\n  \"availableDate\": \"{{availableDate}}\",\n  \"cost\": \"{{cost}}\",\n  \"description\": \"{{description}}\",\n  \"availableDishes\": \"{{availableDishes}}\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/dish/new",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/list",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Paginar",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/view?page=1&orderColumn=name&order=asc&max=10",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"view"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "orderColumn",
+									"value": "name"
+								},
+								{
+									"key": "order",
+									"value": "asc"
+								},
+								{
+									"key": "max",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ver Información",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_AQUI_UUID_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/info",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Editar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_AQUI_UUID_EDIT_DISH\");",
+									"pm.variables.set(\"name\", \"Editado\");",
+									"pm.variables.set(\"menuType\", \"PON_UUID_TIPO\");",
+									"pm.variables.set(\"availableDate\", new Date().getTime());",
+									"pm.variables.set(\"cost\", \"33\");",
+									"pm.variables.set(\"description\", \"Nueva desc\");",
+									"pm.variables.set(\"availableDishes\", \"15\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{name}}\",\n  \"menuType\": \"{{menuType}}\",\n  \"availableDate\": \"{{availableDate}}\",\n  \"cost\": \"{{cost}}\",\n  \"description\": \"{{description}}\",\n  \"availableDishes\": \"{{availableDishes}}\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/edit",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_UUID_ACTIVAR_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/activate",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"activate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Desactivar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_UUID_DESACTIVAR_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/deactivate",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"deactivate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_UUID_DELETE_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/delete",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "jwtAdmin",
+			"value": ""
+		},
+		{
+			"key": "jwtChef",
+			"value": ""
+		},
+		{
+			"key": "host",
+			"value": "http://localhost:8080"
+		}
+	]
+}

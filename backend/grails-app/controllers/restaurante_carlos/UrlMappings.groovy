@@ -54,7 +54,22 @@ class UrlMappings {
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
             }
+            group "/sale", {  
+                get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
+                get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 1
+                }
+                get "/payed/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 2
+                }
+                get "/all/$userId"(controller: "sale", action: "getSalesByUser") {
+                    typeSale = 3
+                }
+                get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
+            }
+
         }
+
 
         "/"(controller: 'application', action:'index')
         "500"(view: '/error')

@@ -1,6 +1,6 @@
 package com.ordenaris.shoppingCart
 import java.util.UUID
-import com.ordenaris.restaurante.Dish
+import com.ordenaris.restaurant.Dish
 class ShoppingCartItem {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
     Integer unitPrice 

@@ -1,6 +1,6 @@
 package com.ordenaris.shoppingCart
 import java.util.UUID
-import com.ordenaris.restaurante.User
+import com.ordenaris.security.User
 class ShoppingCart {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
     String status = "Pending"

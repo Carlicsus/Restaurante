@@ -1,6 +1,6 @@
 package com.ordenaris.shoppingCart
-import com.ordenaris.restaurante.Dish
-import com.ordenaris.restaurante.User
+import com.ordenaris.restaurant.Dish
+import com.ordenaris.security.User
 import com.ordenaris.order.CustomerOrder
 import com.ordenaris.order.OrderItem
 import grails.gorm.transactions.Transactional
@@ -28,7 +28,6 @@ class ShoppingCartService {
                 ]
             ]
         }
-    
     ]
 }
 

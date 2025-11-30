@@ -49,7 +49,7 @@ class UrlMappings {
             }
         }
 
-        group "api/order", {
+        group "/order", {
             post "/newOrder"(controller: "ordersModule", action: "newOrder")
             get "/listOrders"(controller: "ordersModule", action: "listOrders")
             group "/$uuid", {
@@ -76,7 +76,7 @@ class UrlMappings {
                 */
             }
         }
-        group "api/shoppingCart", {
+        group "/shoppingCart", {
             get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
             post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
             group "/$uuidSC", {

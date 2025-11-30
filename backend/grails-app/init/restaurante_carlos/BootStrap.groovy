@@ -1,17 +1,12 @@
 package restaurante_carlos
 
-<<<<<<< HEAD
-import com.ordenaris.restaurante.MenuType
-import com.ordenaris.restaurante.Dish
-import com.ordenaris.restaurante.User
-=======
-import com.ordenaris.restaurant.MenuType
-import com.ordenaris.restaurant.Dish
+import java.util.regex.*
+import com.ordenaris.security.Role
 import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
-import com.ordenaris.security.Role
->>>>>>> develop
-import java.util.regex.*
+import com.ordenaris.restaurant.Dish
+import com.ordenaris.restaurant.MenuType
+
 class BootStrap {
 
     def init = { servletContext ->
@@ -31,19 +26,6 @@ class BootStrap {
             println "MenuType cargados."
         }
 
-<<<<<<< HEAD
-        if (User.count() == 0) {
-            println "Iniciando carga de User..."
-            
-            new User(
-                name: "Admin",
-                lastName: "Restaurante",
-                workerNumber: "ADM-001",
-                email: "admin@ordenaris.com",
-                password: "password123",
-                phone: "5512345678"
-            ).save(failOnError: true)
-=======
         def adminRole = Role.findOrSaveByAuthority('ROLE_ADMIN')
         def chefRole = Role.findOrSaveByAuthority('ROLE_CHEF')
         def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
@@ -69,7 +51,6 @@ class BootStrap {
         assert UserRole.count() == 4
 
         
->>>>>>> develop
 
             new User(
                 name: "Juan",
@@ -91,7 +72,7 @@ class BootStrap {
             ).save(failOnError: true)
             
             println "User cargados."
-        }
+
 
         if (Dish.count() == 0) {
             println "Iniciando carga de Dish..."
@@ -202,9 +183,7 @@ class BootStrap {
                 
             println "Dish cargados."
         }
+
     }
-   
-    def destroy = {
-    }
-}
+            }
 

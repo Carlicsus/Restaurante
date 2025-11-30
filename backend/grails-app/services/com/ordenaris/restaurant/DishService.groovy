@@ -309,9 +309,9 @@ def listDishes() {
                     status:404
                 ]
             }
-            def cloneDish = new Dish([
+            def clonedDish = new Dish([
                 name:newName,
-                MenuType:originalDish.MenuType,
+                menuType:originalDish.menuType,
                 availableDate:originalDish.availableDate,
                 cost:newCost != null ? newCost * 100 : originalDish.cost,
                 description:newDescription != null ? newDescription : originalDish.description,
@@ -326,7 +326,7 @@ def listDishes() {
         
         }catch(e){
             return[
-                resp:[success:false. message: e.getMessage()],
+                resp:[success:false, message: e.getMessage()],
                 status:500,
             ]
         }

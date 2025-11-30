@@ -225,7 +225,7 @@ class PlatilloController {
         newCost = data.cost.toInteger()
     }
 
-    def response = DishService.cloneDish(params.uuid, data.name, newCost)
+    def response = DishService.cloneDish(params.uuid, data.name, newCost, data.description)
     return respond(response.resp, status: response.status)
 }
 }

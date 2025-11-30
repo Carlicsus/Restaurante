@@ -1,6 +1,8 @@
 package com.ordenaris.finance
 
 import grails.gorm.transactions.Transactional
+import com.ordenaris.security.User
+import com.ordenaris.order.CustomerOrder
 
 @Transactional
 class SaleService {
@@ -63,13 +65,14 @@ class SaleService {
 
     def getUserSalesByDateRange(startDate, endDate, userId) {
         try {
-            def orders = CustomerOrder.findAllByUserId(userId)
+            def user = User.findById(userId)
+            def orders = CustomerOrder.findAllByUser(user)
             def orderIds = orders.collect { it.id }
             def list = Sale.createCriteria().list {
-                'in'("customerOrderId", orderIds)
+                'in'("customerOrder.id", orderIds)
                 between("dateCreated", startDate, endDate)
                 order("dateCreated", "desc")
-            }.collect { mapSale(sale) }
+            }.collect { sale -> mapSale(sale) }
             
             return [
                 resp: [success: true, data: list],
@@ -86,22 +89,22 @@ class SaleService {
     def getSalesByUser(userId, typeSale) {
         try {
             def user = User.findById(userId)
-            def list = CustomerOrder.findAllByUser(user.id)
-
+            def list = CustomerOrder.findAllByUser(user)
+            def listOfSales
             if ( typeSale == 1 ) {
                 def orderIds = list.collect { it.id }
-                def listOfSales = Sale.createCriteria().list {
-                    'in'("customerOrderId", orderIds)
+                listOfSales = Sale.createCriteria().list {
+                    'in'("customerOrder.id", orderIds)
                     ne("status", "Pending")
                     order("dateCreated", "desc")
-                }.collect { mapSale(sale) }
+                }.collect { sale -> mapSale(sale) }
             } else {
                 def orderIds = list.collect { it.id }
-                def listOfSales = Sale.createCriteria().list {
-                    'in'("customerOrderId", orderIds)
+                listOfSales = Sale.createCriteria().list {
+                    'in'("customerOrder.id", orderIds)
                     ne("status", "Payed")
                     order("dateCreated", "desc")
-                }.collect { mapSale(sale) }
+                }.collect { sale -> mapSale(sale) }
             }
             return [
                 resp: [success: true, data: listOfSales],

@@ -13,14 +13,14 @@ class ShoppingCartService {
         dateCreated: cart.dateCreated,
         lastUpdated: cart.lastUpdated,
         user: [
-            uuid: cart.user?.uuid,
+            uuid: cart.user?.id,
             username: cart.user?.username,
-            email: cart.user?.email
+            //email: cart.user?.email
         ],
         dishes: cart.shoppingCartItem.collect { item ->
             [
                 uuid: item.uuid,
-                quantity: item.quantity,
+                quantityDish: item.quantity,
                 unitPrice: item.unitPrice / 100,
                 dish: [
                     uuid: item.dish?.uuid,
@@ -59,7 +59,7 @@ class ShoppingCartService {
                 def shoppingCartItemEntry = new ShoppingCartItem([
                     userId: auth.id,
                     dish: dish.id,
-                    quantity: item.numberOrders,
+                    quantity: item.quantityDish,
                     unitPrice: dish.cost,
                     shoppingCart: shoppingCart.id
                 ]).save(flush: true, failOnError: true)

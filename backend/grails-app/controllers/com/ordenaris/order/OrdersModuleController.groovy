@@ -1,4 +1,5 @@
-package com.ordenaris.restaurante
+package com.ordenaris.order
+import com.ordenaris.order.CustomerOrder
 import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 import grails.rest.*
@@ -16,20 +17,18 @@ class OrdersModuleController {
 
     def newOrder(){
         def data = request.JSON
+        
         for (item in data){
             if(!item){
                 return respond([success: false, message: "Datos invalidos"], status: 400)
             }
-            if(!item.user_id){
-                return respond([success: false, message: "Falta el ID del usuario"], status: 400)
-            }
             if(!item.dishId){
                 return respond([success: false, message: "Falta el ID del platillo"], status: 400)
             }
-            if(!item.numberOrders || item.numberOrders <= 0){
+            if(!item.quantityDish || item.quantityDish <= 0){
                 return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
             }
-            if(item.numberOrders > 5){
+            if(item.quantityDish > 5){
                 return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
             }
         }
@@ -62,10 +61,10 @@ class OrdersModuleController {
         if (!dataR.dishId) {
             return respond([success: false, message: "Falta el ID del nuevo platillo"], status: 400)
         }
-        if (!dataR.numberOrders || dataR.numberOrders < 1) {
+        if (!dataR.quantityDish || dataR.quantityDish < 1) {
             return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
         }
-        if (dataR.numberOrders > 5) {
+        if (dataR.quantityDish > 5) {
             return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
         }
         

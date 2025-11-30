@@ -34,7 +34,7 @@ class CustomerOrder {
     }
 
     String toString() {
-        return "Order ${uuid} - ${status} (${user.username})"
+        return "Order ${id} - ${status} (${user.username})"
     }
 }
 

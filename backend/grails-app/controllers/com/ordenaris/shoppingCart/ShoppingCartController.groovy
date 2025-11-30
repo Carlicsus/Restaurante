@@ -19,16 +19,13 @@ class ShoppingCartController {
         println data
         for (item in data){
             if(!data){
-                if (!data.user_id) {
-                    return respond([success: false, message: "Falta el ID del usuario"], status: 400)
-                }
                 if (!data.dishId) {
                     return respond([success: false, message: "Falta el ID del platillo"], status: 400)
                 }
-                if (!data.numberOrders || data.numberOrders <= 0) {
+                if (!data.quantityDish || data.quantityDish <= 0) {
                     return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
                 }
-                if (data.numberOrders > 5) {
+                if (data.quantityDish > 5) {
                     return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
                 }
             }
@@ -61,10 +58,10 @@ class ShoppingCartController {
                 if (!dataR.dishId) {
                     return respond([success: false, message: "Falta el ID del platillo"], status: 400)
                 }
-                if (!dataR.numberOrders || dataR.numberOrders <= 0) {
+                if (!dataR.quantityDish || dataR.quantityDish <= 0) {
                     return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
                 }
-                if (dataR.numberOrders > 5) {
+                if (dataR.quantityDish > 5) {
                     return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
                 }
             }

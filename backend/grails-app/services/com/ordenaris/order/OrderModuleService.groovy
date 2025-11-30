@@ -1,5 +1,4 @@
-package com.ordenaris.restaurante
-
+package com.ordenaris.order
 import grails.gorm.transactions.Transactional
 import com.ordenaris.security.User
 import com.ordenaris.restaurant.Dish
@@ -15,14 +14,14 @@ class OrderModuleService {
             dateCreated: order.dateCreated,
             lastUpdated: order.lastUpdated,
             user: [
-                uuid: order.user?.uuid,
+                uuid: order.user?.id,
                 username: order.user?.username,
-                email: order.user?.email
+                //email: order.user?.email
             ],
             items: order.orderItems.collect { item ->
                 [
                     uuid: item.uuid,
-                    quantity: item.quantity,
+                    quantityDish: item.quantity,
                     unitPrice: item.unitPrice / 100,
                     dish: [
                         uuid: item.dish?.uuid,
@@ -42,6 +41,7 @@ class OrderModuleService {
             ]
     }
     def newOrder(data, auth) {
+        println data
         try {
             def user = User.get(auth.id)
             if (!user) {
@@ -54,7 +54,7 @@ class OrderModuleService {
                 def dishId = order.dishId
                 def dish = Dish.findById(dishId)
                 //println "Platillo encontrado: ${dish} con el precio de ${dish.cost}"
-                def orderItem = new OrderItem([unitPrice: dish.cost, dish: dishId, quantity: order.numberOrders, customerOrder:customerOrder.id]).save(flush: true, failOnError: true)
+                def orderItem = new OrderItem([unitPrice: dish.cost, dish: dishId, quantity: order.quantityDish, customerOrder:customerOrder.id]).save(flush: true, failOnError: true)
             }
             customerOrder.refresh()
             return [
@@ -84,7 +84,7 @@ class OrderModuleService {
                 //println newDishObject
                 orderItem.dish = newDishObject
                 orderItem.unitPrice = newDishObject.cost
-                orderItem.quantity = dataR.numberOrders
+                orderItem.quantity = dataR.quantityDish
                 orderItem.status = dataR.status 
                 orderItem.save(flush: true, failOnError: true)
             }
@@ -94,7 +94,7 @@ class OrderModuleService {
             def orderItems = new OrderItem([
                 unitPrice: dish.cost,
                 dish: dataR.dishId,
-                quantity: dataR.numberOrders,
+                quantity: dataR.quantityDish,
                 customerOrder: order.id
             ]).save(flush: true, failOnError: true)
             }

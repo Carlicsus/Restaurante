@@ -28,6 +28,6 @@ class ShoppingCart {
     }
 
     String toString() {
-        return "Order ${uuid} - ${status} (${user.username})"
+        return "Order ${id} - ${status} (${user.username})"
     }
 }

@@ -50,29 +50,6 @@ class BootStrap {
         assert Role.count() == 4
         assert UserRole.count() == 4
 
-        
-
-            new User(
-                name: "Juan",
-                lastName: "Perez",
-                workerNumber: "USR-001",
-                email: "juan.perez@cliente.com",
-                password: "password123",
-                purchaseStatus: true,
-                phone: "5587654321"
-            ).save(failOnError: true)
-
-            new User(
-                name: "Ana",
-                lastName: "Garcia",
-                workerNumber: "USR-002",
-                email: "ana.garcia@cliente.com",
-                password: "password123",
-                phone: "5555555555"
-            ).save(failOnError: true)
-            
-            println "User cargados."
-
 
         if (Dish.count() == 0) {
             println "Iniciando carga de Dish..."

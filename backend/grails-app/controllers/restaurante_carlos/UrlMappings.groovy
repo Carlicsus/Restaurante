@@ -47,13 +47,13 @@ class UrlMappings {
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
             }
-        }
 
-        group "/finance", {
-            get "/debtors/all"(controller: "finance", action: "listDebtors")
-            get "/debtors/$userUuid/details"(controller: "finance", action: "debtorDetails")
-            post "/orders/pay-specific"(controller: "finance", action: "paySpecificOrder")
-            post "/orders/pay-all-user"(controller: "finance", action: "payAllUserOrders")
+            group "/finance", {
+                get "/debtors/all"(controller: "sale", action: "listDebtors")
+                get "/debtors/$username/details"(controller: "sale", action: "getDebtorDetailsByUsername")
+                post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
+                post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
+            }
         }
 
         "/"(controller: 'application', action:'index')

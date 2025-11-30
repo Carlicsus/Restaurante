@@ -1,14 +1,14 @@
 package com.ordenaris.finance
 
 import grails.gorm.transactions.Transactional
-import com.ordenaris.restaurante.User
-import com.ordenaris.restaurante.Sale
-import com.ordenaris.restaurante.OrderItem
+import com.ordenaris.security.User
+import com.ordenaris.finance.Sale
+import com.ordenaris.order.OrderItem
 
 @Transactional
-class FinanceService {
+class SaleService {
 
-    def getAllDebtors() {
+    def listDebtors() {
         try {
             def pendingSales = Sale.findAllByStatus("Pending")
             def usersWithPendingOrders = pendingSales*.customerOrder*.user.unique()
@@ -48,9 +48,9 @@ class FinanceService {
         }
     }
 
-    def getDebtorDetails(String userUuid) {
+    def getDebtorDetailsByUsername(String username) {
         try {
-            def user = User.findByUuid(userUuid)
+            def user = User.findByUsername(username)
             if (!user) {
                 return [
                     resp: [success: false, message: "Usuario no encontrado"],
@@ -79,6 +79,7 @@ class FinanceService {
                 status: 200
             ]
         }catch (e) {
+            log.error("Error en getDebtorDetails: ${e}", e)
             return [
                 resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
                 status: 500
@@ -86,7 +87,7 @@ class FinanceService {
         }
     }
 
-    def paySpecificOrder(String saleUuid) {
+    def paySingleSale(String saleUuid) {
         try {
             def sale = Sale.findByUuid(saleUuid)
             if (!sale) {
@@ -97,7 +98,7 @@ class FinanceService {
             }
             if (sale.status != 'Pending') {
                 return [
-                    resp: [success: false, message: "Esta orden ya ha sido pagada"],
+                    resp: [success: false, message: "Esta venta ya ha sido pagada"],
                     status: 400
                 ]
             }
@@ -121,9 +122,9 @@ class FinanceService {
         }
     }
 
-    def payAllUserOrders(String userUuid) {
+    def payAllSalesForUser(String username) {
         try {
-            def user = User.findByUuid(userUuid)
+            def user = User.findByUsername(username)
             if (!user) {
                 return [
                     resp: [success: false, message: "Usuario no encontrado"],
@@ -135,7 +136,7 @@ class FinanceService {
 
             if (!pendingOrders) {
                 return [
-                    resp: [success: false, message: "No hay órdenes pendientes para este usuario"],
+                    resp: [success: false, message: "No hay ventas pendientes para este usuario"],
                     status: 400
                 ]
             }
@@ -171,14 +172,7 @@ class FinanceService {
 
     def mapUser(User user) {
         [
-            userUuid: user.uuid,
-            name: user.name,
-            lastName: user.lastName,
-            fullName: "${user.name} ${user.lastName}",
-            workerNumber: user.workerNumber,
-            email: user.email,
-            phone: user.phone,
-            registrationStatus: user.metaClass.hasProperty(user, 'registrationStatus') ? user.registrationStatus : null
+            username: user.username,
         ]
     }
 

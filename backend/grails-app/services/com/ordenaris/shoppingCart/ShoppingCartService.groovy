@@ -78,18 +78,16 @@ class ShoppingCartService {
         if (!shoppingCart) {
             return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
         }
-/*
         if (data.status == "Finished" || data.status == "Delete") {
             return [resp: [success: false, message: "No se pueden actualizar datos para actualizar el estado del carrito de compras"], status: 400]
         }
-*/
+
         if (data.status == "Finished") {
             def user = User.findById(shoppingCart.user.id) 
             def newOrder = new CustomerOrder([
                 user: user,
                 status: "Queue"
-            ])
-            //.save(flush: true, failOnError: true)
+            ]).save(flush: true, failOnError: true)
             println newOrder
             if (!newOrder) {
                 return [resp: [success: false, message: "No se pudo crear la orden a partir del carrito de compras"], status: 500]
@@ -106,7 +104,7 @@ class ShoppingCartService {
             }
             shoppingCart.delete(flush: true, failOnError: true)
 
-            return [resp: [success: true, message: "¡Listo! La orden a sido creada"], status: 200]
+            return [resp: [success: true, message: "¡Listo! La orden ha sido enviada"], status: 200]
         }
         else if (data.status == "Delete") {
             println shoppingCart
@@ -123,8 +121,6 @@ class ShoppingCartService {
         } catch (e) {
             return [resp: [success: false, message: e.getMessage()], status: 500]
         }
-
-        
     }
     def addItemShoppingCart(dataR, dataP) {
         try{

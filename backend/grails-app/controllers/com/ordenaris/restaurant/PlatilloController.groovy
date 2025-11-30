@@ -92,7 +92,11 @@ class PlatilloController {
         if (params.uuid.size() != 32) {
             return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
         }
-        def response = dishService.dishInfo(params.uuid)  
+        if (!params.status){
+            return respond([success: false, mensaje: "El status es obligatorio"], status: 400)
+
+        }
+        def response = dishService.dishInfo(params.uuid, params.status.toInteger())  
         return respond(response.resp, status: response.status)
     }
 
@@ -197,4 +201,5 @@ class PlatilloController {
         def response = DishService.paginateDishes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.availableDishes?.toInteger(), params.query)
         return respond(response.resp, status: response.status)
     }
+
 }

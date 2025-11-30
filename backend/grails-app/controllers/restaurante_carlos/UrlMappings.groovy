@@ -7,10 +7,11 @@ class UrlMappings {
             group "/menu", {
                 group "/type", {
                     post "/new"(controller: "menu", action: "newType")
-                    get "/list"(controller: "menu", action: "listTypes")
+                    get "/listMenus"(controller: "menu", action: "listTypes")
                     get "/view"(controller: "menu", action: "paginateTypes")
                     group "/$uuid", {
                         get "/info"(controller: "menu", action: "typeInfo")  
+                        get "/listSubMenu"(controller:"menu", action:"listSubmenusByParent")
                         patch "/edit"(controller: "menu", action: "editType")  
                         patch "/activate"(controller: "menu", action: "editTypeStatus"){  
                             status = 1  
@@ -27,10 +28,17 @@ class UrlMappings {
 
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
-                get "/list"(controller: "platillo", action: "listDishes")  
+                get "/list"(controller: "platillo", action: "listDishes")
                 get "/view"(controller: "platillo", action: "paginateDishes")  
                 group "/$uuid", {
-                    get "/info"(controller: "platillo", action: "dishInfo")  
+                    get "/info"(controller: "platillo", action: "dishInfo"){
+                        status = 1
+                    }  
+                    get "/clone"(controller:"platillo", action:"dishInfo"){
+                    status = 2
+                    }
+                    post "/clone"(controller:"platillo", action:"newDish"){
+                    }
                     patch "/edit"(controller: "platillo", action: "editDish")  
                     patch "/activate"(controller: "platillo", action: "editDishStatus"){  
                         status = 1 

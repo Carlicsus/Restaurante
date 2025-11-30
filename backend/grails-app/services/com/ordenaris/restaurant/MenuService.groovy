@@ -16,10 +16,7 @@ class MenuService {
             def list = MenuType.findAllByStatusNotEqualsAndParentTypeIsNull(2)
 
             def lista = list.collect { type ->
-                def submenu = MenuType.findAllByStatusNotEqualsAndParentType(2, type).collect { subtype ->
-                    return mapMenuType(subtype, [])
-                }
-                return mapMenuType(type, submenu)
+               return mapMenuType(type,[])
             }
             return [
                 resp: [success: true, data: lista],
@@ -31,6 +28,36 @@ class MenuService {
                 status: 500
             ]
         }
+    }
+
+    def listSubmenusByParent (uuid){
+        try{
+            def parentMenu = MenuType.findByUuid(uuid)
+            if (!parentMenu){
+            return [ resp: [success: false, message: "Menu tipo no encontrado"],
+             status: 404 
+            ]
+        }  
+
+        if (parentMenu.status == 2){
+            return [ resp: [success: false, message: "Menu tipo ha sido eliminado"],
+             status: 404 
+            ]
+        }
+        def subMenu = MenuType.findAllByStatusNotEqualsAndParentType(2, parentMenu).collect { subtype -> 
+        return mapMenuType(subtype, []) 
+        }
+        return [ 
+            resp: [success: true, data: subMenu],
+            status: 200
+        ]
+        } catch (e){
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+
     }
 
     def mapMenuType = { type, list ->

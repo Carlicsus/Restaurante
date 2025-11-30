@@ -8,14 +8,47 @@ import grails.plugin.springsecurity.SpringSecurityService
 @Secured(['permitAll'])
 class SaleController {
     static responseFormats = ['json', 'xml']
-    def SaleService  
+    def saleService
     SpringSecurityService springSecurityService
+
+    def listDebtors() {
+        def response = saleService.listDebtors()
+        return respond(response.resp, status: response.status)
+    }
+
+    def getDetailsByusername() {
+        if (!params.username) {
+            return respond([success: false, message: "El nombre de usuario es obligatorio"], status: 400)
+        }
+        def response = saleService.getDetailsByusername(params.username)
+        return respond(response.resp, status: response.status)
+    }
+
+    def paySingleSale() {
+        def saleUuid = params.saleUuid
+        if (!saleUuid) {
+            return respond([success: false, message: "El UUID de la venta es obligatorio"], status: 400)
+        }
+        if (saleUuid.size() != 32) {
+            return respond([success: false, message: "El UUID de la venta es inválido"], status: 400)
+        }
+        def response = saleService.paySingleSale(saleUuid)
+        return respond(response.resp, status: response.status)
+    }
+
+    def payAllSalesForUser() {
+        if (!params.username) {
+            return respond([success: false, message: "El nombre de usuario es obligatorio"], status: 400)
+        }
+        def response = saleService.payAllSalesForUser(params.username)
+        return respond(response.resp, status: response.status)
+    }
 
     def getOneSaleInfo() {  
         if (!params.uuid || params.uuid.size() != 32) {
             return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
         }
-        def response = SaleService.getOneSaleInfo(params.uuid)  
+        def response = saleService.getOneSaleInfo(params.uuid)  
         return respond(response.resp, status: response.status)
     }
 
@@ -32,12 +65,8 @@ class SaleController {
             return respond([success: false, mensaje: "La fecha de fin es obligatoria"], status: 400)
         }
 
-        try {
-            def response = SaleService.getUserSalesByDateRange(data.startDate, data.endDate, auth.id)
-            return respond(response.resp, status: response.status)
-        } catch (e) {
-            return respond([success: false, mensaje: "Formato de fecha inválido"], status: 400)
-        }
+        def response = saleService.getUserSalesByDateRange(data.startDate, data.endDate, auth.id)
+        return respond(response.resp, status: response.status)
     }
 
     def getSalesByUser() {
@@ -48,7 +77,7 @@ class SaleController {
         if (!params.typeSale) {
             return respond([success: false, mensaje: "Es necesario incluir el tipo"], status: 400)
         } 
-        def response = SaleService.getSalesByUser(auth.id, params.typeSale)
+        def response = saleService.getSalesByUser(auth.id, params.typeSale)
         return respond(response.resp, status: response.status)
     }
 }

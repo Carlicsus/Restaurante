@@ -1,471 +1,1404 @@
 {
-  "info": {
-    "_postman_id": "48159966-ordenaris-api",
-    "name": "Restaurante API Final",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    { "key": "jwtAdmin", "value": "" },
-    { "key": "jwtChef", "value": "" },
-    { "key": "host", "value": "http://localhost:8080" }
-  ],
-  "item": [
-    {
-      "name": "Auth",
-      "item": [
-        {
-          "name": "Login Admin",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var r = pm.response.json();",
-                  "pm.collectionVariables.set(\"jwtAdmin\", r.access_token);",
-                  "console.log(\"TOKEN ADMIN actualizado:\", r.access_token);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
-            },
-            "url": "{{host}}/api/login"
-          }
-        },
-        {
-          "name": "Login Chef",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var r = pm.response.json();",
-                  "pm.collectionVariables.set(\"jwtChef\", r.access_token);",
-                  "console.log(\"TOKEN CHEF actualizado:\", r.access_token);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"chef\",\n  \"password\": \"chef\"\n}"
-            },
-            "url": "{{host}}/api/login"
-          }
-        }
-      ]
-    },
-
-    {
-      "name": "Menu",
-      "item": [
-        {
-          "name": "Tipo Menu",
-          "item": [
-
-            {
-              "name": "Registrar",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "pm.variables.set(\"name\", \"NuevoTipo\");",
-                      "pm.variables.set(\"parent\", \"\");"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwtAdmin}}"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwtChef}}",
-                    "disabled": true
-                  },
-                  { "key": "Content-Type", "value": "application/json" }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"{{name}}\",\n  \"parentType\": \"{{parent}}\"\n}"
-                },
-                "url": "{{host}}/api/menu/type/new"
-              }
-            },
-
-            {
-              "name": "Listar",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwtAdmin}}"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{jwtChef}}",
-                    "disabled": true
-                  }
-                ],
-                "url": "{{host}}/api/menu/type/list"
-              }
-            },
-
-            {
-              "name": "Paginar",
-              "request": {
-                "method": "GET",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-                  { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-                ],
-                "url": {
-                  "raw": "{{host}}/api/menu/type/view?page=1&orderColumn=name&order=asc&max=10",
-                  "host": ["{{host}}"],
-                  "path": ["api", "menu", "type", "view"],
-                  "query": [
-                    { "key": "page", "value": "1" },
-                    { "key": "orderColumn", "value": "name" },
-                    { "key": "order", "value": "asc" },
-                    { "key": "max", "value": "10" }
-                  ]
-                }
-              }
-            },
-
-            {
-              "name": "Ver Información",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "pm.variables.set(\"uuid\", \"PON_AQUI_UN_UUID_REAL\");"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-                  { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-                ],
-                "url": "{{host}}/api/menu/type/{{uuid}}/info"
-              }
-            },
-
-            {
-              "name": "Editar",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "pm.variables.set(\"uuid\", \"PON_AQUI_UUID_EDITAR\");",
-                      "pm.variables.set(\"new_name\", \"NombreEditado\");"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-                  { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true },
-                  { "key": "Content-Type", "value": "application/json" }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"{{new_name}}\"\n}"
-                },
-                "url": "{{host}}/api/menu/type/{{uuid}}/edit"
-              }
-            },
-
-            {
-              "name": "Activar",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "pm.variables.set(\"uuid\", \"PON_UUID_ACTIVAR\");"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-                  { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-                ],
-                "url": "{{host}}/api/menu/type/{{uuid}}/activate"
-              }
-            },
-
-            {
-              "name": "Desactivar",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "pm.variables.set(\"uuid\", \"PON_UUID_DESACTIVAR\");"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-                  { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-                ],
-                "url": "{{host}}/api/menu/type/{{uuid}}/deactivate"
-              }
-            },
-
-            {
-              "name": "Eliminar",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "pm.variables.set(\"uuid\", \"PON_UUID_ELIMINAR\");"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-                  { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-                ],
-                "url": "{{host}}/api/menu/type/{{uuid}}/delete"
-              }
-            }
-
-          ]
-        }
-      ]
-    },
-
-    {
-      "name": "Platillos",
-      "item": [
-
-        {
-          "name": "Registrar",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.variables.set(\"name\", \"Nuevo platillo\");",
-                  "pm.variables.set(\"menuType\", \"PON_AQUI_UN_UUID_MENUTYPE\");",
-                  "pm.variables.set(\"availableDate\", new Date().getTime());",
-                  "pm.variables.set(\"cost\", \"25\");",
-                  "pm.variables.set(\"description\", \"Descripcion prueba\");",
-                  "pm.variables.set(\"availableDishes\", \"10\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"{{name}}\",\n  \"menuType\": \"{{menuType}}\",\n  \"availableDate\": \"{{availableDate}}\",\n  \"cost\": \"{{cost}}\",\n  \"description\": \"{{description}}\",\n  \"availableDishes\": \"{{availableDishes}}\"\n}"
-            },
-            "url": "{{host}}/api/dish/new"
-          }
-        },
-
-        {
-          "name": "Listar",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-            ],
-            "url": "{{host}}/api/dish/list"
-          }
-        },
-
-        {
-          "name": "Paginar",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-            ],
-            "url": {
-              "raw": "{{host}}/api/dish/view?page=1&orderColumn=name&order=asc&max=10",
-              "host": ["{{host}}"],
-              "path": ["api", "dish", "view"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "orderColumn", "value": "name" },
-                { "key": "order", "value": "asc" },
-                { "key": "max", "value": "10" }
-              ]
-            }
-          }
-        },
-
-        {
-          "name": "Ver Información",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.variables.set(\"uuid\", \"PON_AQUI_UUID_DISH\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-            ],
-            "url": "{{host}}/api/dish/{{uuid}}/info"
-          }
-        },
-
-        {
-          "name": "Editar",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.variables.set(\"uuid\", \"PON_AQUI_UUID_EDIT_DISH\");",
-                  "pm.variables.set(\"name\", \"Editado\");",
-                  "pm.variables.set(\"menuType\", \"PON_UUID_TIPO\");",
-                  "pm.variables.set(\"availableDate\", new Date().getTime());",
-                  "pm.variables.set(\"cost\", \"33\");",
-                  "pm.variables.set(\"description\", \"Nueva desc\");",
-                  "pm.variables.set(\"availableDishes\", \"15\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"{{name}}\",\n  \"menuType\": \"{{menuType}}\",\n  \"availableDate\": \"{{availableDate}}\",\n  \"cost\": \"{{cost}}\",\n  \"description\": \"{{description}}\",\n  \"availableDishes\": \"{{availableDishes}}\"\n}"
-            },
-            "url": "{{host}}/api/dish/{{uuid}}/edit"
-          }
-        },
-
-        {
-          "name": "Activar",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.variables.set(\"uuid\", \"PON_UUID_ACTIVAR_DISH\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-            ],
-            "url": "{{host}}/api/dish/{{uuid}}/activate"
-          }
-        },
-
-        {
-          "name": "Desactivar",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.variables.set(\"uuid\", \"PON_UUID_DESACTIVAR_DISH\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-            ],
-            "url": "{{host}}/api/dish/{{uuid}}/deactivate"
-          }
-        },
-
-        {
-          "name": "Eliminar",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.variables.set(\"uuid\", \"PON_UUID_DELETE_DISH\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{jwtAdmin}}" },
-              { "key": "Authorization", "value": "Bearer {{jwtChef}}", "disabled": true }
-            ],
-            "url": "{{host}}/api/dish/{{uuid}}/delete"
-          }
-        }
-
-      ]
-    }
-  ]
+	"info": {
+		"_postman_id": "6feb1762-56b0-4719-8d70-46e73f042baa",
+		"name": "Restaurante API Final Copy 3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48160107",
+		"_collection_link": "https://carlosjesus6384-3011091.postman.co/workspace/Carlos-Jesus's-Workspace~1b804268-bebc-4ecf-8ce0-dce519203677/collection/48160107-6feb1762-56b0-4719-8d70-46e73f042baa?action=share&source=collection_link&creator=48160107"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var r = pm.response.json();",
+									"pm.collectionVariables.set(\"jwtAdmin\", r.access_token);",
+									"console.log(\"TOKEN ADMIN actualizado:\", r.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Chef",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var r = pm.response.json();",
+									"pm.collectionVariables.set(\"jwtChef\", r.access_token);",
+									"console.log(\"TOKEN CHEF actualizado:\", r.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"chef\",\n  \"password\": \"chef\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Menu",
+			"item": [
+				{
+					"name": "Tipo Menu",
+					"item": [
+						{
+							"name": "Registrar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"name\", \"NuevoTipo\");",
+											"pm.variables.set(\"parent\", \"\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{name}}\",\n  \"parentType\": \"{{parent}}\"\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/menu/type/new",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"new"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/list",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Paginar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/view?page=1&orderColumn=name&order=asc&max=10",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"view"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "orderColumn",
+											"value": "name"
+										},
+										{
+											"key": "order",
+											"value": "asc"
+										},
+										{
+											"key": "max",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ver Información",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_AQUI_UN_UUID_REAL\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/info",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"info"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Editar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_AQUI_UUID_EDITAR\");",
+											"pm.variables.set(\"new_name\", \"NombreEditado\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{new_name}}\"\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/edit",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"edit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_UUID_ACTIVAR\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/activate",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"activate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Desactivar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_UUID_DESACTIVAR\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/deactivate",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"deactivate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Eliminar",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.variables.set(\"uuid\", \"PON_UUID_ELIMINAR\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtAdmin}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwtChef}}",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{host}}/api/menu/type/{{uuid}}/delete",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"menu",
+										"type",
+										"{{uuid}}",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Platillos",
+			"item": [
+				{
+					"name": "Registrar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"name\", \"Nuevo platillo\");",
+									"pm.variables.set(\"menuType\", \"PON_AQUI_UN_UUID_MENUTYPE\");",
+									"pm.variables.set(\"availableDate\", new Date().getTime());",
+									"pm.variables.set(\"cost\", \"25\");",
+									"pm.variables.set(\"description\", \"Descripcion prueba\");",
+									"pm.variables.set(\"availableDishes\", \"10\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{name}}\",\n  \"menuType\": \"{{menuType}}\",\n  \"availableDate\": \"{{availableDate}}\",\n  \"cost\": \"{{cost}}\",\n  \"description\": \"{{description}}\",\n  \"availableDishes\": \"{{availableDishes}}\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/dish/new",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/list",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Paginar",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/view?page=1&orderColumn=name&order=asc&max=10",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"view"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "orderColumn",
+									"value": "name"
+								},
+								{
+									"key": "order",
+									"value": "asc"
+								},
+								{
+									"key": "max",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ver Información",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_AQUI_UUID_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/info",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Editar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_AQUI_UUID_EDIT_DISH\");",
+									"pm.variables.set(\"name\", \"Editado\");",
+									"pm.variables.set(\"menuType\", \"PON_UUID_TIPO\");",
+									"pm.variables.set(\"availableDate\", new Date().getTime());",
+									"pm.variables.set(\"cost\", \"33\");",
+									"pm.variables.set(\"description\", \"Nueva desc\");",
+									"pm.variables.set(\"availableDishes\", \"15\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{name}}\",\n  \"menuType\": \"{{menuType}}\",\n  \"availableDate\": \"{{availableDate}}\",\n  \"cost\": \"{{cost}}\",\n  \"description\": \"{{description}}\",\n  \"availableDishes\": \"{{availableDishes}}\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/edit",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_UUID_ACTIVAR_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/activate",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"activate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Desactivar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_UUID_DESACTIVAR_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/deactivate",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"deactivate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"uuid\", \"PON_UUID_DELETE_DISH\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtChef}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/dish/{{uuid}}/delete",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"dish",
+								"{{uuid}}",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Carrito Compras",
+			"item": [
+				{
+					"name": "Listar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/shoppingCart/list",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"shoppingCart",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"dishId\": 1,\r\n        \"numberOrders\": 1\r\n    },\r\n    {\r\n        \"dishId\": 2,\r\n        \"numberOrders\": 1\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/shoppingCart/new",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"shoppingCart",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agregar Platillo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\r\n        \"user_id\": 3,\r\n        \"dishId\": 5,\r\n        \"numberOrders\": 1\r\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/shoppingCart/{{uuidSC}}/addItem",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shoppingCart",
+								"{{uuidSC}}",
+								"addItem"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Platillo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/shoppingCart/{{uuidSC}}/deleteItem/{{uuidDish}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shoppingCart",
+								"{{uuidSC}}",
+								"deleteItem",
+								"{{uuidDish}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/shoppingCart/{{uuidSC}}/delete",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shoppingCart",
+								"{{uuidSC}}",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Finalizar",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/shoppingCart/{{uuidSC}}/finish",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"shoppingCart",
+								"{{uuidSC}}",
+								"finish"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Ordenes",
+			"item": [
+				{
+					"name": "CrearOrden",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"dishId\": 1,\r\n        \"numberOrders\": 1\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/order/newOrder",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"newOrder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListarOrdenes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"usuario\": \"1\",\r\n    \"dishId\": \"35b7d9a2b2b649e693d480b008c2077e\",\r\n    \"numberOrder\": \"1\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/order/listOrders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"listOrders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelarOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"usuario\": \"1\",\r\n    \"dishId\": \"35b7d9a2b2b649e693d480b008c2077e\",\r\n    \"numberOrder\": \"1\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/cancel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"cancel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PrepararOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/prepare",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"prepare"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EsperaOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/queue?=",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"queue"
+							],
+							"query": [
+								{
+									"key": null,
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PendienteOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/pend",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"pend"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FinalizadaOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/finish",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"finish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EditarOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dishId\": 1,\r\n    \"numberOrders\": 2,\r\n    \"status\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/edit/{{uuidDish}}/dish",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"edit",
+								"{{uuidDish}}",
+								"dish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AgregarPlatilloOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dishId\": 12,\r\n    \"numberOrders\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/order/{{uuid}}/edit",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuid}}",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Ventas",
+			"item": [
+				{
+					"name": "getDates",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"startDate\": \"2023-01-01 10:00:00\",\r\n  \"endDate\": \"2025-01-01 10:00:00\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/sale/date/{{userid}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"sale",
+								"date",
+								"{{userid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getOne",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/sale/{{uuid}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"sale",
+								"{{uuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAll",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/sale/{{type}}/{{userid}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"sale",
+								"{{type}}",
+								"{{userid}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "jwtAdmin",
+			"value": ""
+		},
+		{
+			"key": "jwtChef",
+			"value": ""
+		},
+		{
+			"key": "host",
+			"value": "http://localhost:8080"
+		}
+	]
 }

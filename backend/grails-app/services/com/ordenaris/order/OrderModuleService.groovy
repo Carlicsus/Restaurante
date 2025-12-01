@@ -4,9 +4,11 @@ import com.ordenaris.security.User
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.order.CustomerOrder
 import com.ordenaris.order.OrderItem
+import com.ordenaris.finance.SaleService
+import com.ordenaris.finance.Sale
 @Transactional
 class OrderModuleService {
-
+    def saleService
     def mapOrder = { CustomerOrder order ->
         def obj = [
             uuid: order.uuid,
@@ -116,6 +118,10 @@ class OrderModuleService {
             if (!order) {
                 return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
             }
+
+            if (data.status == "Finished") {
+            saleService.createAutoSale(order.id)
+            }
             if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
                 order.status = data.status
                 order.save(flush: true, failOnError: true)
@@ -123,7 +129,6 @@ class OrderModuleService {
                 resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, order:mapOrder(order)],status: 200
             ]
             }
-            
         } catch (e) {
             return [
                 resp: [success: false, message: e.getMessage()],

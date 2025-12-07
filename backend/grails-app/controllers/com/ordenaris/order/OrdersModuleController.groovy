@@ -39,8 +39,9 @@ class OrdersModuleController {
     def editOrder(){
         def dataP = params
         def dataR = request.JSON
-
-        def orderCustomer = CustomerOrder.findByUuid(dataP.uuid)
+        println dataP.uuid
+        def orderCustomer = CustomerOrder.findByUuid(dataP.uuidOrder)
+        println orderCustomer
         if (!orderCustomer) {
             return respond([success: false, message: "Orden no encontrada o no existe"], status: 404)
         }
@@ -48,8 +49,8 @@ class OrdersModuleController {
             return respond([success: false, message: "La orden ya no puede ser editada"], status: 404)
         }
         if (!dataR){
-            if (!dataP.uuid || !dataP.uuidDish ) {
-            if (!dataP.uuid) {
+            if (!dataP.uuidOrder || !dataP.uuidDish ) {
+            if (!dataP.uuidOrder) {
                 return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
             }
             if (!dataP.uuidDish) {

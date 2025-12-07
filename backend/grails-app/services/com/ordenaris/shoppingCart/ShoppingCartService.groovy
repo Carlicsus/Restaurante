@@ -4,6 +4,7 @@ import com.ordenaris.security.User
 import com.ordenaris.order.CustomerOrder
 import com.ordenaris.order.OrderItem
 import grails.gorm.transactions.Transactional
+import com.ordenaris.finance.Sale
 @Transactional
 class ShoppingCartService {
     def mapShoppingCart = { ShoppingCart cart ->
@@ -70,57 +71,66 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }       
     }
-    def editStatusShoppingCart(data){
+def editStatusShoppingCart(data){
         try {
-        def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
-        println shoppingCart
-        def shoppingCartItems = ShoppingCartItem.findAllByShoppingCart(shoppingCart)
-        if (!shoppingCart) {
-            return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
-        }
-        if (data.status == "Finished" || data.status == "Delete") {
-            return [resp: [success: false, message: "No se pueden actualizar datos para actualizar el estado del carrito de compras"], status: 400]
-        }
-
-        if (data.status == "Finished") {
-            def user = User.findById(shoppingCart.user.id) 
-            def newOrder = new CustomerOrder([
-                user: user,
-                status: "Queue"
-            ]).save(flush: true, failOnError: true)
-            println newOrder
-            if (!newOrder) {
-                return [resp: [success: false, message: "No se pudo crear la orden a partir del carrito de compras"], status: 500]
-            }
-            for (item in shoppingCartItems) {
-                def orderItemEntry = new OrderItem ([
-                    customerOrder: newOrder.id,
-                    dish: item.dish,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice
-                ]).save(flush: true, failOnError: true)
-
-                item.delete(flush: true, failOnError: true)
-            }
-            shoppingCart.delete(flush: true, failOnError: true)
-
-            return [resp: [success: true, message: "¡Listo! La orden ha sido enviada"], status: 200]
-        }
-        else if (data.status == "Delete") {
+            def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
             println shoppingCart
-            println shoppingCartItems
-            shoppingCart.delete(flush: true, failOnError: true)
-            for (item in shoppingCartItems) {
-                item.delete(flush: true, failOnError: true)
+            println data.status
+            def shoppingCartItems = ShoppingCartItem.findAllByShoppingCart(shoppingCart)
+            
+            if (!shoppingCart) {
+                return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
             }
-            return [resp: [success: true, message: "Carrito de compras a sido eliminado"], status: 200]
-        } else {
-            return [resp: [success: false, message: "Estado invalido"], status: 400]
-        }
-        return [resp: [success: true, message: "Estado del carrito de compras actualizado"], status: 200]
+            if (shoppingCart.status == "Finished" || shoppingCart.status == "Delete") {
+                return [resp: [success: false, message: "No se pueden actualizar el estado del carrito de compras"], status: 400]
+            }
+            
+            if (data.status == "Finished") {
+                def user = User.findById(shoppingCart.user.id) 
+                println "Hola"
+
+                def newOrder = new CustomerOrder([
+                    user: user,
+                    status: "Queue",
+                ]).save(flush: true, failOnError: true)
+                
+                println newOrder
+                shoppingCart.delete(flush: true, failOnError: true)
+
+                if (!newOrder) {
+                    return [resp: [success: false, message: "No se pudo crear la orden a partir del carrito de compras"], status: 500]
+                }
+                
+                for (item in shoppingCartItems) {
+                    def orderItemEntry = new OrderItem ([
+                        customerOrder: newOrder, // Antes tenías newOrder.id (eso causaba el error)
+                        dish: item.dish,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice
+                    ]).save(flush: true, failOnError: true)
+                }
+                item.delete(flush: true, failOnError: true)
+
+                shoppingCart.delete(flush: true, failOnError: true)
+
+                return [resp: [success: true, message: "¡Listo! La orden ha sido enviada"], status: 200]
+            }
+            else if (data.status == "Delete") {
+                println shoppingCart
+                println shoppingCartItems
+                shoppingCart.delete(flush: true, failOnError: true)
+                for (item in shoppingCartItems) {
+                    item.delete(flush: true, failOnError: true)
+                }
+                return [resp: [success: true, message: "Carrito de compras a sido eliminado"], status: 200]
+            } else {
+                return [resp: [success: false, message: "Estado invalido"], status: 400]
+            }
+            return [resp: [success: true, message: "Estado del carrito de compras actualizado"], status: 200]
         } catch (e) {
-            return [resp: [success: false, message: e.getMessage()], status: 500]
-        }
+                        return [resp: [success: true, message: "Estado del carrito de compras actualizado"], status: 200]
+
+                }
     }
     def addItemShoppingCart(dataR, dataP) {
         try{
@@ -137,6 +147,14 @@ class ShoppingCartService {
                 return [resp: [success: false, message: "Platillo no encontrado"], status: 404]
             }
             println dish
+            def shoppingCartItemEntry = new ShoppingCartItem([
+                userId: shoppingCart.user.id,
+                dish: dish.id,
+                quantity: dataR.quantityDish,
+                unitPrice: dish.cost,
+                shoppingCart: shoppingCart.id
+            ]).save(flush: true, failOnError: true)
+            return [resp: [success: true, message: "Platillo agregado al carrito de compras"], status: 201]
         }
         catch (e) {
             return [resp: [success:false, message: e.getMessage()], status: 500]

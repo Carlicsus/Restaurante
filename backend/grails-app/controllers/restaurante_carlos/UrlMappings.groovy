@@ -75,6 +75,7 @@ class UrlMappings {
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
+                get "/listOrdersByUser/$id"(controller: "ordersModule", action: "listOrdersByUser")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
                     group "/edit/$uuidDish",{
@@ -101,6 +102,7 @@ class UrlMappings {
             }
             group "/shoppingCart", {
                 get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+                get "/listByUser/$id"(controller: "shoppingCart", action: "listOrderShoppingCartByUser")
                 post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
                 group "/$uuidSC", {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")

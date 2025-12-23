@@ -15,6 +15,12 @@ class OrdersModuleController {
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
+    def listOrdersByUser(){
+        //println "ID DEL USUARIO: ${auth.id}"
+        def serviceResponse = orderModuleService.listOrdersByUser(auth)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
     def newOrder(){
         def data = request.JSON
 

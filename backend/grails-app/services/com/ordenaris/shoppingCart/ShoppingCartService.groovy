@@ -42,6 +42,17 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
+    def listOrderShoppingCartByUser(data) {
+        try{
+            def user = User.get(data.id)
+            def shoppingCarts = ShoppingCart.findAllByUser(user)
+            def formattedCarts = shoppingCarts.collect { cart -> mapShoppingCart(cart) }
+            return [resp: [success: true, shoppingCarts: formattedCarts], status: 200]    
+        }
+        catch (e) {
+            return [resp: [success:false, message: e.getMessage()], status: 500]
+        }
+    }
     def newOrderShoppingCart(data, auth) {
         try {
             if (!data) {
@@ -71,7 +82,7 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }       
     }
-def editStatusShoppingCart(data){
+    def editStatusShoppingCart(data){
         try {
             def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
             println shoppingCart

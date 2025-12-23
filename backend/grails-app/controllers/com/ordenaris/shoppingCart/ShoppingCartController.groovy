@@ -14,6 +14,11 @@ class ShoppingCartController {
         def serviceResponse = shoppingCartService.listOrderShoppingCart() 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
+    def listOrderShoppingCartByUser(){
+        //println "ID DEL USUARIO: ${auth.id}"
+        def serviceResponse = shoppingCartService.listOrderShoppingCartByUser(auth) 
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
     def newOrderShoppingCart(){
         def data = request.JSON
         println data

@@ -42,6 +42,25 @@ class OrderModuleService {
                 status: 200
             ]
     }
+    def listOrdersByUser(data) {
+        try{
+            def user = User.get(data.id)
+            def orders = CustomerOrder.findAllByUserAndStatus(user, "Queue")
+            def formattedOrders = orders.collect { order ->
+                mapOrder(order) 
+            }
+            return [
+                    resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
+                    status: 200
+                ]
+        }
+        catch (e) {
+            return [
+                resp: [success:false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
     def newOrder(data, auth) {
         println data
         try {

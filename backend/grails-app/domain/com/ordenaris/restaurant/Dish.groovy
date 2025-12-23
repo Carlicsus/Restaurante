@@ -12,6 +12,7 @@ class Dish {
     int cost
     String description
     int availableDishes = -1
+    String imageUrl
 
     static belongsTo = [menuType: MenuType]
 
@@ -25,6 +26,7 @@ class Dish {
         lastUpdated nullable: true
         availableDishes nullable: true
         availableDate nullable: true
+        imageUrl nullable: true, maxSize: 500
     }
     
     static mapping = {

@@ -17,6 +17,13 @@ import org.springframework.security.core.userdetails.UserDetailsChecker
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 
+import org.springframework.security.authentication.LockedException
+import org.springframework.security.authentication.DisabledException
+
+import com.ordenaris.security.User
+import com.ordenaris.security.UserRole
+import com.ordenaris.security.Role
+
 @Slf4j
 @CompileStatic
 class DefaultOauthUserDetailsService implements OauthUserDetailsService {
@@ -53,14 +60,19 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         return loadUserByUserProfileWhenUserDomainClassIsSet(profile, defaultRoles)
     }
 
-    protected OauthUser loadUserByUserProfileWhenUserDomainClassIsSet(OAuth20Profile userProfile,Collection<GrantedAuthority> defaultRoles) {
+    protected OauthUser loadUserByUserProfileWhenUserDomainClassIsSet(
+            OAuth20Profile userProfile,
+            Collection<GrantedAuthority> defaultRoles) {
+
+        String email = userProfile.email
 
         try {
-            log.debug "Trying to fetch user details for OAuth profile id: ${userProfile.id}"
+            log.debug "Trying to fetch user by email: ${email}"
 
             UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(userProfile.id)
+                    userDetailsService.loadUserByUsername(email)
 
+            // Verificaciones estándar de Spring Security
             preAuthenticationChecks?.check(userDetails)
 
             Collection<GrantedAuthority> allRoles =
@@ -74,13 +86,42 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             )
 
         } catch (UsernameNotFoundException e) {
-            log.debug "User not found, creating OAuth user with default roles"
-            return instantiateOauthUser(userProfile, defaultRoles)
+
+            log.info "OAuth user not found. Creating locked user: ${email}"
+
+            User newUser = createLockedOauthUser(email)
+
+            throw new LockedException(
+                    "User ${email} created but is locked pending admin approval"
+            )
         }
     }
 
     protected OauthUser instantiateOauthUser(CommonProfile userProfile,Collection<GrantedAuthority> defaultRoles) {
         new OauthUser(userProfile.id, 'N/A', defaultRoles, userProfile)
+    }
+
+    @CompileDynamic
+    protected User createLockedOauthUser(String email) {
+
+        User user = new User(
+                username: email,
+                password: 'OAUTH_USER'
+        )
+
+        user.enabled = true
+        user.accountLocked = true
+        user.accountExpired = false
+        user.passwordExpired = false
+
+        user.save(flush: true, failOnError: true)
+
+        Role userRole = Role.findByAuthority('ROLE_USER')
+        if (userRole) {
+            UserRole.create(user, userRole, true)
+        }
+
+        return user
     }
 
     @CompileDynamic

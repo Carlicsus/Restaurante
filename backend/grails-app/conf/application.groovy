@@ -43,6 +43,12 @@ grails.plugin.springsecurity.filterChain.chainMap = filterChainChainMaps
 
 String apiKey = System.getenv('API_KEY') ?: System.getProperty('API_KEY') ?: null
 
+String frontendHost = System.getenv('FRONTEND_HOST') ?: System.getProperty('FRONTEND_HOST') ?: 'http://localhost:4200'
+
+String googleClientId = System.getenv('GOOGLE_CLIENT_ID') ?: System.getProperty('GOOGLE_CLIENT_ID') ?: null
+
+String googleClientSecret = System.getenv('GOOGLE_CLIENT_SECRET') ?: System.getProperty('GOOGLE_CLIENT_SECRET') ?: null
+
 // JWT CONFIG
 grails.plugin.springsecurity.rest.token.storage.jwt.useSignedJwt = true
 grails.plugin.springsecurity.rest.token.storage.jwt.secret = apiKey
@@ -55,3 +61,15 @@ grails.plugin.springsecurity.rest.token.validation.headerName = 'Authorization'
 grails.plugin.springsecurity.rest.token.validation.enableAnonymousAccess = false
 //Para que el endpoint /api/logout funcione con get no solo con post
 //grails.plugin.springsecurity.logout.postOnly = false
+
+grails.plugin.springsecurity.rest.oauth.frontendCallbackUrl = { String token ->
+    "${frontendHost}/auth-success?token=${token}"
+}
+
+grails.plugin.springsecurity.rest.oauth.google.client = org.pac4j.oauth.client.Google2Client
+grails.plugin.springsecurity.rest.oauth.google.key = googleClientId
+grails.plugin.springsecurity.rest.oauth.google.secret = googleClientSecret
+grails.plugin.springsecurity.rest.oauth.google.scope = org.pac4j.oauth.client.Google2Client.Google2Scope.EMAIL_AND_PROFILE
+grails.plugin.springsecurity.rest.oauth.google.defaultRoles = ['ROLE_USER']
+
+

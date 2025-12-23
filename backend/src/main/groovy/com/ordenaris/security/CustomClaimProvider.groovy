@@ -8,7 +8,6 @@ class UserIdClaimProvider implements CustomClaimProvider {
 
     @Override
     void provideCustomClaims(JWTClaimsSet.Builder builder,UserDetails details,String principal,Integer expiration) {
-        builder.claim("userId", details.id)
         builder.claim("username", details.username)
     }
 }

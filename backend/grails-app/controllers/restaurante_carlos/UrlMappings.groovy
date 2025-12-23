@@ -105,6 +105,7 @@ class UrlMappings {
                 post "/orders/pay-dish"(controller: "sale", action: "paySingleDish")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
+                post "/UserExpensesChart"(controller: "sale", action: "getUserSpendingChart")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 1
                 }

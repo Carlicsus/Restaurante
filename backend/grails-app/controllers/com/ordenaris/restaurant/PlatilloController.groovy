@@ -77,13 +77,19 @@ class PlatilloController {
             availableDishes = data.availableDishes
         }
 
+        // Validar imageUrl si viene
+        if (data.imageUrl && data.imageUrl.size() > 500) {
+            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
+        }
+
         def response = DishService.newDish(
             data.name,  
             data.menuType,  
             availableDate,  
             data.cost.toInteger(),  
             data.description,  
-            availableDishes?.toInteger() ?: -1, 
+            availableDishes?.toInteger() ?: -1,
+            data.imageUrl
         )
         return respond(response.resp, status: response.status)
     }
@@ -152,6 +158,11 @@ class PlatilloController {
             availableDishes = data.availableDishes
         }
 
+        // Validar imageUrl si viene
+        if (data.imageUrl && data.imageUrl.size() > 500) {
+            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
+        }
+
         def response = DishService.editDish(
             data.name,
             data.menuType,
@@ -159,6 +170,7 @@ class PlatilloController {
             data.cost.toInteger(),
             data.description,
             availableDishes?.toInteger() ?: -1,  // Usar ?: para manejar null
+            data.imageUrl,
             params.uuid
         )
         return respond(response.resp, status: response.status)

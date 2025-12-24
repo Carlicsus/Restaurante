@@ -60,7 +60,7 @@ class UrlMappings {
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
-                post "/UserExpensesChart"(controller: "sale", action: "getUserSpendingChart")
+                post "/user-expenses-chart"(controller: "sale", action: "getUserSpendingChart")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 1
                 }

@@ -1,1 +1,52 @@
-<p>chef-statistics works!</p>
+<!-- chef-statistics.component.html -->
+<div class="chef-statistics">
+  <!-- Header -->
+  <header class="stats-header">
+    <h1 class="stats-title">Estadísticas del Chef</h1>
+    <p class="stats-subtitle">Análisis de pedidos, platos populares y rendimiento diario.</p>
+  </header>
+
+  <!-- Charts Container -->
+  <div class="charts-container">
+    <!-- Orders per Day Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Pedidos por Día</h2>
+      <div id="ordersChart" class="chart-div"></div>
+    </div>
+
+    <!-- Popular Dishes Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Platos Más Pedidos</h2>
+      <div id="dishesChart" class="chart-div"></div>
+    </div>
+
+    <!-- Orders by Time Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Pedidos por Hora</h2>
+      <div id="timeChart" class="chart-div"></div>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="summary-stats">
+    <div class="stat-item">
+      <h3>Total Pedidos Hoy</h3>
+      <p class="stat-number">127</p>
+    </div>
+    <div class="stat-item">
+      <h3>Plato Más Popular</h3>
+      <p class="stat-text">Ensalada César</p>
+    </div>
+    <div class="stat-item">
+      <h3>Hora Pico</h3>
+      <p class="stat-text">7:00 PM</p>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-actions">
+    <button class="btn-back" routerLink="/chef/dashboard">
+      <span>Volver al Dashboard</span>
+    </button>
+  </div>
+</div>

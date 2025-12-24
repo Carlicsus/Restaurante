@@ -102,4 +102,19 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.editOrderStatus(data)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
+
+    def rejectOrderItem(){
+        def dataP = params
+        def dataR = request.JSON
+
+        if (!dataP.uuidOrder) {
+            return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
+        }
+        if (!dataP.uuidDish) {
+            return respond([success: false, message: "Falta el UUID del platillo en la orden"], status: 400)
+        }
+
+        def serviceResponse = orderModuleService.rejectOrderItem(dataP, dataR)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
 }

@@ -9,6 +9,7 @@ import com.ordenaris.finance.Sale
 @Transactional
 class OrderModuleService {
     def saleService
+    // Solo incluye items activos en el mapa de respuesta para evitar mostrar platillos rechazados/cancelados
     def mapOrder = { CustomerOrder order ->
         def obj = [
             uuid: order.uuid,
@@ -18,9 +19,8 @@ class OrderModuleService {
             user: [
                 uuid: order.user?.id,
                 username: order.user?.username,
-                //email: order.user?.email
             ],
-            items: order.orderItems.collect { item ->
+            items: order.orderItems.findAll { it.status == true }.collect { item ->
                 [
                     uuid: item.uuid,
                     quantityDish: item.quantity,
@@ -30,17 +30,21 @@ class OrderModuleService {
                         name: item.dish?.name
                     ]
                 ]
-            }]
+            }
+        ]
     }
     def listOrders() {
-        def orders = CustomerOrder.findAllByStatus("Queue")
-        def formattedOrders = orders.collect { order ->
-            mapOrder(order) 
+        def orders = CustomerOrder.createCriteria().list {
+            eq("status", "Queue")
+            order("dateCreated", "asc")   // FIFO: la más antigua primero
         }
+
+        def formattedOrders = orders.collect { order -> mapOrder(order) }
+
         return [
-                resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
-                status: 200
-            ]
+            resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
+            status: 200
+        ]
     }
     def newOrder(data, auth) {
         println data
@@ -103,6 +107,44 @@ class OrderModuleService {
             //order.save(flush: true, failOnError: true
             return [
                 resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+
+    def rejectOrderItem(dataP, dataR) {
+        try {
+            def order = CustomerOrder.findByUuid(dataP.uuidOrder)
+            if (!order) {
+                return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
+            }
+
+            if (order.status in ["Finished", "Cancelled"]) {
+                return [resp: [success: false, message: 'La orden ya no puede ser editada'], status: 400]
+            }
+
+            def orderItem = OrderItem.findByUuidAndCustomerOrder(dataP.uuidDish, order)
+            if (!orderItem) {
+                return [resp: [success: false, message: 'Platillo en la orden no encontrado'], status: 404]
+            }
+
+            orderItem.status = false // marcar item como rechazado/cancelado
+            orderItem.save(flush: true, failOnError: true)
+
+            def reason = dataR?.reason
+
+            return [
+                resp: [
+                    success: true,
+                    message: 'Platillo rechazado de la orden',
+                    reason: reason,
+                    order: mapOrder(order)
+                ],
                 status: 200
             ]
         } catch (e) {

@@ -81,6 +81,7 @@ class UrlMappings {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
                     group "/edit/$uuidDish",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
+                        patch "/reject"(controller: "ordersModule", action: "rejectOrderItem")
                     }
                     patch "/edit"(controller: "ordersModule", action: "editOrder")
                     patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {

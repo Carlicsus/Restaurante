@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -17,13 +17,14 @@ interface Order {
 interface OrderItem {
   name: string;
   quantity: number;
+  price?: number;
   specialInstructions?: string;
 }
 
 @Component({
   selector: 'app-order-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, DatePipe],
   templateUrl: './order-management.component.html',
   styleUrls: ['./order-management.component.css']
 })
@@ -31,6 +32,7 @@ export class OrderManagementComponent implements OnInit {
   orders: Order[] = [];
   filteredOrders: Order[] = [];
   selectedStatus: string = 'all';
+  selectedOrder: Order | null = null;
 
   statusOptions = [
     { value: 'all', label: 'Todas las órdenes' },
@@ -53,8 +55,8 @@ export class OrderManagementComponent implements OnInit {
         id: 'GR-12045',
         customerName: 'María García',
         items: [
-          { name: 'Ensalada César', quantity: 1 },
-          { name: 'Pollo al Limón', quantity: 1, specialInstructions: 'Sin cebolla' }
+          { name: 'Ensalada César', quantity: 1, price: 12.50 },
+          { name: 'Pollo al Limón', quantity: 1, price: 18.00, specialInstructions: 'Sin cebolla' }
         ],
         status: 'preparing',
         orderTime: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago
@@ -66,37 +68,37 @@ export class OrderManagementComponent implements OnInit {
         id: 'GR-12046',
         customerName: 'Carlos Rodríguez',
         items: [
-          { name: 'Tacos de Pescado', quantity: 2 },
-          { name: 'Refresco', quantity: 1 }
+          { name: 'Tacos de Pescado', quantity: 2, price: 15.00 },
+          { name: 'Refresco', quantity: 1, price: 3.00 }
         ],
         status: 'pending',
         orderTime: new Date(Date.now() - 10 * 60 * 1000), // 10 min ago
         estimatedTime: 20,
-        total: 22.00
+        total: 33.00
       },
       {
         id: 'GR-12047',
         customerName: 'Ana López',
         items: [
-          { name: 'Hamburguesa Clásica', quantity: 1, specialInstructions: 'Medio hecha' },
-          { name: 'Papas Fritas', quantity: 1 }
+          { name: 'Hamburguesa Clásica', quantity: 1, price: 15.00, specialInstructions: 'Medio hecha' },
+          { name: 'Papas Fritas', quantity: 1, price: 5.00 }
         ],
         status: 'ready',
         orderTime: new Date(Date.now() - 45 * 60 * 1000), // 45 min ago
         estimatedTime: 0,
-        total: 18.50
+        total: 20.00
       },
       {
         id: 'GR-12048',
         customerName: 'Pedro Sánchez',
         items: [
-          { name: 'Sopa de Tomate', quantity: 1 },
-          { name: 'Tiramisú', quantity: 1 }
+          { name: 'Sopa de Tomate', quantity: 1, price: 10.00 },
+          { name: 'Tiramisú', quantity: 1, price: 8.00 }
         ],
         status: 'delivered',
         orderTime: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
         estimatedTime: 0,
-        total: 16.00
+        total: 18.00
       }
     ];
 
@@ -113,6 +115,21 @@ export class OrderManagementComponent implements OnInit {
 
   onStatusFilterChange(): void {
     this.filterOrders();
+  }
+
+  markAllPendingAsPreparing(): void {
+    const pendingOrders = this.orders.filter(order => order.status === 'pending');
+    if (pendingOrders.length === 0) {
+      alert('No hay órdenes pendientes para iniciar.');
+      return;
+    }
+
+    if (confirm(`¿Iniciar preparación de ${pendingOrders.length} órdenes pendientes?`)) {
+      pendingOrders.forEach(order => {
+        order.status = 'preparing';
+      });
+      this.filterOrders();
+    }
   }
 
   startPreparing(order: Order): void {
@@ -135,6 +152,14 @@ export class OrderManagementComponent implements OnInit {
     this.filterOrders();
   }
 
+  viewOrderDetails(order: Order): void {
+    this.selectedOrder = order;
+  }
+
+  closeOrderDetails(): void {
+    this.selectedOrder = null;
+  }
+
   getStatusLabel(status: string): string {
     const labels = {
       'pending': 'Pendiente',
@@ -147,6 +172,10 @@ export class OrderManagementComponent implements OnInit {
 
   getStatusClass(status: string): string {
     return `status-${status}`;
+  }
+
+  getRowClass(status: string): string {
+    return `row-${status}`;
   }
 
   getTimeElapsed(orderTime: Date): string {

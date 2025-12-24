@@ -1,1 +1,120 @@
-<p>order-management works!</p>
+<!-- order-management.component.html -->
+<div class="order-management">
+  <!-- Header -->
+  <header class="orders-header">
+    <div class="header-content">
+      <h1 class="orders-title">Gestión de Órdenes</h1>
+      <p class="orders-subtitle">Supervisa y administra todas las órdenes del restaurante.</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-number">{{ orders.filter(o => o.status === 'pending').length }}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ orders.filter(o => o.status === 'preparing').length }}</span>
+        <span class="stat-label">Preparando</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ orders.filter(o => o.status === 'ready').length }}</span>
+        <span class="stat-label">Listas</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label for="status-filter">Filtrar por estado:</label>
+      <select id="status-filter" [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="status-filter">
+        <option *ngFor="let option of statusOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Orders List -->
+  <div class="orders-container">
+    <div class="orders-grid" *ngIf="filteredOrders.length > 0; else noOrders">
+      <div class="order-card" *ngFor="let order of filteredOrders">
+        <div class="order-header">
+          <div class="order-info">
+            <h3 class="order-id">{{ order.id }}</h3>
+            <p class="customer-name">{{ order.customerName }}</p>
+            <p class="order-time">{{ getTimeElapsed(order.orderTime) }}</p>
+          </div>
+          <div class="order-status">
+            <span class="status-badge" [class]="getStatusClass(order.status)">
+              {{ getStatusLabel(order.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <div class="item" *ngFor="let item of order.items">
+            <span class="item-name">{{ item.quantity }}x {{ item.name }}</span>
+            <span class="item-instructions" *ngIf="item.specialInstructions">
+              ({{ item.specialInstructions }})
+            </span>
+          </div>
+        </div>
+
+        <div class="order-details">
+          <div class="detail-item">
+            <span class="detail-label">Total items:</span>
+            <span class="detail-value">{{ getTotalItems(order) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Total:</span>
+            <span class="detail-value price">${{ order.total.toFixed(2) }}</span>
+          </div>
+          <div class="detail-item" *ngIf="order.estimatedTime > 0">
+            <span class="detail-label">Tiempo estimado:</span>
+            <span class="detail-value">{{ order.estimatedTime }} min</span>
+          </div>
+        </div>
+
+        <div class="order-notes" *ngIf="order.notes">
+          <strong>Notas:</strong> {{ order.notes }}
+        </div>
+
+        <div class="order-actions">
+          <button
+            *ngIf="order.status === 'pending'"
+            class="btn-action btn-start"
+            (click)="startPreparing(order)">
+            Iniciar preparación
+          </button>
+          <button
+            *ngIf="order.status === 'preparing'"
+            class="btn-action btn-ready"
+            (click)="markAsReady(order)">
+            Marcar como lista
+          </button>
+          <button
+            *ngIf="order.status === 'ready'"
+            class="btn-action btn-delivered"
+            (click)="markAsDelivered(order)">
+            Marcar como entregada
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noOrders>
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No hay órdenes {{ selectedStatus !== 'all' ? 'con este estado' : 'registradas' }}</h3>
+        <p>Las nuevas órdenes aparecerán aquí automáticamente.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-actions">
+    <button class="btn-back" routerLink="/chef/dashboard">
+      <span>← Volver al Dashboard</span>
+    </button>
+  </div>
+</div>

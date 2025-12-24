@@ -1,109 +1,103 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<!-- chef-dashboard.component.html -->
+<div class="chef-dashboard">
   <!-- Header -->
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-800">Hola, Chef</h1>
-    <p class="text-gray-600 mt-2">Administra pedidos, menús y órdenes en proceso.</p>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <!-- Pedidos del Día -->
-    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
-      <h3 class="text-gray-500 text-sm font-medium mb-2">Pedidos del Día</h3>
-      <p class="text-3xl font-bold text-gray-800">12</p>
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1 class="welcome-title">Hola, Chef</h1>
+      <p class="welcome-subtitle">Administra pedidos, menús y órdenes en proceso.</p>
     </div>
-
-    <!-- En Preparación -->
-    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-yellow-500">
-      <h3 class="text-gray-500 text-sm font-medium mb-2">En Preparación</h3>
-      <p class="text-3xl font-bold text-gray-800">5</p>
-    </div>
-
-    <!-- Listos para Entregar -->
-    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
-      <h3 class="text-gray-500 text-sm font-medium mb-2">Listos para Entregar</h3>
-      <p class="text-3xl font-bold text-gray-800">7</p>
-    </div>
-  </div>
-
-  <!-- Órdenes de Hoy -->
-  <div class="bg-white rounded-xl shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-xl font-semibold text-gray-800">Órdenes de Hoy</h2>
-    </div>
-
-    <div class="divide-y divide-gray-100">
-      <!-- Orden 1 -->
-      <div class="p-6 hover:bg-gray-50 transition-colors">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="font-semibold text-gray-800">Pedido #GR-12045</span>
-              <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                En preparación
-              </span>
-            </div>
-            <p class="text-gray-600 mb-1">Ensalada César, Sopa de Tomate, Pollo al Limón</p>
-            <p class="text-gray-500 text-sm">12:45 PM</p>
-          </div>
-          <button 
-            (click)="markAsReady('GR-12045')"
-            class="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-            Marcar como listo
-          </button>
-        </div>
-      </div>
-
-      <!-- Orden 2 -->
-      <div class="p-6 hover:bg-gray-50 transition-colors">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="font-semibold text-gray-800">Pedido #GR-12046</span>
-              <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                Pendiente
-              </span>
-            </div>
-            <p class="text-gray-600 mb-1">Tacos de Pescado, Guacamole, Arroz con Frijoles</p>
-            <p class="text-gray-500 text-sm">13:15 PM</p>
-          </div>
-          <button 
-            (click)="markAsReady('GR-12046')"
-            class="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-            Marcar como listo
-          </button>
-        </div>
-      </div>
-
-      <!-- Orden 3 -->
-      <div class="p-6 hover:bg-gray-50 transition-colors">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="font-semibold text-gray-800">Pedido #GR-12047</span>
-              <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                Pendiente
-              </span>
-            </div>
-            <p class="text-gray-600 mb-1">Hamburguesa Clásica, Papas Fritas, Refresco</p>
-            <p class="text-gray-500 text-sm">13:30 PM</p>
-          </div>
-          <button 
-            (click)="markAsReady('GR-12047')"
-            class="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-            Marcar como listo
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer con botón Gestionar Menús -->
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-      <button 
-        (click)="navigateToMenus()"
-        class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-        Gestionar Menús
+    <div class="header-actions">
+      <button class="btn-menu-management" routerLink="/chef/menu-management">
+        <span>Gestionar Menús</span>
       </button>
     </div>
+  </header>
+
+  <!-- Statistics Cards -->
+  <div class="stats-container">
+    <div class="stat-card card-green">
+      <div class="stat-icon">📋</div>
+      <div class="stat-content">
+        <h3 class="stat-title">Pedidos del Día</h3>
+        <p class="stat-value">12</p>
+      </div>
+    </div>
+
+    <div class="stat-card card-yellow">
+      <div class="stat-icon">👨‍🍳</div>
+      <div class="stat-content">
+        <h3 class="stat-title">En Preparación</h3>
+        <p class="stat-value">5</p>
+      </div>
+    </div>
+
+    <div class="stat-card card-blue">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <h3 class="stat-title">Listos para Entregar</h3>
+        <p class="stat-value">7</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Section -->
+  <div class="orders-section">
+    <h2 class="section-title">Órdenes de Hoy</h2>
+    
+    <div class="orders-list">
+      <!-- Order 1 -->
+      <div class="order-card">
+        <div class="order-header">
+          <h3 class="order-id">Pedido #GR-12045</h3>
+          <span class="order-time">12:45 PM</span>
+        </div>
+        <div class="order-items">
+          <p>Ensalada César, Sopa de Tomate, Pollo al Limón</p>
+        </div>
+        <div class="order-actions">
+          <button class="btn-ready" (click)="markAsReady('GR-12045')">Marcar como listo</button>
+        </div>
+      </div>
+
+      <!-- Order 2 -->
+      <div class="order-card">
+        <div class="order-header">
+          <h3 class="order-id">Pedido #GR-12046</h3>
+          <span class="order-time">13:15 PM</span>
+        </div>
+        <div class="order-items">
+          <p>Tacos de Pescado, Guacamole, Arroz con Frijoles</p>
+        </div>
+        <div class="order-actions">
+          <button class="btn-ready" (click)="markAsReady('GR-12046')">Marcar como listo</button>
+        </div>
+      </div>
+
+      <!-- Order 3 -->
+      <div class="order-card">
+        <div class="order-header">
+          <h3 class="order-id">Pedido #GR-12047</h3>
+          <span class="order-time">13:30 PM</span>
+        </div>
+        <div class="order-items">
+          <p>Hamburguesa Clásica, Papas Fritas, Refresco</p>
+        </div>
+        <div class="order-actions">
+          <button class="btn-ready" (click)="markAsReady('GR-12047')">Marcar como listo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <button class="btn-action" routerLink="/chef/statistics">
+      <span class="action-icon">📊</span>
+      <span>Ver Estadísticas</span>
+    </button>
+    <button class="btn-action" routerLink="/order-management">
+      <span class="action-icon">📝</span>
+      <span>Gestionar Órdenes</span>
+    </button>
   </div>
 </div>

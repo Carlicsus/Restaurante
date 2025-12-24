@@ -1,1 +1,146 @@
-<p>menu-management works!</p>
+<!-- menu-management.component.html -->
+<div class="menu-management">
+  <!-- Header -->
+  <header class="menu-header">
+    <div class="header-content">
+      <h1 class="menu-title">Gestión de Menú</h1>
+      <p class="menu-subtitle">Administra los platos del restaurante: agrega, edita o elimina items.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-add" (click)="showAddForm()" *ngIf="!showForm">
+        <span>+ Agregar Plato</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Add/Edit Form -->
+  <div class="form-container" *ngIf="showForm">
+    <div class="form-card">
+      <h2 class="form-title">{{ isEditing ? 'Editar Plato' : 'Agregar Nuevo Plato' }}</h2>
+
+      <form [formGroup]="menuForm" (ngSubmit)="saveItem()" class="menu-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name">Nombre del Plato *</label>
+            <input type="text" id="name" formControlName="name" placeholder="Ej: Ensalada César">
+            <div class="error" *ngIf="menuForm.get('name')?.invalid && menuForm.get('name')?.touched">
+              Nombre requerido (mínimo 2 caracteres)
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Categoría *</label>
+            <select id="category" formControlName="category">
+              <option value="">Seleccionar categoría</option>
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+            <div class="error" *ngIf="menuForm.get('category')?.invalid && menuForm.get('category')?.touched">
+              Categoría requerida
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="price">Precio ($) *</label>
+            <input type="number" id="price" formControlName="price" step="0.01" min="0" placeholder="0.00">
+            <div class="error" *ngIf="menuForm.get('price')?.invalid && menuForm.get('price')?.touched">
+              Precio válido requerido
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="available">
+              <span>Disponible</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="description">Descripción *</label>
+          <textarea id="description" formControlName="description" rows="3"
+                    placeholder="Describe los ingredientes y preparación"></textarea>
+          <div class="error" *ngIf="menuForm.get('description')?.invalid && menuForm.get('description')?.touched">
+            Descripción requerida (mínimo 10 caracteres)
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-save" [disabled]="menuForm.invalid">
+            {{ isEditing ? 'Actualizar Plato' : 'Agregar Plato' }}
+          </button>
+          <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Menu Items Table -->
+  <div class="table-container">
+    <div class="table-header">
+      <h2 class="table-title">Platos del Menú ({{ menuItems.length }})</h2>
+      <div class="table-filters">
+        <select class="filter-select">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="menu-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of menuItems" class="table-row">
+            <td class="item-name">{{ item.name }}</td>
+            <td>
+              <span class="category-badge" [class]="'category-' + item.category.toLowerCase().replace(' ', '-')">
+                {{ item.category }}
+              </span>
+            </td>
+            <td class="item-description">{{ item.description }}</td>
+            <td class="item-price">${{ item.price.toFixed(2) }}</td>
+            <td>
+              <span class="status-badge" [class.available]="item.available" [class.unavailable]="!item.available">
+                {{ item.available ? 'Disponible' : 'No disponible' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="btn-action btn-edit" (click)="editItem(item)" title="Editar">
+                ✏️
+              </button>
+              <button class="btn-action btn-toggle" (click)="toggleAvailability(item)"
+                      [title]="item.available ? 'Marcar como no disponible' : 'Marcar como disponible'">
+                {{ item.available ? '🚫' : '✅' }}
+              </button>
+              <button class="btn-action btn-delete" (click)="deleteItem(item.id)" title="Eliminar">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="menuItems.length === 0">
+      <div class="empty-icon">🍽️</div>
+      <h3>No hay platos en el menú</h3>
+      <p>¡Agrega el primer plato para comenzar!</p>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-actions">
+    <button class="btn-back" routerLink="/chef/dashboard">
+      <span>← Volver al Dashboard</span>
+    </button>
+  </div>
+</div>

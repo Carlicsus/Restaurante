@@ -1,6 +1,8 @@
 package com.ordenaris.restaurant
 
 import grails.gorm.transactions.Transactional
+import java.util.Calendar
+import com.ordenaris.order.OrderItem
 
 @Transactional
 class DishService {
@@ -298,6 +300,47 @@ def listDishes() {
         }
 
 
+    }
+
+    def getDishRanking(Integer days = 7) {
+        try {
+            if (days == null || days < 1) {
+                days = 7
+            }
+            def calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_MONTH, -days)
+            def startDate = calendar.time
+
+            def orderItems = OrderItem.createCriteria().list {
+                between("dateCreated", startDate, new Date())
+                eq("status", true)
+            }
+
+            def rankingMap = orderItems.groupBy { it.dish }.collect { dish, items ->
+                [
+                    uuid: dish.uuid,
+                    name: dish.name,
+                    totalOrdenes: items.size(),
+                    cost: dish.cost,
+                    description: dish.description
+                ]
+            }.sort { -it.totalOrdenes }
+
+            return [
+                resp: [
+                    success: true,
+                    data: rankingMap,
+                    message: "Ranking de platillos en los últimos ${days} días"
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            e.printStackTrace()
+            return [
+                resp: [success: false, message: "Error al obtener el ranking: ${e.getMessage()}"],
+                status: 500
+            ]
+        }
     }
 
 }

@@ -214,4 +214,19 @@ class PlatilloController {
         return respond(response.resp, status: response.status)
     }
 
+    def dishRanking(){
+        try{
+            Integer days = params.days ? Integer.parseInt(params.days.toString()): 7
+            if (days < 1){
+                return respond([success: false, message: "El numero de dias debe ser mayor a 0 "], status: 400)
+            }
+            def response = DishService.getDishRanking(days)
+            return respond(response.resp, status: response.status)
+        }catch (NumberFormatException e){
+            return respond([success: false, message: "El numero de dias debe ser un numero entero"], status: 400)
+        }catch (e){
+            return respond([success: false, message: "Error: ${e.getMessage()}"], status: 500)
+        }
+    }
+
 }

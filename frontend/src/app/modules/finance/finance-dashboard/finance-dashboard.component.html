@@ -1,1 +1,129 @@
-<p>finance-dashboard works!</p>
+<div class="container-padding">
+  <div class="header-section">
+    <h1 class="title">Dashboard de Finanzas</h1>
+    <p class="subtitle">Resumen general del estado financiero y usuarios deudores</p>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Dashboard content -->
+  <div *ngIf="!loading">
+    <!-- Métricas principales -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-content">
+          <div class="icon-container red">
+            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+          </div>
+          <div class="metric-text">
+            <div class="metric-label">Deuda Total</div>
+            <div class="metric-value">{{ formatCurrency(metrics.totalDebt) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-content">
+          <div class="icon-container blue">
+            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div class="metric-text">
+            <div class="metric-label">Total Usuarios</div>
+            <div class="metric-value">{{ metrics.totalUsers }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-content">
+          <div class="icon-container yellow">
+            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <div class="metric-text">
+            <div class="metric-label">Deuda Promedio</div>
+            <div class="metric-value">{{ formatCurrency(metrics.averageDebt) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-content">
+          <div class="icon-container orange">
+            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+          <div class="metric-text">
+            <div class="metric-label">Usuarios Vencidos</div>
+            <div class="metric-value">{{ metrics.overdueUsers }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usuarios deudores -->
+    <div class="table-container">
+      <div class="table-header">
+        <h2 class="table-title">Usuarios deudores</h2>
+        <p class="table-subtitle">Lista de usuarios con deudas pendientes</p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead class="table-head">
+            <tr>
+              <th class="table-th">Usuario</th>
+              <th class="table-th">Email</th>
+              <th class="table-th">Monto de Deuda</th>
+              <th class="table-th">Último Pedido</th>
+              <th class="table-th">Días Vencido</th>
+              <th class="table-th">Severidad</th>
+            </tr>
+          </thead>
+          <tbody class="table-body">
+            <tr *ngFor="let user of debtorUsers" class="table-row">
+              <td class="table-td">
+                <div class="user-name">{{ user.name }}</div>
+              </td>
+              <td class="table-td">
+                <div class="user-email">{{ user.email }}</div>
+              </td>
+              <td class="table-td">
+                <div class="debt-amount">{{ formatCurrency(user.debtAmount) }}</div>
+              </td>
+              <td class="table-td">
+                <div class="last-order">{{ formatDate(user.lastOrderDate) }}</div>
+              </td>
+              <td class="table-td">
+                <div class="days-overdue">{{ user.daysOverdue }} días</div>
+              </td>
+              <td class="table-td">
+                <span class="severity-badge" [ngClass]="getDebtSeverity(user.daysOverdue)">
+                  {{ getDebtSeverityText(user.daysOverdue) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mensaje cuando no hay deudores -->
+      <div *ngIf="debtorUsers.length === 0" class="empty-state">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="empty-title">No hay usuarios deudores</h3>
+        <p class="empty-message">Todos los usuarios están al día con sus pagos.</p>
+      </div>
+    </div>
+  </div>
+</div>

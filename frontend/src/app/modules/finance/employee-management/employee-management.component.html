@@ -1,0 +1,100 @@
+<div class="p-6">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Gestión de Empleados</h1>
+    <p class="text-gray-600">Administra el estado de bloqueo de los empleados del sistema</p>
+  </div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+          placeholder="Buscar por nombre o email..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+      </div>
+      <div class="flex items-center">
+        <label class="flex items-center">
+          <input
+            type="checkbox"
+            [(ngModel)]="showBlockedOnly"
+            (change)="onFilterChange()"
+            class="mr-2"
+          >
+          Mostrar solo bloqueados
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de empleados -->
+  <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Empleado
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Email
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Departamento
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Estado
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let employee of filteredEmployees" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ employee.name }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ employee.email }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ employee.department }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span
+                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-green-100 text-green-800': !employee.isBlocked,
+                  'bg-red-100 text-red-800': employee.isBlocked
+                }"
+              >
+                {{ employee.isBlocked ? 'Bloqueado' : 'Activo' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <button
+                (click)="toggleBlockStatus(employee)"
+                class="text-blue-600 hover:text-blue-900"
+                [ngClass]="{
+                  'text-red-600 hover:text-red-900': !employee.isBlocked,
+                  'text-green-600 hover:text-green-900': employee.isBlocked
+                }"
+              >
+                {{ employee.isBlocked ? 'Desbloquear' : 'Bloquear' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mensaje cuando no hay empleados -->
+    <div *ngIf="filteredEmployees.length === 0" class="text-center py-8">
+      <p class="text-gray-500">No se encontraron empleados que coincidan con los criterios de búsqueda.</p>
+    </div>
+  </div>
+</div>

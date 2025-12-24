@@ -1,0 +1,293 @@
+/* Finance Dashboard Component Styles */
+
+.container-padding {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #4B5563;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 16rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  height: 3rem;
+  width: 3rem;
+  border-bottom-width: 2px;
+  border-color: #2563EB;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.metric-card {
+  background-color: #FFFFFF;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-width: 1px;
+  border-color: #D1D5DB;
+  padding: 1.5rem;
+}
+
+.metric-content {
+  display: flex;
+  align-items: center;
+}
+
+.icon-container {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.icon-container.red {
+  background-color: #FEE2E2;
+}
+
+.icon-container.blue {
+  background-color: #DBEAFE;
+}
+
+.icon-container.yellow {
+  background-color: #FEF3C7;
+}
+
+.icon-container.orange {
+  background-color: #FED7AA;
+}
+
+.icon-svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-container.red .icon-svg {
+  color: #DC2626;
+}
+
+.icon-container.blue .icon-svg {
+  color: #2563EB;
+}
+
+.icon-container.yellow .icon-svg {
+  color: #D97706;
+}
+
+.icon-container.orange .icon-svg {
+  color: #EA580C;
+}
+
+.metric-text {
+  margin-left: 1rem;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.table-container {
+  background-color: #FFFFFF;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-width: 1px;
+  border-color: #D1D5DB;
+}
+
+.table-header {
+  padding: 1.5rem;
+  border-bottom-width: 1px;
+  border-color: #E5E7EB;
+}
+
+.table-title {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.table-subtitle {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #6B7280;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.table-head {
+  background-color: #F9FAFB;
+}
+
+.table-th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom-width: 1px;
+  border-color: #E5E7EB;
+}
+
+.table-body {
+  background-color: #FFFFFF;
+}
+
+.table-row {
+  border-bottom-width: 1px;
+  border-color: #E5E7EB;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.table-row:hover {
+  background-color: #F9FAFB;
+}
+
+.table-td {
+  padding: 1rem 1.5rem;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+.user-email {
+  color: #6B7280;
+}
+
+.debt-amount {
+  font-weight: 500;
+  color: #DC2626;
+}
+
+.last-order {
+  color: #6B7280;
+}
+
+.days-overdue {
+  color: #111827;
+}
+
+.severity-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.severity-badge.low {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.severity-badge.medium {
+  background-color: #FED7AA;
+  color: #9A3412;
+}
+
+.severity-badge.high {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+}
+
+.empty-icon {
+  margin: 0 auto;
+  width: 3rem;
+  height: 3rem;
+  color: #9CA3AF;
+}
+
+.empty-title {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.empty-message {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #6B7280;
+}

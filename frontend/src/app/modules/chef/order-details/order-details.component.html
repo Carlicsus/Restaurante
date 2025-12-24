@@ -1,0 +1,135 @@
+<div class="order-details-container">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Volver
+    </button>
+    <h1>Detalles de Orden #{{ order?.uuid.slice(-8) }}</h1>
+    <div class="header-actions">
+      <button class="print-btn" (click)="printOrder()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+          <path d="M6 14h12v8H6z"/>
+        </svg>
+        Imprimir
+      </button>
+    </div>
+  </div>
+
+  <div class="order-info" *ngIf="order">
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Cliente</h3>
+        <p>{{ order.customerName }}</p>
+      </div>
+      <div class="info-card">
+        <h3>Estado</h3>
+        <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+          {{ getStatusLabel(order.status) }}
+        </span>
+      </div>
+      <div class="info-card">
+        <h3>Hora de Orden</h3>
+        <p>{{ order.orderTime | date:'short' }}</p>
+        <small>{{ getTimeElapsed() }}</small>
+      </div>
+      <div class="info-card">
+        <h3>Tiempo Estimado</h3>
+        <p *ngIf="order.estimatedTime">{{ order.estimatedTime }} min</p>
+        <p *ngIf="!order.estimatedTime">-</p>
+      </div>
+    </div>
+
+    <div class="notes-section" *ngIf="order.notes">
+      <h3>Notas Especiales</h3>
+      <p>{{ order.notes }}</p>
+    </div>
+  </div>
+
+  <div class="order-items" *ngIf="order">
+    <div class="items-header">
+      <h2>Items de la Orden</h2>
+      <button class="add-item-btn" (click)="addItem()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Agregar Item
+      </button>
+    </div>
+
+    <div class="items-table">
+      <div class="table-header">
+        <div>Platillo</div>
+        <div>Cantidad</div>
+        <div>Precio Unit.</div>
+        <div>Total</div>
+        <div>Instrucciones</div>
+        <div>Estado</div>
+        <div>Acciones</div>
+      </div>
+
+      <div class="table-row" *ngFor="let item of order.items">
+        <div class="dish-name">{{ item.dishName }}</div>
+        <div>{{ item.quantity }}</div>
+        <div>${{ item.unitPrice.toFixed(2) }}</div>
+        <div class="total-price">${{ item.totalPrice.toFixed(2) }}</div>
+        <div class="instructions" *ngIf="item.specialInstructions; else noInstructions">
+          {{ item.specialInstructions }}
+        </div>
+        <ng-template #noInstructions>
+          <div class="no-instructions">-</div>
+        </ng-template>
+        <div>
+          <span class="item-status" [ngClass]="{'active': item.status, 'inactive': !item.status}">
+            {{ item.status ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="actions">
+          <button class="edit-btn" (click)="editItem(item)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button class="remove-btn" (click)="removeItem(item)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-total">
+      <div class="total-row">
+        <span>Total:</span>
+        <span class="total-amount">${{ order.total.toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="order-actions" *ngIf="order">
+    <div class="action-buttons">
+      <button
+        class="action-btn prepare-btn"
+        *ngIf="order.status === 'Queue'"
+        (click)="startPreparing()">
+        Comenzar Preparación
+      </button>
+      <button
+        class="action-btn ready-btn"
+        *ngIf="order.status === 'Preparing'"
+        (click)="markAsReady()">
+        Marcar como Lista
+      </button>
+      <button
+        class="action-btn cancel-btn"
+        *ngIf="order.status !== 'Finished' && order.status !== 'Cancelled'"
+        (click)="cancelOrder()">
+        Cancelar Orden
+      </button>
+    </div>
+  </div>
+</div>

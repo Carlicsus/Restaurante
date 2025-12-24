@@ -30,6 +30,7 @@ class UrlMappings {
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
                 get "/view"(controller: "platillo", action: "paginateDishes")  
+                get "/ranking-dishes"(controller: "platillo", action: "dishRanking")
                 group "/$uuid", {
                     get "/info"(controller: "platillo", action: "dishInfo"){
                         status = 1

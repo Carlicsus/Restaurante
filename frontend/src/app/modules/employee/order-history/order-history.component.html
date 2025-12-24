@@ -1,1 +1,126 @@
-<p>order-history works!</p>
+<div class="order-history-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <h1>Historial de Pedidos</h1>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label for="statusFilter">Estado:</label>
+        <select id="statusFilter" [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">Todos</option>
+          <option value="Queue">En Cola</option>
+          <option value="Preparing">Preparando</option>
+          <option value="Finished">Terminada</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="dateFilter">Fecha:</label>
+        <input type="date" id="dateFilter" [(ngModel)]="dateFilter" (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label for="searchTerm">Buscar:</label>
+        <input type="text" id="searchTerm" [(ngModel)]="searchTerm" (input)="applyFilters()"
+               placeholder="Cliente o ID de orden">
+      </div>
+
+      <div class="filter-group">
+        <button class="btn-secondary" (click)="clearFilters()">
+          <span class="material-icons">clear</span>
+          Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="loading">
+    <span class="material-icons loading-icon">hourglass_empty</span>
+    <p>Cargando historial de pedidos...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error">
+    <span class="material-icons error-icon">error</span>
+    <p>Error al cargar el historial de pedidos</p>
+    <button class="btn-primary" (click)="loadOrders()">Reintentar</button>
+  </div>
+
+  <!-- Lista de órdenes -->
+  <div *ngIf="!loading && !error" class="orders-section">
+    <div class="orders-header">
+      <h2>Pedidos ({{ filteredOrders.length }})</h2>
+    </div>
+
+    <div *ngIf="filteredOrders.length === 0" class="no-orders">
+      <span class="material-icons">receipt_long</span>
+      <p>No se encontraron pedidos con los filtros aplicados</p>
+    </div>
+
+    <div *ngIf="filteredOrders.length > 0" class="orders-list">
+      <div *ngFor="let order of getPaginatedOrders()" class="order-card" (click)="viewOrderDetails(order)">
+        <div class="order-header">
+          <div class="order-info">
+            <h3>Orden #{{ order.uuid }}</h3>
+            <p class="customer">{{ order.customerName }}</p>
+          </div>
+          <div class="order-status">
+            <span class="status-chip" [ngClass]="getStatusClass(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-details">
+          <div class="detail-item">
+            <span class="material-icons">restaurant</span>
+            <span>{{ calculateItemCount(order) }} items</span>
+          </div>
+          <div class="detail-item">
+            <span class="material-icons">attach_money</span>
+            <span>${{ order.total.toFixed(2) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="material-icons">schedule</span>
+            <span>{{ formatDate(order.createdAt) }}</span>
+          </div>
+        </div>
+
+        <div class="order-items-preview">
+          <div *ngFor="let item of order.orderItems.slice(0, 3)" class="item-preview">
+            {{ item.quantity }}x {{ item.dish.name }}
+          </div>
+          <div *ngIf="order.orderItems.length > 3" class="more-items">
+            +{{ order.orderItems.length - 3 }} más...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="page-btn" (click)="previousPage()" [disabled]="currentPage === 1">
+        <span class="material-icons">chevron_left</span>
+      </button>
+
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()"
+                class="page-btn"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </div>
+
+      <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">
+        <span class="material-icons">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>

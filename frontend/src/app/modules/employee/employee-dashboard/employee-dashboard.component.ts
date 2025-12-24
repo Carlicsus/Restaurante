@@ -47,8 +47,8 @@ export class EmployeeDashboardComponent implements OnInit {
     },
     {
       icon: 'receipt_long',
-      label: 'Ver Órdenes',
-      route: '/employee/orders',
+      label: 'Historial de Pedidos',
+      route: '/employee/order-history',
       color: '#ffc107'
     },
     {

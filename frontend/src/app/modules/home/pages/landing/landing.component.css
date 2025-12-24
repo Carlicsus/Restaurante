@@ -1,0 +1,228 @@
+/* Estilos minimalistas para GRANDRESTAURANT */
+:host {
+  display: block;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+}
+
+/* Tipografía minimalista */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+/* Animación de fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Aplicar animación a elementos principales */
+section {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Hero Section mejoras */
+.relative.h-screen {
+  min-height: 100vh;
+}
+
+.relative.h-screen img {
+  filter: brightness(0.9);
+  transition: transform 10s ease;
+}
+
+.relative.h-screen:hover img {
+  transform: scale(1.02);
+}
+
+/* Scroll indicator */
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Transiciones suaves */
+button, a {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Border hover effects */
+.border-gray-200 {
+  transition: border-color 0.3s ease;
+}
+
+.border-gray-200:hover {
+  border-color: #d1d5db;
+}
+
+/* Mejoras de accesibilidad */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #04578D;
+  outline-offset: 2px;
+}
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #04578D;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #034672;
+}
+
+/* Mejoras responsivas */
+@media (max-width: 768px) {
+  .text-8xl {
+    font-size: 3.5rem;
+  }
+  
+  .text-6xl {
+    font-size: 2.5rem;
+  }
+  
+  .text-4xl {
+    font-size: 2rem;
+  }
+  
+  section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  
+  /* Optimización móvil para imagen hero */
+  .relative.min-h-screen .absolute.inset-0.z-0 img {
+    object-fit: cover !important;
+    object-position: center center !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+  }
+}
+
+/* Efecto de overlay en hero */
+.bg-black\/40 {
+  backdrop-filter: blur(2px);
+}
+
+/* Estilos para los botones */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Mejoras para textos */
+.text-white\/80 {
+  line-height: 1.6;
+}
+
+/* Separadores */
+.border-t {
+  border-top-width: 1px;
+}
+
+/* Grid gaps responsivos */
+@media (max-width: 640px) {
+  .gap-12 {
+    gap: 3rem;
+  }
+  
+  .gap-8 {
+    gap: 2rem;
+  }
+}
+
+/* Imagen responsiva */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Fade in escalonado */
+section:nth-child(2) { animation-delay: 0.1s; }
+section:nth-child(3) { animation-delay: 0.2s; }
+section:nth-child(4) { animation-delay: 0.3s; }
+section:nth-child(5) { animation-delay: 0.3s; }
+section:nth-child(6) { animation-delay: 0.4s; }
+section:nth-child(7) { animation-delay: 0.5s; }
+
+/* Asegurar que el hero ocupe toda la pantalla en mobile */
+@media (max-width: 768px) {
+  .relative.min-h-screen {
+    min-height: 100vh;
+    height: 100vh;
+  }
+}
+
+/* Mejoras de legibilidad */
+.text-gray-600 {
+  line-height: 1.7;
+}
+
+/* Efecto hover para enlaces del footer */
+a:hover {
+  text-decoration: none;
+}
+
+/* Ajustes específicos para imagen en móvil */
+@media (max-width: 768px) {
+  .relative.h-screen .absolute.inset-0.z-0 img {
+    object-fit: cover;
+    object-position: center center;
+    min-height: 100vh;
+    width: 100%;
+  }
+  
+  /* Asegurar que el contenedor también se ajuste */
+  .relative.h-screen {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+}

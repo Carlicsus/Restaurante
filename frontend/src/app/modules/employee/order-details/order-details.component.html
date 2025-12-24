@@ -1,1 +1,80 @@
-<p>order-details works!</p>
+<div class="order-details-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <h1>Detalles de la Orden</h1>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <span class="material-icons loading-icon">hourglass_empty</span>
+    <p>Cargando detalles de la orden...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <span class="material-icons error-icon">error</span>
+    <p>Error al cargar los detalles de la orden</p>
+    <button class="btn-primary" (click)="goBack()">Volver al Dashboard</button>
+  </div>
+
+  <div *ngIf="!loading && !error && order" class="order-content">
+    <div class="order-card">
+      <div class="order-header">
+        <h2>Orden #{{ order.uuid }}</h2>
+        <span class="customer-name">{{ order.customerName }}</span>
+      </div>
+
+      <div class="order-info">
+        <div class="info-row">
+          <span class="label">Estado:</span>
+          <span class="status-chip" [ngClass]="getStatusClass(order.status)">
+            {{ getStatusText(order.status) }}
+          </span>
+        </div>
+
+        <div class="info-row" *ngIf="order.customerPhone">
+          <span class="label">Teléfono:</span>
+          <span>{{ order.customerPhone }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Fecha de creación:</span>
+          <span>{{ formatDate(order.createdAt) }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Última actualización:</span>
+          <span>{{ formatDate(order.updatedAt) }}</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="order-items">
+        <h3>Platos Ordenados</h3>
+        <div class="items-list">
+          <div *ngFor="let item of order.orderItems" class="item-row">
+            <div class="item-info">
+              <h4>{{ item.dish.name }}</h4>
+              <p *ngIf="item.notes" class="item-notes">{{ item.notes }}</p>
+            </div>
+            <div class="item-details">
+              <span class="quantity">x{{ item.quantity }}</span>
+              <span class="price">${{ item.dish.price.toFixed(2) }}</span>
+              <span class="total">${{ calculateItemTotal(item).toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="order-total">
+        <div class="total-row">
+          <span class="total-label">Total:</span>
+          <span class="total-amount">${{ order.total.toFixed(2) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

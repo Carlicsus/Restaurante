@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 interface Table {
   id: number;
@@ -65,6 +65,8 @@ export class EmployeeDashboardComponent implements OnInit {
     availableTables: 0,
     pendingOrders: 0
   };
+
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.loadTables();
@@ -161,7 +163,7 @@ export class EmployeeDashboardComponent implements OnInit {
   viewOrder(table: Table): void {
     if (table.currentOrder) {
       // Navegar a detalles de orden
-      alert(`Ver orden ${table.currentOrder.id}`);
+      this.router.navigate(['/employee/order-details', table.currentOrder.id]);
     }
   }
 

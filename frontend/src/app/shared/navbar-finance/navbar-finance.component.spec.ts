@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DailyMenuComponent } from './daily-menu.component';
+import { NavbarFinanceComponent } from './navbar-finance.component';
 
-describe('DailyMenuComponent', () => {
-  let component: DailyMenuComponent;
-  let fixture: ComponentFixture<DailyMenuComponent>;
+describe('NavbarFinanceComponent', () => {
+  let component: NavbarFinanceComponent;
+  let fixture: ComponentFixture<NavbarFinanceComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DailyMenuComponent]
+      imports: [NavbarFinanceComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DailyMenuComponent);
+    fixture = TestBed.createComponent(NavbarFinanceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

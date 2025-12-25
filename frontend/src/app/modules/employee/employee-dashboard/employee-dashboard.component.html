@@ -1,140 +1,47 @@
-<div class="employee-dashboard">
-  <div class="dashboard-header">
-    <h1>Panel de Empleado</h1>
-    <div class="current-time">
-      {{ currentTime | date:'short' }}
+<app-navbar-employee></app-navbar-employee>
+<div class="container">
+<div class="daily-meni">
+  <div class="info">
+    <div class="label">Oferta Especial</div>
+    <h2>Menú del Día</h2>
+    <p>Descubre las opciones especiales de hoy, preparadas para ti</p>
+    <button class="btn">Ver Menú</button>
+  </div>
+  <div class="image" style="background-image:url('/assets/fondo-restaurant.jpg')"></div>
+</div>
+
+<div class="options">
+  <div class="pill">Menú Completo</div>
+  <div class="pill">Mi Carrito</div>
+  <div class="pill">Historial de Pedidos</div>
+  <div class="pill">Mis Calificaciones</div>
+</div>
+
+<div class="summary">
+  <h3>Resumen de Pedidos</h3>
+  <div class="order-list">
+    <div class="order">
+      <div class="icon">📦</div>
+      <div class="meta">
+        <div class="title">Tu Último Pedido</div>
+        <span class="id">#12345</span>
+        <span class="date">Fecha: 24 de Octubre</span>
+      </div>
+      <div class="status-dot"></div>
+    </div>
+    <div class="order">
+      <div class="icon">📦</div>
+      <div class="meta">
+        <div class="title">Pedido Anterior</div>
+        <span class="id">#12321</span>
+        <span class="date">Fecha: 22 de Octubre</span>
+      </div>
+      <div class="status-dot"></div>
     </div>
   </div>
+</div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span class="material-icons">table_restaurant</span>
-      </div>
-      <div class="stat-info">
-        <h3>{{ stats.totalTables }}</h3>
-        <p>Total Mesas</p>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon occupied">
-        <span class="material-icons">event_seat</span>
-      </div>
-      <div class="stat-info">
-        <h3>{{ stats.occupiedTables }}</h3>
-        <p>Mesas Ocupadas</p>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon available">
-        <span class="material-icons">check_circle</span>
-      </div>
-      <div class="stat-info">
-        <h3>{{ stats.availableTables }}</h3>
-        <p>Mesas Disponibles</p>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon pending">
-        <span class="material-icons">receipt_long</span>
-      </div>
-      <div class="stat-info">
-        <h3>{{ stats.pendingOrders }}</h3>
-        <p>Órdenes Activas</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="quick-actions">
-    <h2>Acciones Rápidas</h2>
-    <div class="actions-grid">
-      <button
-        *ngFor="let action of quickActions"
-        class="action-btn"
-        [style.background-color]="action.color"
-        [routerLink]="action.route">
-        <span class="material-icons">{{ action.icon }}</span>
-        <span>{{ action.label }}</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="tables-section">
-    <div class="section-header">
-      <h2>Estado de Mesas</h2>
-      <div class="table-legend">
-        <span class="legend-item">
-          <div class="legend-color available"></div>
-          Disponible
-        </span>
-        <span class="legend-item">
-          <div class="legend-color occupied"></div>
-          Ocupada
-        </span>
-        <span class="legend-item">
-          <div class="legend-color reserved"></div>
-          Reservada
-        </span>
-        <span class="legend-item">
-          <div class="legend-color cleaning"></div>
-          Limpieza
-        </span>
-      </div>
-    </div>
-
-    <div class="tables-grid">
-      <div
-        *ngFor="let table of tables"
-        class="table-card"
-        [ngClass]="getTableStatusClass(table.status)">
-
-        <div class="table-header">
-          <h3>Mesa {{ table.id }}</h3>
-          <span class="capacity">{{ table.capacity }} personas</span>
-        </div>
-
-        <div class="table-status">
-          <span class="status-badge" [ngClass]="getTableStatusClass(table.status)">
-            {{ getTableStatusLabel(table.status) }}
-          </span>
-        </div>
-
-        <div class="table-content" *ngIf="table.currentOrder">
-          <div class="order-info">
-            <p class="customer">{{ table.currentOrder.customerName }}</p>
-            <p class="order-details">
-              {{ table.currentOrder.items }} items • ${{ table.currentOrder.total.toFixed(2) }}
-            </p>
-            <p class="time-elapsed">
-              Tiempo: {{ getTimeElapsed(table.currentOrder.timeElapsed) }}
-            </p>
-          </div>
-        </div>
-
-        <div class="table-actions">
-          <button
-            *ngIf="table.status === 'available'"
-            class="btn-primary"
-            (click)="assignTable(table)">
-            Asignar
-          </button>
-          <button
-            *ngIf="table.currentOrder"
-            class="btn-secondary"
-            (click)="viewOrder(table)">
-            Ver Orden
-          </button>
-          <button
-            *ngIf="table.status === 'occupied'"
-            class="btn-warning"
-            (click)="markTableForCleaning(table)">
-            Limpiar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+<button class="cart-fab">
+  🛒 <span class="count">3</span>
+</button>
 </div>

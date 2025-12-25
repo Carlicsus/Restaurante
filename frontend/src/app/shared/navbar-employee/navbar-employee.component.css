@@ -1,0 +1,27 @@
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+    position: fixed;
+    background-color: var(--bg);
+    top: 0;
+    left: 0;
+    z-index: 50;
+    width: 100%;
+    height: 10dvh;
+    padding: 0 10%;
+    font-family: 'Inter', sans-serif;
+    border-bottom: 1px solid var(--border);
+}
+
+.options{
+    width: 40%;
+}
+
+ul{
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
+

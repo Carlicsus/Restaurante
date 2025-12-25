@@ -19,115 +19,159 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.DisabledException
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+
+import java.security.SecureRandom
 
 import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
 import com.ordenaris.security.Role
-
 @Slf4j
 @CompileStatic
 class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
+    private static final String PASSWORD_CHARS =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    private static final SecureRandom secureRandom = new SecureRandom()
+
     @Delegate
     UserDetailsService userDetailsService
-    UserDetailsChecker preAuthenticationChecks
 
     @Override
-    OauthUser loadUserByUserProfile(CommonProfile userProfile,Collection<GrantedAuthority> defaultRoles) throws UsernameNotFoundException {
+    OauthUser loadUserByUserProfile(
+            CommonProfile profile,
+            Collection<GrantedAuthority> defaultRoles
+    ) throws UsernameNotFoundException {
 
-        if (!(userProfile instanceof OAuth20Profile)) {
-            throw new UsernameNotFoundException("Unsupported OAuth profile type")
+        OAuth20Profile oauthProfile = validateProfile(profile)
+        String email = validateEmail(oauthProfile.email)
+
+        try {
+            return loadExistingUser(email, oauthProfile)
+        } catch (UsernameNotFoundException e) {
+            log.info "Creando usuario OAuth pendiente de autorización: ${email}"
+            createPendingOauthUser(email)
+            throw new LockedException(
+                "Usuario pendiente de autorización por administrador"
+            )
+        }
+    }
+
+    // =========================
+    // === LÓGICA PRINCIPAL ===
+    // =========================
+    protected OauthUser loadExistingUser(String email, OAuth20Profile profile) {
+
+        User domainUser = findUserByEmail(email)
+        if (!domainUser) {
+            throw new UsernameNotFoundException(
+                "Usuario no encontrado por email"
+            )
         }
 
-        OAuth20Profile profile = (OAuth20Profile) userProfile
+        UserDetails userDetails =
+                userDetailsService.loadUserByUsername(domainUser.username)
 
-        String email = profile.email
+        validateUserIsEnabled(userDetails)
+        Collection<GrantedAuthority> roles =
+                validateAndExtractRoles(userDetails)
+
+        new OauthUser(
+                userDetails.username,
+                userDetails.password,
+                roles,
+                profile
+        )
+    }
+
+    // =========================
+    // === VALIDACIONES ===
+    // =========================
+
+    protected OAuth20Profile validateProfile(CommonProfile profile) {
+        if (!(profile instanceof OAuth20Profile)) {
+            throw new UsernameNotFoundException("Unsupported OAuth profile")
+        }
+        (OAuth20Profile) profile
+    }
+
+    protected String validateEmail(String email) {
         if (!email) {
-            throw new UsernameNotFoundException("Email not provided by OAuth provider")
+            throw new UsernameNotFoundException("Google did not return email")
         }
 
         if (!email.endsWith('@utxicotepec.edu.mx')) {
             throw new UsernameNotFoundException(
-                    "User with email ${email} not allowed. Only @utxicotepec.edu.mx accounts are allowed."
+                "Solo se permiten cuentas institucionales"
             )
         }
-
-        String userDomainClass = userDomainClassName()
-        if (!userDomainClass) {
-            return instantiateOauthUser(profile, defaultRoles)
-        }
-
-        return loadUserByUserProfileWhenUserDomainClassIsSet(profile, defaultRoles)
+        email
     }
 
-    protected OauthUser loadUserByUserProfileWhenUserDomainClassIsSet(
-            OAuth20Profile userProfile,
-            Collection<GrantedAuthority> defaultRoles) {
-
-        String email = userProfile.email
-
-        try {
-            log.debug "Trying to fetch user by email: ${email}"
-
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email)
-
-            // Verificaciones estándar de Spring Security
-            preAuthenticationChecks?.check(userDetails)
-
-            Collection<GrantedAuthority> allRoles =
-                    (userDetails.authorities + defaultRoles) as Collection<GrantedAuthority>
-
-            return new OauthUser(
-                    userDetails.username,
-                    userDetails.password,
-                    allRoles,
-                    userProfile
-            )
-
-        } catch (UsernameNotFoundException e) {
-
-            log.info "OAuth user not found. Creating locked user: ${email}"
-
-            User newUser = createLockedOauthUser(email)
-
-            throw new LockedException(
-                    "User ${email} created but is locked pending admin approval"
+    protected void validateUserIsEnabled(UserDetails userDetails) {
+        if (!userDetails.enabled) {
+            throw new DisabledException(
+                "Tu cuenta debe ser activada por un administrador"
             )
         }
     }
 
-    protected OauthUser instantiateOauthUser(CommonProfile userProfile,Collection<GrantedAuthority> defaultRoles) {
-        new OauthUser(userProfile.id, 'N/A', defaultRoles, userProfile)
+    protected Collection<GrantedAuthority> validateAndExtractRoles(
+            UserDetails userDetails
+    ) {
+        Collection<GrantedAuthority> roles =
+                userDetails.authorities
+                    .findAll { it.authority != 'ROLE_NO_ROLES' }
+                    .collect { (GrantedAuthority) it }
+
+        if (!roles) {
+            throw new InsufficientAuthenticationException(
+                "Tu cuenta no tiene roles asignados por un administrador"
+            )
+        }
+        roles
     }
 
-    @CompileDynamic
-    protected User createLockedOauthUser(String email) {
+    // =========================
+    // === CREACIÓN USUARIO ===
+    // =========================
+
+    protected void createPendingOauthUser(String email) {
 
         User user = new User(
-                username: email,
-                password: 'OAUTH_USER'
+                username: extractUsername(email),
+                password: generateSecurePassword(),
+                email: email,
+                enabled: false,
+                accountLocked: false,
+                accountExpired: false,
+                passwordExpired: false
         )
 
-        user.enabled = true
-        user.accountLocked = true
-        user.accountExpired = false
-        user.passwordExpired = false
-
         user.save(flush: true, failOnError: true)
+    }
 
-        Role userRole = Role.findByAuthority('ROLE_USER')
-        if (userRole) {
-            UserRole.create(user, userRole, true)
+    // =========================
+    // === UTILIDADES ===
+    // =========================
+
+    protected String extractUsername(String email) {
+        email.substring(0, email.indexOf('@'))
+    }
+
+    protected String generateSecurePassword(int length = 24) {
+
+        StringBuilder password = new StringBuilder(length)
+        for (int i = 0; i < length; i++) {
+            int index = secureRandom.nextInt(PASSWORD_CHARS.length())
+            password.append(PASSWORD_CHARS.charAt(index))
         }
-
-        return user
+        password.toString()
     }
 
     @CompileDynamic
-    protected String userDomainClassName() {
-        SpringSecurityUtils.getSecurityConfig()
-                ?.get('userLookup')
-                ?.get('userDomainClassName')
+    protected User findUserByEmail(String email) {
+        User.findByEmail(email)
     }
 }

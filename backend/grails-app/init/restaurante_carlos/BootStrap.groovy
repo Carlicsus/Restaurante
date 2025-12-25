@@ -24,31 +24,32 @@ class BootStrap {
             new MenuType([ name: "Bebidas" ]).save(flush:true)
         }
 
-        def adminRole = Role.findOrSaveByAuthority('ROLE_ADMIN')
-        def chefRole = Role.findOrSaveByAuthority('ROLE_CHEF')
-        def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
-        def userRole = Role.findOrSaveByAuthority('ROLE_USER')
+        if( User.count() == 0 ) {
 
-        def adminUser = User.findOrSaveByUsernameAndPassword('admin', 'admin')
-        def chefUser = User.findOrSaveByUsernameAndPassword('chef', 'chef')
-        def financeUser = User.findOrSaveByUsernameAndPassword('finance', 'finance')
-        def userUser = User.findOrSaveByUsernameAndPassword('user', 'user')
+            def adminRole = Role.findOrSaveByAuthority('ROLE_ADMIN')
+            def chefRole = Role.findOrSaveByAuthority('ROLE_CHEF')
+            def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
+            def userRole = Role.findOrSaveByAuthority('ROLE_USER')
 
-        UserRole.create adminUser, adminRole
-        UserRole.create chefUser, chefRole
-        UserRole.create financeUser, financeRole
-        UserRole.create userUser, userRole
+            def adminUser = User.findOrSaveByUsernameAndPasswordAndEmail('admin', 'admin','admin@ordenaris.com')
+            def chefUser = User.findOrSaveByUsernameAndPasswordAndEmail('chef', 'chef','chef@ordenaris.com')
+            def financeUser = User.findOrSaveByUsernameAndPasswordAndEmail('finance', 'finance','finance@ordenaris.com')
+            def userUser = User.findOrSaveByUsernameAndPasswordAndEmail('user', 'user','user@ordenaris.com')
 
-        UserRole.withSession {
-            it.flush()
-            it.clear()
+            UserRole.create adminUser, adminRole
+            UserRole.create chefUser, chefRole
+            UserRole.create financeUser, financeRole
+            UserRole.create userUser, userRole
+
+            UserRole.withSession {
+                it.flush()
+                it.clear()
+            }
+
+            assert User.count() == 4
+            assert Role.count() == 4
+            assert UserRole.count() == 4
         }
-
-        assert User.count() == 4
-        assert Role.count() == 4
-        assert UserRole.count() == 4
-
-        
 
     }
     def destroy = {

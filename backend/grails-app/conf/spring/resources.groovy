@@ -9,6 +9,5 @@ beans = {
 
     oauthUserDetailsService(DefaultOauthUserDetailsService) {
         userDetailsService = ref('userDetailsService')
-        preAuthenticationChecks = ref('preAuthenticationChecks')
     }
 }

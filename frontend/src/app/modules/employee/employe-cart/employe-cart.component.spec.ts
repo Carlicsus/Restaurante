@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DailyMenuComponent } from './daily-menu.component';
+import { EmployeCartComponent } from './employe-cart.component';
 
-describe('DailyMenuComponent', () => {
-  let component: DailyMenuComponent;
-  let fixture: ComponentFixture<DailyMenuComponent>;
+describe('EmployeCartComponent', () => {
+  let component: EmployeCartComponent;
+  let fixture: ComponentFixture<EmployeCartComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DailyMenuComponent]
+      imports: [EmployeCartComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DailyMenuComponent);
+    fixture = TestBed.createComponent(EmployeCartComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

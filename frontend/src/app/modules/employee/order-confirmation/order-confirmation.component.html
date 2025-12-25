@@ -1,0 +1,42 @@
+<div class="confirmation-container">
+  <div class="confirmation-card">
+
+    <div class="icon-wrapper">
+      <div class="check-icon">✓</div>
+    </div>
+
+    <h1 class="title">Tu pedido ha sido enviado al Chef</h1>
+
+    <div class="order-summary">
+      <h2>Resumen del pedido</h2>
+
+      <div
+        class="order-item"
+        *ngFor="let item of orderItems"
+      >
+        <span>
+          {{ item.name }} (x{{ item.quantity }})
+        </span>
+        <span>
+          ${{ item.price | number:'1.2-2' }}
+        </span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="order-total">
+        <span>Total</span>
+        <span>${{ total | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <button class="primary-btn" (click)="goToOrderStatus()">
+      Ver estado del pedido
+    </button>
+
+    <button class="link-btn" (click)="goHome()">
+      Volver al inicio
+    </button>
+
+  </div>
+</div>

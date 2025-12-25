@@ -1,0 +1,226 @@
+<div class="product-detail-container" *ngIf="product">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando producto...</p>
+  </div>
+
+  <!-- Product Detail -->
+  <div *ngIf="!loading" class="product-detail">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <a href="#" (click)="goBack($event)" class="breadcrumb-link">Menú Completo</a>
+      <span class="breadcrumb-separator">></span>
+      <span class="breadcrumb-current">{{ product.name }}</span>
+    </nav>
+
+    <div class="product-content">
+      <!-- Product Image -->
+      <div class="product-image-section">
+        <div class="main-image">
+          <img [src]="product.image" [alt]="product.name" *ngIf="product.image">
+          <div class="no-image" *ngIf="!product.image">
+            <span class="material-icons">restaurant</span>
+          </div>
+        </div>
+
+        <!-- Image Gallery (if multiple images) -->
+        <div class="image-gallery" *ngIf="product.images && product.images.length > 1">
+          <div
+            *ngFor="let img of product.images; let i = index"
+            class="gallery-thumb"
+            [class.active]="i === activeImageIndex"
+            (click)="setActiveImage(i)">
+            <img [src]="img" [alt]="product.name + ' ' + (i+1)">
+          </div>
+        </div>
+
+        <!-- Availability Badge -->
+        <div class="availability-badge" [ngClass]="product.available ? 'available' : 'unavailable'">
+          <span class="material-icons">{{ product.available ? 'check_circle' : 'cancel' }}</span>
+          {{ product.available ? 'Disponible' : 'Agotado' }}
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info-section">
+        <div class="product-header">
+          <div class="category-badge" [ngClass]="getCategoryClass(product.category)">
+            {{ getCategoryName(product.category) }}
+          </div>
+          <h1 class="product-title">{{ product.name }}</h1>
+
+          <div class="product-rating" *ngIf="product.rating">
+            <div class="stars">
+              <span
+                *ngFor="let star of [1,2,3,4,5]"
+                class="star"
+                [class.filled]="star <= product.rating">
+                ★
+              </span>
+            </div>
+            <span class="rating-text">{{ product.rating }}/5 ({{ product.reviewCount || 0 }} reseñas)</span>
+          </div>
+        </div>
+
+        <div class="product-price">
+          <span class="current-price">{{ formatCurrency(product.price) }}</span>
+          <span class="original-price" *ngIf="product.originalPrice && product.originalPrice > product.price">
+            {{ formatCurrency(product.originalPrice) }}
+          </span>
+          <span class="discount-badge" *ngIf="product.originalPrice && product.originalPrice > product.price">
+            -{{ Math.round((1 - product.price / product.originalPrice) * 100) }}%
+          </span>
+        </div>
+
+        <div class="product-description">
+          <h3>Descripción</h3>
+          <p>{{ product.description }}</p>
+        </div>
+
+        <!-- Ingredients -->
+        <div class="product-ingredients" *ngIf="product.ingredients && product.ingredients.length > 0">
+          <h3>Ingredientes</h3>
+          <div class="ingredients-list">
+            <span *ngFor="let ingredient of product.ingredients" class="ingredient-tag">
+              {{ ingredient }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Allergens -->
+        <div class="product-allergens" *ngIf="product.allergens && product.allergens.length > 0">
+          <h3>Alérgenos</h3>
+          <div class="allergens-list">
+            <span *ngFor="let allergen of product.allergens" class="allergen-tag">
+              ⚠️ {{ allergen }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Nutritional Info -->
+        <div class="product-nutrition" *ngIf="product.nutrition">
+          <h3>Información Nutricional</h3>
+          <div class="nutrition-grid">
+            <div class="nutrition-item">
+              <span class="nutrition-value">{{ product.nutrition.calories }}</span>
+              <span class="nutrition-label">Calorías</span>
+            </div>
+            <div class="nutrition-item">
+              <span class="nutrition-value">{{ product.nutrition.protein }}g</span>
+              <span class="nutrition-label">Proteínas</span>
+            </div>
+            <div class="nutrition-item">
+              <span class="nutrition-value">{{ product.nutrition.carbs }}g</span>
+              <span class="nutrition-label">Carbohidratos</span>
+            </div>
+            <div class="nutrition-item">
+              <span class="nutrition-value">{{ product.nutrition.fat }}g</span>
+              <span class="nutrition-label">Grasas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantity Selector -->
+        <div class="quantity-section">
+          <h3>Cantidad</h3>
+          <div class="quantity-selector">
+            <button class="quantity-btn" (click)="decreaseQuantity()" [disabled]="quantity <= 1">
+              <span class="material-icons">remove</span>
+            </button>
+            <span class="quantity-value">{{ quantity }}</span>
+            <button class="quantity-btn" (click)="increaseQuantity()" [disabled]="quantity >= 10">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add to Cart -->
+        <div class="add-to-cart-section">
+          <div class="total-price">
+            <span class="total-label">Total:</span>
+            <span class="total-amount">{{ formatCurrency(product.price * quantity) }}</span>
+          </div>
+
+          <div class="action-buttons">
+            <button
+              class="btn-add-cart"
+              [disabled]="!product.available"
+              (click)="addToCart()">
+              <span class="material-icons">add_shopping_cart</span>
+              {{ product.available ? 'Agregar al Carrito' : 'Producto Agotado' }}
+            </button>
+
+            <button class="btn-favorite" (click)="toggleFavorite()">
+              <span class="material-icons">{{ isFavorite ? 'favorite' : 'favorite_border' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Additional Actions -->
+        <div class="additional-actions">
+          <button class="action-btn" (click)="shareProduct()">
+            <span class="material-icons">share</span>
+            Compartir
+          </button>
+          <button class="action-btn" (click)="reportIssue()">
+            <span class="material-icons">flag</span>
+            Reportar Problema
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section" *ngIf="product.reviews && product.reviews.length > 0">
+      <h3>Reseñas de Clientes</h3>
+      <div class="reviews-list">
+        <div *ngFor="let review of product.reviews.slice(0, 3)" class="review-item">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <span class="reviewer-name">{{ review.customerName }}</span>
+              <div class="review-stars">
+                <span *ngFor="let star of [1,2,3,4,5]" class="star" [class.filled]="star <= review.rating">★</span>
+              </div>
+            </div>
+            <span class="review-date">{{ formatDate(review.date) }}</span>
+          </div>
+          <p class="review-text">{{ review.comment }}</p>
+        </div>
+      </div>
+
+      <button class="btn-view-all-reviews" *ngIf="product.reviews.length > 3" (click)="viewAllReviews()">
+        Ver todas las reseñas ({{ product.reviews.length }})
+      </button>
+    </div>
+
+    <!-- Related Products -->
+    <div class="related-products" *ngIf="relatedProducts && relatedProducts.length > 0">
+      <h3>Productos Relacionados</h3>
+      <div class="related-grid">
+        <div *ngFor="let related of relatedProducts.slice(0, 4)" class="related-item" (click)="viewProduct(related.id)">
+          <div class="related-image">
+            <img [src]="related.image" [alt]="related.name" *ngIf="related.image">
+            <div class="no-image-small" *ngIf="!related.image">
+              <span class="material-icons">restaurant</span>
+            </div>
+          </div>
+          <div class="related-info">
+            <h4>{{ related.name }}</h4>
+            <span class="related-price">{{ formatCurrency(related.price) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Not Found -->
+  <div *ngIf="!loading && !product" class="not-found">
+    <div class="not-found-icon">
+      <span class="material-icons">restaurant</span>
+    </div>
+    <h2>Producto no encontrado</h2>
+    <p>El producto que buscas no existe o ha sido eliminado.</p>
+    <button class="btn-back" (click)="goToMenu()">Volver al Menú</button>
+  </div>
+</div>

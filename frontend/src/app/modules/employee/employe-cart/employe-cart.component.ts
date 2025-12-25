@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/router';
+//import { FormsModule } from '@angular/router';
 import { Router } from '@angular/router';
+
 
 // Interfaces
 interface CartItem {
@@ -25,7 +26,7 @@ interface OrderType {
 @Component({
   selector: 'app-employe-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+ // imports: [CommonModule, FormsModule],
   templateUrl: './employe-cart.component.html',
   styleUrls: ['./employe-cart.component.css']
 })

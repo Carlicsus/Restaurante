@@ -6,6 +6,7 @@ interface OrderItem {
   price: number;
 }
 
+
 @Component({
   selector: 'app-order-confirmation',
   templateUrl: './order-confirmation.component.html',

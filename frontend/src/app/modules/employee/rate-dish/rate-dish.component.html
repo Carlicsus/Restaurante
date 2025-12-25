@@ -1,0 +1,54 @@
+<div class="rate-container">
+
+  <div class="rate-left">
+
+    <h1>Calificar Platillo</h1>
+    <p class="subtitle">Valora tu experiencia con este platillo.</p>
+
+    <div class="dish-info">
+      <span class="status">Entregado</span>
+
+      <h2>{{ dish.name }}</h2>
+      <p class="date">Ordenado el {{ dish.date }}</p>
+    </div>
+
+    <h3>Tu calificación</h3>
+
+    <label class="label">Comentario (opcional)</label>
+    <textarea
+      [(ngModel)]="comment"
+      rows="5"
+      placeholder="Escribe tu comentario aquí..."
+    ></textarea>
+
+  </div>
+
+  <div class="rate-right">
+
+    <div class="image-card">
+      <img [src]="dish.image" alt="Platillo" />
+    </div>
+
+    <div class="stars">
+      <span
+        *ngFor="let star of [1,2,3,4,5]"
+        (click)="setRating(star)"
+        [class.filled]="star <= rating"
+      >
+        ★
+      </span>
+    </div>
+
+    <div class="actions">
+      <button class="primary" (click)="submitRating()">
+        Enviar Calificación
+      </button>
+
+      <button class="secondary" (click)="cancel()">
+        Cancelar
+      </button>
+    </div>
+
+  </div>
+
+</div>

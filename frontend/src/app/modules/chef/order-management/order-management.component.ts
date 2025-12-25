@@ -28,7 +28,7 @@ interface OrderItem {
   templateUrl: './order-management.component.html',
   styleUrls: ['./order-management.component.css']
 })
-export class OrderManagementComponent implements OnInit {
+export class ChefOrderManagementComponent implements OnInit {
   orders: Order[] = [];
   filteredOrders: Order[] = [];
   selectedStatus: string = 'all';

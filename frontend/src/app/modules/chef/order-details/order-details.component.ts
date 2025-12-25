@@ -31,7 +31,7 @@ interface Order {
   templateUrl: './order-details.component.html',
   styleUrls: ['./order-details.component.css']
 })
-export class OrderDetailsComponent implements OnInit {
+export class ChefOrderDetailsComponent implements OnInit {
   order: Order | null = null;
   orderId: string = '';
   isEditing = false;

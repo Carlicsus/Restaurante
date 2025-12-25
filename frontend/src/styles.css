@@ -2,3 +2,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --bg: #F7FAFC;
+    --foreground: #0D121C;
+    --primary: #10568A;
+    --accent: #4563A1;
+    --muted: #CCD6EB;
+    --white: #FFFFFF;
+    --border: #CCD6EB;
+}
+
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  src: url('/fonts/BeVietnamPro.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  src: url('/fonts/BeVietnamPro-Bold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Be Vietnam Pro';
+  src: url('/fonts/BeVietnamPro-Black.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--foreground);
+    font-family: "Be Vietnam Pro", sans-serif;
+}

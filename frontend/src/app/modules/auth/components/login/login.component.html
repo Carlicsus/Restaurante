@@ -1,1 +1,25 @@
-<p>login works!</p>
+<div class="login-page">
+    <div class="brand">
+        <img class="brand-logo" src="/assets/logo.png" alt="Restaurante logo" />
+        <h1 class="brand-title">Restaurante Griales</h1>
+        <p class="brand-subtitle">Bienvenido inicie sesión</p>
+    </div>
+
+    <div class="login-card">
+        <form class="login-form" (ngSubmit)="onSubmit()" autocomplete="off">
+            <div class="form-group">
+                <label class="label">Username</label>
+                <input class="input" type="text" placeholder="Username" [(ngModel)]="credentials.username" name="username" />
+            </div>
+
+            <div class="form-group">
+                <label class="label">Contraseña</label>
+                <input class="input" type="password" placeholder="Contraseña" [(ngModel)]="credentials.password" name="password" />
+            </div>
+
+            <button class="btn btn--primary" type="submit">Iniciar sesión</button>
+
+            <a class="forgot" href="#">Olvidaste tu contraseña?</a>
+        </form>
+    </div>
+</div>

@@ -1,4 +1,3 @@
-<!-- order-management.component.html -->
 <div class="order-management">
   <!-- Header -->
   <header class="orders-header">
@@ -19,28 +18,28 @@
       <div class="stat-icon">⏳</div>
       <div class="stat-content">
         <h3 class="stat-title">Pendientes</h3>
-        <p class="stat-value">{{ orders.filter(o => o.status === 'pending').length }}</p>
+        <p class="stat-value">orders.filter(o => o.status === 'pending').length </p>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">👨‍🍳</div>
       <div class="stat-content">
         <h3 class="stat-title">En Preparación</h3>
-        <p class="stat-value">{{ orders.filter(o => o.status === 'preparing').length }}</p>
+        <p class="stat-value">orders.filter(o => o.status === 'preparing').length</p>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">✅</div>
       <div class="stat-content">
         <h3 class="stat-title">Listas</h3>
-        <p class="stat-value">{{ orders.filter(o => o.status === 'ready').length }}</p>
+        <p class="stat-value">orders.filter(o => o.status === 'ready').length</p>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">🚚</div>
       <div class="stat-content">
         <h3 class="stat-title">Entregadas</h3>
-        <p class="stat-value">{{ orders.filter(o => o.status === 'delivered').length }}</p>
+        <p class="stat-value">orders.filter(o => o.status === 'delivered').length</p>
       </div>
     </div>
   </div>

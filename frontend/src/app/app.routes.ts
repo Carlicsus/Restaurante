@@ -26,7 +26,7 @@ export const routes: Routes = [
   { path:'login', component: LoginComponent },
   { path:'signup', component: SignUpComponent },
   { path:'employee/dashboard', component: EmployeeDashboardComponent },
-  { path:'employee/details', component: OrderDetailsComponent},
+  { path:'employee/details/:id', component: OrderDetailsComponent},
   { path:'employee/history', component: OrderHistoryComponent},
   { path:'finance/dashboard', component: FinanceDashboardComponent },
   { path:'finance/debt', component: DebtManagementComponent },
@@ -35,6 +35,6 @@ export const routes: Routes = [
   { path:'chef/menu-management', component: MenuManagementComponent },
   { path:'chef/statistics', component: ChefStatisticsComponent },
   { path:'chef/order-management', component: ChefOrderManagementComponent },
-  { path:'chef/order-details/:id', component: ChefOrderDetailsComponent },
+  { path:'chef/order-details', component: ChefOrderDetailsComponent },
   { path:'**', redirectTo: '', pathMatch: 'full' }
 ];

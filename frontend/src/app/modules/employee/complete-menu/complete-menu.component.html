@@ -1,113 +1,54 @@
-<div class="complete-menu-container">
-  <div class="menu-header">
-    <h1 class="menu-title">Menú Completo</h1>
-    <p class="menu-subtitle">Explora todos nuestros platos disponibles</p>
-  </div>
+<app-navbar-employee></app-navbar-employee>
 
-  <!-- Search and Filters -->
-  <div class="menu-controls">
-    <div class="search-container">
-      <input
-        type="text"
-        placeholder="Buscar platos..."
-        class="search-input"
-        [(ngModel)]="searchTerm"
-        (input)="filterDishes()">
-      <span class="search-icon">🔍</span>
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <!-- Header -->
+    <div class="menu-header">
+      <h1 class="menu-title">Menú Completo</h1>
+      <p class="menu-subtitle">Explora todos los platillos disponibles.</p>
     </div>
 
-    <div class="filter-buttons">
-      <button
-        *ngFor="let category of categories"
-        class="filter-btn"
-        [class.active]="selectedCategory === category.id"
-        (click)="filterByCategory(category.id)">
-        {{ category.name }}
-      </button>
-      <button
-        class="filter-btn"
-        [class.active]="selectedCategory === 'all'"
-        (click)="filterByCategory('all')">
-        Todos
-      </button>
+    <!-- Search -->
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Buscar platillo..."
+    />
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter active">Todos</button>
+      <button class="filter">Desayunos</button>
+      <button class="filter">Comidas</button>
+      <button class="filter">Bebidas</button>
+      <button class="filter">Postres</button>
+      <button class="filter">Especiales</button>
     </div>
-  </div>
 
-  <!-- Loading state -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>Cargando menú...</p>
-  </div>
-
-  <!-- Menu Grid -->
-  <div *ngIf="!loading" class="menu-grid">
-    <div
-      *ngFor="let dish of filteredDishes"
-      class="dish-card"
-      [class.out-of-stock]="!dish.available">
-
-      <div class="dish-image">
-        <img [src]="dish.image" [alt]="dish.name" *ngIf="dish.image">
-        <div class="no-image" *ngIf="!dish.image">
-          <span class="material-icons">restaurant</span>
-        </div>
-        <div class="dish-category-badge" [ngClass]="getCategoryClass(dish.category)">
-          {{ getCategoryName(dish.category) }}
-        </div>
+    <!-- Grid -->
+    <div class="menu-grid">
+      <div class="menu-card">
+        <img src="/assets/img/omelette.jpg">
+        <h4>Omelette de queso</h4>
+        <span class="category">Desayunos</span>
+        <strong>$8.00</strong>
       </div>
 
-      <div class="dish-info">
-        <h3 class="dish-name">{{ dish.name }}</h3>
-        <p class="dish-description">{{ dish.description }}</p>
-        <div class="dish-details">
-          <span class="dish-price">{{ formatCurrency(dish.price) }}</span>
-          <span class="dish-rating" *ngIf="dish.rating">
-            ⭐ {{ dish.rating }}/5
-          </span>
-        </div>
+      <div class="menu-card">
+        <img src="/assets/img/huevos.jpg">
+        <h4>Huevos revueltos</h4>
+        <span class="category">Desayunos</span>
+        <strong>$7.50</strong>
       </div>
 
-      <div class="dish-actions">
-        <button
-          class="btn-details"
-          (click)="viewDishDetails(dish)">
-          Ver Detalles
-        </button>
-        <button
-          class="btn-add-cart"
-          [disabled]="!dish.available"
-          (click)="addToCart(dish)">
-          <span class="material-icons">add_shopping_cart</span>
-          {{ dish.available ? 'Agregar' : 'Agotado' }}
-        </button>
-      </div>
-
-      <div class="out-of-stock-overlay" *ngIf="!dish.available">
-        <span>Agotado</span>
+      <div class="menu-card">
+        <img src="/assets/img/panqueques.jpg">
+        <h4>Panqueques</h4>
+        <span class="category">Desayunos</span>
+        <strong>$9.00</strong>
       </div>
     </div>
-  </div>
 
-  <!-- Empty state -->
-  <div *ngIf="!loading && filteredDishes.length === 0" class="empty-state">
-    <div class="empty-icon">
-      <span class="material-icons">restaurant</span>
-    </div>
-    <h3>No se encontraron platos</h3>
-    <p>Intenta con otros términos de búsqueda o categorías</p>
-    <button class="btn-reset" (click)="resetFilters()">
-      Ver Todo el Menú
-    </button>
-  </div>
-
-  <!-- Cart summary -->
-  <div class="cart-summary" *ngIf="cartItemsCount > 0">
-    <div class="cart-info">
-      <span class="cart-count">{{ cartItemsCount }} items en el carrito</span>
-      <span class="cart-total">{{ formatCurrency(cartTotal) }}</span>
-    </div>
-    <button class="btn-view-cart" (click)="viewCart()">
-      Ver Carrito
-    </button>
   </div>
 </div>

@@ -1,144 +1,42 @@
-<div class="menu-management">
-  <!-- Header -->
-  <header class="menu-header">
-    <div class="header-content">
-      <h1 class="menu-title">Gestión de Menú</h1>
-      <p class="menu-subtitle">Administra los platos del restaurante: agrega, edita o elimina items.</p>
-    </div>
-    <div class="header-actions">
-      <button class="btn-add">
-        <span>+ Agregar Plato</span>
+<app-navbar-chef></app-navbar-chef>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div>
+        <h1>Gestión de Menús</h1>
+        <p>Crea, edita y administra los platillos.</p>
+      </div>
+
+      <button class="create-btn" (click)="createDish()">
+        Crear nuevo platillo
       </button>
     </div>
-  </header>
 
-  <!-- Add/Edit Form -->
-  <div class="form-container">
-    <div class="form-card">
-      <h2 class="form-title"> isEditing ? 'Editar Plato' : 'Agregar Nuevo Plato'</h2>
-
-      <form class="menu-form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="name">Nombre del Plato *</label>
-            <input type="text" id="name" formControlName="name" placeholder="Ej: Ensalada César">
-            <div class="error">
-              Nombre requerido (mínimo 2 caracteres)
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="category">Categoría *</label>
-            <select id="category" formControlName="category">
-              <option value="">Seleccionar categoría</option>
-              <option></option>
-            </select>
-            <div class="error">
-              Categoría requerida
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="price">Precio ($) *</label>
-            <input type="number" id="price" formControlName="price" step="0.01" min="0" placeholder="0.00">
-            <div class="error">
-              Precio válido requerido
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input type="checkbox" formControlName="available">
-              <span>Disponible</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="description">Descripción *</label>
-          <textarea id="description" formControlName="description" rows="3"
-                    placeholder="Describe los ingredientes y preparación"></textarea>
-          <div class="error">
-            Descripción requerida (mínimo 10 caracteres)
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-save">
-            isEditing ? 'Actualizar Plato' : 'Agregar Plato'
-          </button>
-          <button type="button" class="btn-cancel">Cancelar</button>
-        </div>
-      </form>
+    <!-- Filters -->
+    <div class="filters">
+      <button
+        *ngFor="let filter of filters"
+        (click)="setFilter(filter)"
+        [class.active]="activeFilter === filter">
+        {{ filter }}
+      </button>
     </div>
-  </div>
 
-  <!-- Menu Items Table -->
-  <div class="table-container">
-    <div class="table-header">
-      <h2 class="table-title">Platos del Menú menuItems.length</h2>
-      <div class="table-filters">
-        <select class="filter-select">
-          <option value="">Todas las categorías</option>
-          <option >categoría</option>
-        </select>
+    <!-- Grid -->
+    <div class="menu-grid">
+      <div class="menu-card" *ngFor="let dish of dishes">
+        <img [src]="dish.image" [alt]="dish.name">
+
+        <div class="card-body">
+          <h4>{{ dish.name }}</h4>
+          <span class="categories">{{ dish.categories }}</span>
+          <strong>${{ dish.price }}</strong>
+        </div>
       </div>
     </div>
 
-    <div class="table-wrapper">
-      <table class="menu-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Descripción</th>
-            <th>Precio</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="table-row">
-            <td class="item-name">item.name</td>
-            <td>
-              <span class="category-badge">
-                 item.category
-              </span>
-            </td>
-            <td class="item-description">item.description</td>
-            <td class="item-price">$ item.price.toFixed(2)</td>
-            <td>
-              <span class="status-badge">
-                item.available ? 'Disponible' : 'No disponible'
-              </span>
-            </td>
-            <td class="actions-cell">
-              <button class="btn-action btn-edit" title="Editar">
-                ✏️
-              </button>
-              <button class="btn-action btn-toggle">
-                item.available ? '🚫' : '✅' 
-              </button>
-              <button class="btn-action btn-delete" title="Eliminar">
-                🗑️
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="empty-state">
-      <div class="empty-icon">🍽️</div>
-      <h3>No hay platos en el menú</h3>
-      <p>¡Agrega el primer plato para comenzar!</p>
-    </div>
-  </div>
-
-  <!-- Back Button -->
-  <div class="back-actions">
-    <button class="btn-back" routerLink="/chef/dashboard">
-      <span>← Volver al Dashboard</span>
-    </button>
   </div>
 </div>

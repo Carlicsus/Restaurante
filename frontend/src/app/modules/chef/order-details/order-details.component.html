@@ -1,126 +1,96 @@
-<div class="order-details-container">
-  <div class="header">
-    <button class="back-btn">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-      Volver
-    </button>
-    <h1>Detalles de Orden</h1>
-    <div class="header-actions">
-      <button class="print-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
-          <path d="M6 14h12v8H6z"/>
-        </svg>
-        Imprimir
-      </button>
-    </div>
-  </div>
+<app-navbar-chef></app-navbar-chef>
 
-  <div class="order-info">
-    <div class="info-grid">
-      <div class="info-card">
-        <h3>Cliente</h3>
-        <p>order.customerName</p>
-      </div>
-      <div class="info-card">
-        <h3>Estado</h3>
-        <span class="status-badge">
-          getStatusLabel(order.status)
-        </span>
-      </div>
-      <div class="info-card">
-        <h3>Hora de Orden</h3>
-        <p>order.orderTime</p>
-        <small>getTimeElapsed()</small>
-      </div>
-      <div class="info-card">
-        <h3>Tiempo Estimado</h3>
-        <p>order.estimatedTime min</p>
-        <p>-</p>
-      </div>
-    </div>
+<div class="page-wrapper">
+  <div class="content-wrapper">
 
-    <div class="notes-section">
-      <h3>Notas Especiales</h3>
-      <p>order.notes</p>
-    </div>
-  </div>
+    <h1 class="page-title">
+      Detalles del Pedido <span>#GR-12045</span>
+    </h1>
 
-  <div class="order-items">
-    <div class="items-header">
-      <h2>Items de la Orden</h2>
-      <button class="add-item-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        Agregar Item
-      </button>
-    </div>
-
-    <div class="items-table">
+    <!-- Tabla de platillos -->
+    <div class="table-card">
       <div class="table-header">
-        <div>Platillo</div>
-        <div>Cantidad</div>
-        <div>Precio Unit.</div>
-        <div>Total</div>
-        <div>Instrucciones</div>
-        <div>Estado</div>
-        <div>Acciones</div>
+        <span>Platillo</span>
+        <span>Cantidad</span>
+        <span>Precio</span>
       </div>
 
-      <div class="table-row">
-        <div class="dish-name">item.dishName</div>
-        <div>item.quantity</div>
-        <div>$item.unitPrice.toFixed(2) </div>
-        <div class="total-price">$item.totalPrice.toFixed(2)</div>
-        <div class="instructions">
-          item.specialInstructions
+      <div class="table-row" *ngFor="let item of orderItems">
+        <span>{{ item.name }}</span>
+        <span class="qty">{{ item.quantity }}</span>
+        <span class="price">{{ formatCurrency(item.price) }}</span>
+      </div>
+    </div>
+
+    <!-- Estado del pedido -->
+    <div class="status-section">
+      <h3>Estado del pedido</h3>
+
+      <div class="status-steps">
+        <div class="step" [class.active]="orderStatus >= 1">
+          <span class="circle"></span>
+          <span>Pedido recibido</span>
         </div>
-        <ng-template #noInstructions>
-          <div class="no-instructions">-</div>
-        </ng-template>
-        <div>
-          <span class="item-status">
-            item.status ? 'Activo' : 'Inactivo'
-          </span>
+
+        <div class="step" [class.active]="orderStatus >= 2">
+          <span class="circle"></span>
+          <span>En proceso</span>
         </div>
-        <div class="actions">
-          <button class="edit-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-          </button>
-          <button class="remove-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-            </svg>
-          </button>
+
+        <div class="step" [class.active]="orderStatus >= 3">
+          <span class="circle"></span>
+          <span>Listo para servir</span>
         </div>
       </div>
     </div>
 
-    <div class="order-total">
-      <div class="total-row">
-        <span>Total:</span>
-        <span class="total-amount">$order.total.toFixed(2)</span>
-      </div>
+    <!-- Acciones -->
+    <div class="actions">
+      <button class="btn secondary" (click)="markInProgress()">
+        Marcar como en proceso
+      </button>
+
+      <button class="btn primary" (click)="markReady()">
+        Marcar como listo
+      </button>
+
+      <button class="btn danger" (click)="openCancelModal()">
+        Cancelar pedido
+      </button>
     </div>
+
   </div>
+</div>
 
-  <div class="order-actions">
-    <div class="action-buttons">
-      <button class="action-btn prepare-btn">
-        Comenzar Preparación
+<!-- MODAL CANCELAR PEDIDO -->
+<div class="modal-backdrop" *ngIf="showCancelModal">
+  <div class="modal-container">
+
+    <div class="modal-header">
+      <div class="warning-icon">⚠️</div>
+      <h3>Cancelar Pedido</h3>
+    </div>
+
+    <p class="modal-description">
+      Describe el motivo de la cancelación. Esta acción no se puede deshacer.
+    </p>
+
+    <label class="modal-label">Motivo</label>
+    <textarea
+      class="modal-textarea"
+      placeholder="Ej: Ingrediente no disponible..."
+      [(ngModel)]="cancelReason">
+    </textarea>
+
+    <div class="modal-actions">
+      <button class="btn secondary" (click)="closeCancelModal()">
+        Volver
       </button>
-      <button class="action-btn ready-btn">
-        Marcar como Lista
-      </button>
-      <button class="action-btn cancel-btn">        
-        Cancelar Orden
+
+      <button class="btn danger" (click)="confirmCancelOrder()">
+        Cancelar pedido
       </button>
     </div>
+
   </div>
 </div>

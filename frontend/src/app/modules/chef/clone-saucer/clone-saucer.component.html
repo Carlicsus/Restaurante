@@ -1,0 +1,91 @@
+<app-navbar-chef></app-navbar-chef>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <h1 class="page-title">Clonar Platillo</h1>
+    <p class="page-subtitle">
+      Crea una copia editable del platillo seleccionado.
+    </p>
+
+    <div class="clone-layout">
+
+      <!-- FORMULARIO -->
+      <div class="form-section">
+
+        <div class="form-group">
+          <label class="label-muted">Platillo original (no editable)</label>
+          <p class="original-dish">Ceviche Clásico</p>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre del nuevo platillo</label>
+          <input
+            type="text"
+            placeholder="Ej: Ceviche Clásico Especial"
+            [(ngModel)]="newDish.name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea
+            rows="4"
+            placeholder="Descripción del platillo..."
+            [(ngModel)]="newDish.description">
+          </textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio</label>
+            <input
+              type="number"
+              placeholder="Ej. 15.50"
+              [(ngModel)]="newDish.price"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Disponibilidad</label>
+            <select [(ngModel)]="newDish.status">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Categoría</label>
+          <select [(ngModel)]="newDish.category">
+            <option value="">Seleccionar</option>
+            <option value="Desayuno">Desayuno</option>
+            <option value="Comida">Comida</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Postres">Postres</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button class="btn secondary" (click)="cancel()">
+            Cancelar
+          </button>
+          <button class="btn primary" (click)="createClone()">
+            Crear Platillo Clonado
+          </button>
+        </div>
+
+      </div>
+
+      <!-- IMAGEN -->
+      <div class="image-section">
+        <img
+          src="https://images.unsplash.com/photo-1553621042-f6e147245754"
+          alt="Platillo original"
+        />
+      </div>
+
+    </div>
+
+  </div>
+</div>

@@ -1,187 +1,79 @@
-<div class="order-management">
-  <!-- Header -->
-  <header class="orders-header">
-    <div class="header-content">
-      <h1 class="orders-title">Gestión de Órdenes</h1>
-      <p class="orders-subtitle">Supervisa y administra todas las órdenes del restaurante.</p>
-    </div>
-    <div class="header-actions">
-      <button class="btn-refresh" (click)="loadOrders()">
-        <span>🔄 Actualizar</span>
-      </button>
-    </div>
-  </header>
+<app-navbar-chef></app-navbar-chef>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">⏳</div>
-      <div class="stat-content">
-        <h3 class="stat-title">Pendientes</h3>
-        <p class="stat-value">orders.filter(o => o.status === 'pending').length </p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">👨‍🍳</div>
-      <div class="stat-content">
-        <h3 class="stat-title">En Preparación</h3>
-        <p class="stat-value">orders.filter(o => o.status === 'preparing').length</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-content">
-        <h3 class="stat-title">Listas</h3>
-        <p class="stat-value">orders.filter(o => o.status === 'ready').length</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🚚</div>
-      <div class="stat-content">
-        <h3 class="stat-title">Entregadas</h3>
-        <p class="stat-value">orders.filter(o => o.status === 'delivered').length</p>
-      </div>
-    </div>
-  </div>
+<div class="page-wrapper">
+  <div class="content-wrapper">
 
-  <!-- Filters and Actions -->
-  <div class="controls-section">
-    <div class="filter-group">
-      <label for="status-filter">Filtrar por estado:</label>
-      <select id="status-filter" [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="status-filter">
-        <option *ngFor="let option of statusOptions" [value]="option.value">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
-    <div class="actions-group">
-      <button class="btn-action btn-mark-ready" (click)="markAllPendingAsPreparing()">
-        Iniciar todas las pendientes
-      </button>
-    </div>
-  </div>
+    <h1 class="page-title">Órdenes del Día</h1>
+    <p class="page-subtitle">
+      Gestiona las órdenes del día en tiempo real.
+    </p>
 
-  <!-- Orders Table -->
-  <div class="table-container">
-    <table class="orders-table" *ngIf="filteredOrders.length > 0; else noOrders">
-      <thead>
-        <tr>
-          <th>ID Orden</th>
-          <th>Cliente</th>
-          <th>Items</th>
-          <th>Total</th>
-          <th>Estado</th>
-          <th>Tiempo</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let order of filteredOrders" class="order-row" [class]="getRowClass(order.status)">
-          <td class="order-id">{{ order.id }}</td>
-          <td class="customer-name">{{ order.customerName }}</td>
-          <td class="order-items">
-            <div class="items-list">
-              <div *ngFor="let item of order.items" class="item-summary">
-                {{ item.quantity }}x {{ item.name }}
-                <span *ngIf="item.specialInstructions" class="special-note">({{ item.specialInstructions }})</span>
-              </div>
-            </div>
-          </td>
-          <td class="order-total">${{ order.total.toFixed(2) }}</td>
-          <td>
-            <span class="status-badge" [class]="getStatusClass(order.status)">
-              {{ getStatusLabel(order.status) }}
-            </span>
-          </td>
-          <td class="order-time">
-            <div class="time-info">{{ getTimeElapsed(order.orderTime) }}</div>
-            <div class="estimated-time" *ngIf="order.estimatedTime > 0">
-              Est: {{ order.estimatedTime }} min
-            </div>
-          </td>
-          <td class="actions-cell">
-            <div class="action-buttons">
-              <button
-                *ngIf="order.status === 'pending'"
-                class="btn-action-small btn-start"
-                (click)="startPreparing(order)"
-                title="Iniciar preparación">
-                ▶️
-              </button>
-              <button
-                *ngIf="order.status === 'preparing'"
-                class="btn-action-small btn-ready"
-                (click)="markAsReady(order)"
-                title="Marcar como lista">
-                ✅
-              </button>
-              <button
-                *ngIf="order.status === 'ready'"
-                class="btn-action-small btn-delivered"
-                (click)="markAsDelivered(order)"
-                title="Marcar como entregada">
-                🚚
-              </button>
-              <button
-                class="btn-action-small btn-view"
-                (click)="viewOrderDetails(order)"
-                title="Ver detalles">
-                👁️
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="orders-list">
 
-    <ng-template #noOrders>
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <h3>No hay órdenes {{ selectedStatus !== 'all' ? 'con este estado' : 'registradas' }}</h3>
-        <p>Las nuevas órdenes aparecerán aquí automáticamente.</p>
-      </div>
-    </ng-template>
-  </div>
-
-  <!-- Order Details Modal -->
-  <div class="modal-overlay" *ngIf="selectedOrder" (click)="closeOrderDetails()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Detalles de Orden {{ selectedOrder.id }}</h2>
-        <button class="btn-close" (click)="closeOrderDetails()">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="detail-section">
-          <h3>Cliente: {{ selectedOrder.customerName }}</h3>
-          <p><strong>Hora del pedido:</strong> {{ selectedOrder.orderTime | date:'short' }}</p>
-          <p><strong>Estado:</strong> {{ getStatusLabel(selectedOrder.status) }}</p>
-          <p *ngIf="selectedOrder.notes"><strong>Notas:</strong> {{ selectedOrder.notes }}</p>
+      <div class="order-item" *ngFor="let order of orders">
+        <div class="order-info">
+          <h4>Pedido #{{ order.id }}</h4>
+          <p class="items">{{ order.items }}</p>
+          <span class="time">Hora solicitada: {{ order.time }}</span>
         </div>
-        <div class="detail-section">
-          <h3>Items del Pedido</h3>
-          <div class="items-detailed">
-            <div *ngFor="let item of selectedOrder.items" class="item-detailed">
-              <div class="item-header">
-                <span class="item-name">{{ item.quantity }}x {{ item.name }}</span>
-                <span class="item-price">${{ (item.price || 0).toFixed(2) }}</span>
-              </div>
-              <div *ngIf="item.specialInstructions" class="special-instructions">
-                📝 {{ item.specialInstructions }}
-              </div>
-            </div>
-          </div>
-          <div class="order-total-detailed">
-            <strong>Total: ${{ selectedOrder.total.toFixed(2) }}</strong>
-          </div>
+
+        <div class="order-action">
+          <button
+            *ngIf="order.action === 'take'"
+            class="btn secondary"
+            (click)="takeOrder(order)">
+            Tomar Pedido
+          </button>
+
+          <button
+            *ngIf="order.action === 'ready'"
+            class="btn secondary"
+            (click)="markReady(order)">
+            Marcar como Listo
+          </button>
+
+          <button
+            *ngIf="order.action === 'cancel'"
+            class="btn danger"
+            (click)="openCancelModal(order)">
+            Cancelar Orden
+          </button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Back Button -->
-  <div class="back-actions">
-    <button class="btn-back" routerLink="/chef/dashboard">
-      <span>← Volver al Dashboard</span>
-    </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showCancelModal">
+  <div class="modal-container">
+
+    <div class="modal-header">
+      <div class="warning-icon">⚠️</div>
+      <h3>Cancelar Pedido</h3>
+    </div>
+
+    <p class="modal-description">
+      Describe el motivo de la cancelación. Esta acción no se puede deshacer.
+    </p>
+
+    <label class="modal-label">Motivo</label>
+    <textarea
+      class="modal-textarea"
+      placeholder="Ej: Ingrediente no disponible..."
+      [(ngModel)]="cancelReason">
+    </textarea>
+
+    <div class="modal-actions">
+      <button class="btn secondary" (click)="closeCancelModal()">
+        Volver
+      </button>
+
+      <button class="btn danger" (click)="confirmCancelOrder()">
+        Cancelar ahora
+      </button>
+    </div>
+
   </div>
 </div>

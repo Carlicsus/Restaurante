@@ -10,12 +10,10 @@ class ShoppingCartController {
     SpringSecurityService springSecurityService
     private getAuth() { springSecurityService.principal }
     def listOrderShoppingCart(){
-        println "ID DEL USUARIO: ${auth.id}"
         def serviceResponse = shoppingCartService.listOrderShoppingCart() 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
     def listOrderShoppingCartByUser(){
-        //println "ID DEL USUARIO: ${auth.id}"
         def serviceResponse = shoppingCartService.listOrderShoppingCartByUser(auth) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
@@ -40,8 +38,7 @@ class ShoppingCartController {
     }
     def editStatusShoppingCart(){
         def data = params
-        println data
-         if (!data.uuidSC) {
+        if (!data.uuidSC) {
             return respond([success: false, message: "Falta el UUID del carrito de compras"], status: 400)
         }
         if (!data) {
@@ -54,7 +51,6 @@ class ShoppingCartController {
     def addItemShoppingCart(){
         def dataR = request.JSON
         def dataP = params
-        println dataR
         for (item in dataR){
             if(!dataR){
                 if (!dataR.user_id) {

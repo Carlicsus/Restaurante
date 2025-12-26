@@ -82,7 +82,8 @@ class UrlMappings {
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
                     }
                     patch "/edit"(controller: "ordersModule", action: "editOrder")
-                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
+                    //patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
+                    patch "/cancel/comment"(controller: "ordersModule", action: "cancelOrder") {
                         status = "Cancelled"
                     }
                     patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {

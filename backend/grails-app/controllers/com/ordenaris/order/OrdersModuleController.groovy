@@ -9,6 +9,9 @@ class OrdersModuleController {
 	static responseFormats = ['json']
 	def orderModuleService
     SpringSecurityService springSecurityService
+
+    private static final List<String> VALID_STATUSES = ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]
+    
     private getAuth() { springSecurityService.principal }
     def listOrders(){
         def serviceResponse = orderModuleService.listOrders()
@@ -16,7 +19,6 @@ class OrdersModuleController {
     }
 
     def listOrdersByUser(){
-        //println "ID DEL USUARIO: ${auth.id}"
         def serviceResponse = orderModuleService.listOrdersByUser(auth)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
@@ -44,16 +46,7 @@ class OrdersModuleController {
 
     def editOrder(){
         def dataP = params
-        def dataR = request.JSON
-        println dataP.uuid
-        def orderCustomer = CustomerOrder.findByUuid(dataP.uuidOrder)
-        println orderCustomer
-        if (!orderCustomer) {
-            return respond([success: false, message: "Orden no encontrada o no existe"], status: 404)
-        }
-        if (orderCustomer.status == "Finished" || orderCustomer.status == "Cancelled" || orderCustomer.status == "Preparing") {
-            return respond([success: false, message: "La orden ya no puede ser editada"], status: 404)
-        }
+        def dataR = request.JSON        
         if (!dataR){
             if (!dataP.uuidOrder || !dataP.uuidDish ) {
             if (!dataP.uuidOrder) {
@@ -81,31 +74,33 @@ class OrdersModuleController {
 
     def editOrderStatus(){
         def data = params
-        println data
         if (!data.uuidOrder) {
             return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
         }
         if (!data.status) {
             return respond([success: false, message: "Falta el nuevo estado de la orden"], status: 400)
         }
-        //println data.status
         if (!(data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"])) {
-            //println data.status
             return respond([success: false, message: "Estado de orden invalido"], status: 400)
         }
-        if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
-            def order = CustomerOrder.findByUuid(data.uuidOrder)
-            if (!order) {
-                return respond([success: false, message: "Orden no encontrada"], status: 404)
-            }
-            if (order.status == "Finished") {
-                return respond([success: false, message: "No se puede editar una orden que ya ha sido finalizada"], status: 400)
-            }
-            if (order.status == "Cancelled") {
-                return respond([success: false, message: "No se puede editar una orden que ya ha sido cancelada"], status: 400)
-            }
-        }
+        
         def serviceResponse = orderModuleService.editOrderStatus(data)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    def cancelOrder(){
+        def comment = request.JSON
+        def data = params
+        if (!data.uuidOrder) {
+            return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
+        }
+        if (!data.status) {
+            return respond([success: false, message: "Falta el nuevo estado de la orden"], status: 400)
+        }
+        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"])) {
+            return respond([success: false, message: "Estado de orden invalido"], status: 400)
+        }
+        def serviceResponse = orderModuleService.cancelOrder(data, comment)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 }

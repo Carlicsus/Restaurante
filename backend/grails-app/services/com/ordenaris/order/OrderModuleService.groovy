@@ -101,6 +101,13 @@ class OrderModuleService {
                 if (!newDishId) {
                     return [resp: [success: false, message: 'Falta el ID del nuevo platillo'], status: 400]
                 }
+                if (!order) {
+                return respond([success: false, message: "Orden no encontrada o no existe"], status: 404)
+                }
+                if (order.status in ["Finished", "Cancelled", "Preparing"]) {
+                return [resp: [success: false, message: "No se puede editar en estado ${order.status}"], status: 400]
+                }
+
                 def newDishObject = Dish.get(newDishId)
                 //println newDishObject
                 orderItem.dish = newDishObject
@@ -119,7 +126,6 @@ class OrderModuleService {
                 customerOrder: order.id
             ]).save(flush: true, failOnError: true)
             }
-            //order.save(flush: true, failOnError: true
             return [
                 resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
                 status: 200
@@ -134,10 +140,20 @@ class OrderModuleService {
     def editOrderStatus(data) {
         try {
             def order = CustomerOrder.findByUuid(data.uuidOrder)
-            if (!order) {
-                return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
+            if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
+                if (!order) {
+                    return respond([success: false, message: "Orden no encontrada"], status: 404)
+                }
+                if (order.status == "Finished") {
+                    return respond([success: false, message: "No se puede editar una orden que ya ha sido finalizada"], status: 400)
+                }
+                if (order.status == "Cancelled") {
+                    return respond([success: false, message: "No se puede editar una orden que ya ha sido cancelada"], status: 400)
+                }
+                if (order.status == "Preparing") {
+                    return respond([success: false, message: "No se puede editar una orden que ya esta siendo preparada"], status: 400)
+                }
             }
-
             if (data.status == "Finished") {
             saleService.createAutoSale(order.id)
             }
@@ -149,6 +165,41 @@ class OrderModuleService {
             ]
             }
         } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+    def cancelOrder(data, comment) {
+        try{
+            def order = CustomerOrder.findByUuid(data.uuidOrder)
+            
+            if (data.status in ["Cancelled", "Preparing", "Finished"]) {
+                if (!order) {
+                    return respond([success: false, message: "Orden no encontrada"], status: 404)
+                }
+                if (order.status == "Finished") {
+                    return respond([success: false, message: "No se puede cancelar una orden que ya ha sido finalizada"], status: 400)
+                }
+                if (order.status == "Cancelled") {
+                    return respond([success: false, message: "No se puede cancelar una orden que ya ha sido cancelada"], status: 400)
+                }
+                if (order.status == "Preparing") {
+                    return respond([success: false, message: "No se puede cancelar una orden que ya esta siendo preparada"], status: 400)
+                }
+            }
+            
+            order.comment = comment.comment
+            order.status = data.status
+            order.save(flush: true, failOnError: true)
+
+            //order.save(flush: true, failOnError: true)
+            return [
+                resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, status: 200]
+            ]
+        }
+        catch (e) {
             return [
                 resp: [success: false, message: e.getMessage()],
                 status: 500

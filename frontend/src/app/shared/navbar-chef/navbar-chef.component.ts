@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-chef',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   templateUrl: './navbar-chef.component.html',
-  styleUrl: './navbar-chef.component.css'
+  styleUrls: ['./navbar-chef.component.css']
 })
-export class NavbarChefComponent {
-
-}
+export class NavbarChefComponent {}

@@ -17,6 +17,7 @@ import { ChefStatisticsComponent } from './modules/chef/chef-statistics/chef-sta
 import { MenuManagementComponent } from './modules/chef/menu-management/menu-management.component';
 import { ChefOrderManagementComponent } from './modules/chef/order-management/order-management.component';
 import { ChefOrderDetailsComponent } from './modules/chef/order-details/order-details.component';
+import { CloneSaucerComponent } from './modules/chef/clone-saucer/clone-saucer.component';
 
 //finance
 import { FinanceDashboardComponent } from './modules/finance/finance-dashboard/finance-dashboard.component';
@@ -45,5 +46,6 @@ export const routes: Routes = [
   { path:'chef/statistics', component: ChefStatisticsComponent },
   { path:'chef/order-management', component: ChefOrderManagementComponent },
   { path:'chef/order-details', component: ChefOrderDetailsComponent },
+  { path:'chef/clone-saucer', component: CloneSaucerComponent },
   { path:'**', redirectTo: '', pathMatch: 'full' }
 ];

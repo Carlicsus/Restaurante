@@ -1,103 +1,53 @@
-<!-- chef-dashboard.component.html -->
-<div class="chef-dashboard">
+<app-navbar-chef></app-navbar-chef>
+
+<div class="dashboard-wrapper">
+
   <!-- Header -->
-  <header class="dashboard-header">
-    <div class="header-content">
-      <h1 class="welcome-title">Hola, Chef</h1>
-      <p class="welcome-subtitle">Administra pedidos, menús y órdenes en proceso.</p>
+  <div class="dashboard-header">
+    <h1>Hola, Chef</h1>
+    <p>Administra pedidos, menús y órdenes en proceso.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span>Pedidos del Día</span>
+      <strong>{{ stats.pedidosDia }}</strong>
     </div>
-    <div class="header-actions">
-      <button class="btn-menu-management" routerLink="/chef/menu-management">
-        <span>Gestionar Menús</span>
+
+    <div class="stat-card">
+      <span>En Preparación</span>
+      <strong>{{ stats.enPreparacion }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Listos para Entregar</span>
+      <strong>{{ stats.listos }}</strong>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="orders-section">
+    <h2>Órdenes de Hoy</h2>
+
+    <div class="order-item" *ngFor="let order of orders">
+      <div class="order-info">
+        <h4>Pedido #{{ order.id }}</h4>
+        <p>{{ order.items }}</p>
+        <span>{{ order.time }}</span>
+      </div>
+
+      <button class="btn-light" (click)="markAsReady(order.id)">
+        Marcar como listo
       </button>
     </div>
-  </header>
-
-  <!-- Statistics Cards -->
-  <div class="stats-container">
-    <div class="stat-card card-green">
-      <div class="stat-icon">📋</div>
-      <div class="stat-content">
-        <h3 class="stat-title">Pedidos del Día</h3>
-        <p class="stat-value">12</p>
-      </div>
-    </div>
-
-    <div class="stat-card card-yellow">
-      <div class="stat-icon">👨‍🍳</div>
-      <div class="stat-content">
-        <h3 class="stat-title">En Preparación</h3>
-        <p class="stat-value">5</p>
-      </div>
-    </div>
-
-    <div class="stat-card card-blue">
-      <div class="stat-icon">✅</div>
-      <div class="stat-content">
-        <h3 class="stat-title">Listos para Entregar</h3>
-        <p class="stat-value">7</p>
-      </div>
-    </div>
   </div>
 
-  <!-- Orders Section -->
-  <div class="orders-section">
-    <h2 class="section-title">Órdenes de Hoy</h2>
-    
-    <div class="orders-list">
-      <!-- Order 1 -->
-      <div class="order-card">
-        <div class="order-header">
-          <h3 class="order-id">Pedido #GR-12045</h3>
-          <span class="order-time">12:45 PM</span>
-        </div>
-        <div class="order-items">
-          <p>Ensalada César, Sopa de Tomate, Pollo al Limón</p>
-        </div>
-        <div class="order-actions">
-          <button class="btn-ready" (click)="markAsReady('GR-12045')">Marcar como listo</button>
-        </div>
-      </div>
-
-      <!-- Order 2 -->
-      <div class="order-card">
-        <div class="order-header">
-          <h3 class="order-id">Pedido #GR-12046</h3>
-          <span class="order-time">13:15 PM</span>
-        </div>
-        <div class="order-items">
-          <p>Tacos de Pescado, Guacamole, Arroz con Frijoles</p>
-        </div>
-        <div class="order-actions">
-          <button class="btn-ready" (click)="markAsReady('GR-12046')">Marcar como listo</button>
-        </div>
-      </div>
-
-      <!-- Order 3 -->
-      <div class="order-card">
-        <div class="order-header">
-          <h3 class="order-id">Pedido #GR-12047</h3>
-          <span class="order-time">13:30 PM</span>
-        </div>
-        <div class="order-items">
-          <p>Hamburguesa Clásica, Papas Fritas, Refresco</p>
-        </div>
-        <div class="order-actions">
-          <button class="btn-ready" (click)="markAsReady('GR-12047')">Marcar como listo</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Quick Actions -->
-  <div class="quick-actions">
-    <button class="btn-action" routerLink="/chef/statistics">
-      <span class="action-icon">📊</span>
-      <span>Ver Estadísticas</span>
-    </button>
-    <button class="btn-action" routerLink="/order-management">
-      <span class="action-icon">📝</span>
-      <span>Gestionar Órdenes</span>
+  <!-- Action -->
+  <div class="dashboard-action">
+    <button class="btn-primary" (click)="goToMenus()">
+      Gestionar Menús
     </button>
   </div>
+
 </div>

@@ -1,250 +1,66 @@
-<div class="cart-container" *ngIf="!loading">
-  <!-- Empty Cart State -->
-  <div *ngIf="cartItems.length === 0" class="empty-cart">
-    <div class="empty-cart-icon">
-      <span class="material-icons">shopping_cart</span>
-    </div>
-    <h2>Tu carrito está vacío</h2>
-    <p>Agrega algunos productos deliciosos a tu pedido</p>
-    <button class="btn-browse-menu" (click)="goToMenu()">
-      <span class="material-icons">restaurant_menu</span>
-      Ver Menú Completo
-    </button>
-  </div>
+<app-navbar-employee></app-navbar-employee>
 
-  <!-- Cart Content -->
-  <div *ngIf="cartItems.length > 0" class="cart-content">
-    <!-- Cart Header -->
-    <div class="cart-header">
-      <h1>Mi Carrito</h1>
-      <button class="btn-clear-cart" (click)="clearCart()" [disabled]="clearingCart">
-        <span class="material-icons">delete_sweep</span>
-        {{ clearingCart ? 'Vaciando...' : 'Vaciar Carrito' }}
+<div class="cart-page" *ngIf="!loading">
+
+  <h1 class="cart-title">Mi Carrito</h1>
+
+  <div class="cart-layout">
+
+    <div class="cart-items">
+
+      <div
+        class="cart-item"
+        *ngFor="let item of cartItems; let i = index">
+
+        <img class="imagenP" src="/img-dashEm.jpg" alt="producto" />
+
+        <div class="item-info">
+          <h4>{{ item.name }}</h4>
+          <span class="item-price">
+            {{ formatCurrency(item.price) }}
+          </span>
+        </div>
+
+        <div class="item-qty">
+          <button (click)="decreaseQuantity(i)">−</button>
+          <span>{{ item.quantity }}</span>
+          <button (click)="increaseQuantity(i)">+</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="cart-summary">
+
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>{{ formatCurrency(subtotal) }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Descuento de empleado</span>
+        <span>-{{ formatCurrency(5) }}</span>
+      </div>
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>{{ formatCurrency(total) }}</span>
+      </div>
+
+      <button class="btn-primary" (click)="proceedToCheckout()">
+        Confirmar Pedido
       </button>
+
+      <button class="btn-secondary" (click)="goToMenu()">
+        Seguir explorando menú
+      </button>
+
+      <p class="cart-note">
+        Puedes editar tu pedido mientras no esté en proceso
+      </p>
+
     </div>
 
-    <div class="cart-layout">
-      <!-- Cart Items -->
-      <div class="cart-items-section">
-        <div class="cart-items-list">
-          <div *ngFor="let item of cartItems; let i = index; trackBy: trackByItemId"
-               class="cart-item"
-               [class.item-unavailable]="!item.available">
-
-            <!-- Item Image -->
-            <div class="item-image">
-              <img [src]="item.image" [alt]="item.name" *ngIf="item.image">
-              <div class="no-image" *ngIf="!item.image">
-                <span class="material-icons">restaurant</span>
-              </div>
-              <div class="item-category" [ngClass]="getCategoryClass(item.category)">
-                {{ getCategoryName(item.category) }}
-              </div>
-            </div>
-
-            <!-- Item Details -->
-            <div class="item-details">
-              <div class="item-header">
-                <h3 class="item-name">{{ item.name }}</h3>
-                <button class="btn-remove-item" (click)="removeItem(i)">
-                  <span class="material-icons">close</span>
-                </button>
-              </div>
-
-              <div class="item-info">
-                <div class="item-price">
-                  <span class="unit-price">{{ formatCurrency(item.price) }}</span>
-                  <span class="total-price">{{ formatCurrency(item.price * item.quantity) }}</span>
-                </div>
-
-                <!-- Quantity Controls -->
-                <div class="quantity-controls">
-                  <button class="quantity-btn" (click)="decreaseQuantity(i)" [disabled]="item.quantity <= 1">
-                    <span class="material-icons">remove</span>
-                  </button>
-                  <span class="quantity-value">{{ item.quantity }}</span>
-                  <button class="quantity-btn" (click)="increaseQuantity(i)" [disabled]="item.quantity >= 10">
-                    <span class="material-icons">add</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Special Instructions -->
-              <div class="item-instructions" *ngIf="item.specialInstructions">
-                <span class="material-icons">note</span>
-                <span>{{ item.specialInstructions }}</span>
-              </div>
-
-              <!-- Availability Warning -->
-              <div class="availability-warning" *ngIf="!item.available">
-                <span class="material-icons">warning</span>
-                Producto no disponible temporalmente
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add More Items -->
-        <div class="add-more-section">
-          <button class="btn-add-more" (click)="goToMenu()">
-            <span class="material-icons">add</span>
-            Agregar Más Productos
-          </button>
-        </div>
-      </div>
-
-      <!-- Order Summary -->
-      <div class="order-summary-section">
-        <div class="order-summary-card">
-          <h2>Resumen del Pedido</h2>
-
-          <!-- Order Type Selection -->
-          <div class="order-type-section">
-            <h3>Tipo de Pedido</h3>
-            <div class="order-type-options">
-              <label class="order-type-option" *ngFor="let type of orderTypes">
-                <input
-                  type="radio"
-                  [value]="type.value"
-                  [(ngModel)]="selectedOrderType"
-                  (change)="onOrderTypeChange()">
-                <span class="radio-custom"></span>
-                <div class="option-content">
-                  <span class="option-icon">
-                    <span class="material-icons">{{ type.icon }}</span>
-                  </span>
-                  <div class="option-text">
-                    <span class="option-title">{{ type.title }}</span>
-                    <span class="option-description">{{ type.description }}</span>
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Delivery/Pickup Details -->
-          <div class="delivery-details" *ngIf="selectedOrderType === 'delivery'">
-            <h3>Detalles de Entrega</h3>
-            <div class="form-group">
-              <label>Dirección de entrega</label>
-              <input
-                type="text"
-                [(ngModel)]="deliveryAddress"
-                placeholder="Ingresa tu dirección completa"
-                class="form-input">
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Código postal</label>
-                <input
-                  type="text"
-                  [(ngModel)]="deliveryZipCode"
-                  placeholder="Código postal"
-                  class="form-input">
-              </div>
-              <div class="form-group">
-                <label>Ciudad</label>
-                <input
-                  type="text"
-                  [(ngModel)]="deliveryCity"
-                  placeholder="Ciudad"
-                  class="form-input">
-              </div>
-            </div>
-            <div class="delivery-fee">
-              <span>Costo de envío:</span>
-              <span>{{ formatCurrency(deliveryFee) }}</span>
-            </div>
-          </div>
-
-          <!-- Pickup Details -->
-          <div class="pickup-details" *ngIf="selectedOrderType === 'pickup'">
-            <h3>Detalles de Recogida</h3>
-            <div class="pickup-info">
-              <div class="pickup-location">
-                <span class="material-icons">location_on</span>
-                <div>
-                  <strong>Restaurante Central</strong>
-                  <p>Calle Principal 123, Ciudad</p>
-                </div>
-              </div>
-              <div class="pickup-time">
-                <span class="material-icons">schedule</span>
-                <div>
-                  <strong>Horario de recogida</strong>
-                  <p>15-30 minutos</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Special Instructions -->
-          <div class="special-instructions">
-            <h3>Instrucciones Especiales</h3>
-            <textarea
-              [(ngModel)]="specialInstructions"
-              placeholder="Ej: Sin cebolla, bien hecho, etc."
-              rows="3"
-              class="form-textarea">
-            </textarea>
-          </div>
-
-          <!-- Order Summary -->
-          <div class="order-totals">
-            <div class="total-row">
-              <span>Subtotal</span>
-              <span>{{ formatCurrency(subtotal) }}</span>
-            </div>
-
-            <div class="total-row" *ngIf="selectedOrderType === 'delivery'">
-              <span>Envío</span>
-              <span>{{ formatCurrency(deliveryFee) }}</span>
-            </div>
-
-            <div class="total-row">
-              <span>IVA (21%)</span>
-              <span>{{ formatCurrency(tax) }}</span>
-            </div>
-
-            <div class="total-row total-final">
-              <span>Total</span>
-              <span>{{ formatCurrency(total) }}</span>
-            </div>
-          </div>
-
-          <!-- Checkout Button -->
-          <button
-            class="btn-checkout"
-            [disabled]="!canCheckout || processingOrder"
-            (click)="proceedToCheckout()">
-            <span class="material-icons" *ngIf="!processingOrder">payment</span>
-            <span *ngIf="processingOrder" class="spinner-small"></span>
-            {{ processingOrder ? 'Procesando...' : 'Proceder al Pago' }}
-          </button>
-
-          <!-- Minimum Order Warning -->
-          <div class="minimum-order-warning" *ngIf="selectedOrderType === 'delivery' && subtotal < minimumOrder">
-            <span class="material-icons">info</span>
-            Pedido mínimo para envío: {{ formatCurrency(minimumOrder) }}
-          </div>
-        </div>
-
-        <!-- Order Tips -->
-        <div class="order-tips">
-          <h4>💡 Consejos</h4>
-          <ul>
-            <li>Los pedidos se preparan en orden de llegada</li>
-            <li>Tiempo estimado: 15-25 minutos</li>
-            <li>Modificaciones sujetas a disponibilidad</li>
-          </ul>
-        </div>
-      </div>
-    </div>
   </div>
-</div>
-
-<!-- Loading State -->
-<div *ngIf="loading" class="loading-container">
-  <div class="spinner"></div>
-  <p>Cargando carrito...</p>
 </div>

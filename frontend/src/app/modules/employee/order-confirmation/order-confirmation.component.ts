@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 interface OrderItem {
   name: string;
@@ -8,6 +9,8 @@ interface OrderItem {
 
 @Component({
   selector: 'app-order-confirmation',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './order-confirmation.component.html',
   styleUrls: ['./order-confirmation.component.css']
 })
@@ -17,7 +20,7 @@ export class OrderConfirmationComponent implements OnInit {
   total = 0;
 
   ngOnInit(): void {
-    // Mock de datos (puede venir de un servicio)
+    // Mock de datos
     this.orderItems = [
       { name: 'Paella Valenciana', quantity: 1, price: 18.5 },
       { name: 'Gazpacho Andaluz', quantity: 1, price: 7.0 }
@@ -34,12 +37,10 @@ export class OrderConfirmationComponent implements OnInit {
   }
 
   goToOrderStatus(): void {
-    // navegación futura
     console.log('Ver estado del pedido');
   }
 
   goHome(): void {
-    // navegación futura
     console.log('Volver al inicio');
   }
 }

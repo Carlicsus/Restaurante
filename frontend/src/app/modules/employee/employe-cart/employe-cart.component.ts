@@ -1,7 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
+import { NavbarEmployeeComponent } from '../../../shared/navbar-employee/navbar-employee.component';
 
 // Interfaces
 interface CartItem {
@@ -25,11 +27,12 @@ interface OrderType {
 @Component({
   selector: 'app-employe-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarEmployeeComponent ],
   templateUrl: './employe-cart.component.html',
   styleUrls: ['./employe-cart.component.css']
 })
 export class EmployeCartComponent implements OnInit {
+
   private router = inject(Router);
 
   cartItems: CartItem[] = [];
@@ -38,7 +41,7 @@ export class EmployeCartComponent implements OnInit {
   processingOrder = false;
 
   // Order configuration
-  selectedOrderType = 'pickup';
+  selectedOrderType: 'pickup' | 'delivery' = 'pickup';
   deliveryFee = 3.99;
   taxRate = 0.21;
   minimumOrder = 15.00;
@@ -66,16 +69,14 @@ export class EmployeCartComponent implements OnInit {
     }
   ];
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadCart();
   }
 
-  private loadCart() {
+  private loadCart(): void {
     this.loading = true;
 
-    // Simulate API call to load cart
     setTimeout(() => {
-      // Mock cart data - in a real app, this would come from a cart service
       this.cartItems = [
         {
           id: 1,
@@ -115,45 +116,35 @@ export class EmployeCartComponent implements OnInit {
     return item.id;
   }
 
-  increaseQuantity(index: number) {
+  increaseQuantity(index: number): void {
     if (this.cartItems[index].quantity < 10) {
       this.cartItems[index].quantity++;
-      this.saveCart();
     }
   }
 
-  decreaseQuantity(index: number) {
+  decreaseQuantity(index: number): void {
     if (this.cartItems[index].quantity > 1) {
       this.cartItems[index].quantity--;
-      this.saveCart();
     }
   }
 
-  removeItem(index: number) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+  removeItem(index: number): void {
+    if (confirm('¿Eliminar este producto del carrito?')) {
       this.cartItems.splice(index, 1);
-      this.saveCart();
     }
   }
 
-  clearCart() {
-    if (confirm('¿Estás seguro de que quieres vaciar todo el carrito?')) {
+  clearCart(): void {
+    if (confirm('¿Vaciar todo el carrito?')) {
       this.clearingCart = true;
       setTimeout(() => {
         this.cartItems = [];
-        this.saveCart();
         this.clearingCart = false;
       }, 500);
     }
   }
 
-  private saveCart() {
-    // In a real app, this would save to localStorage or call a cart service
-    console.log('Cart saved:', this.cartItems);
-  }
-
-  onOrderTypeChange() {
-    // Reset delivery details when switching to pickup
+  onOrderTypeChange(): void {
     if (this.selectedOrderType === 'pickup') {
       this.deliveryAddress = '';
       this.deliveryZipCode = '';
@@ -162,7 +153,7 @@ export class EmployeCartComponent implements OnInit {
   }
 
   get subtotal(): number {
-    return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return this.cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
 
   get tax(): number {
@@ -170,69 +161,35 @@ export class EmployeCartComponent implements OnInit {
   }
 
   get total(): number {
-    let total = this.subtotal + this.tax;
-
-    if (this.selectedOrderType === 'delivery') {
-      total += this.deliveryFee;
-    }
-
-    return total;
+    return this.selectedOrderType === 'delivery'
+      ? this.subtotal + this.tax + this.deliveryFee
+      : this.subtotal + this.tax;
   }
 
   get canCheckout(): boolean {
-    if (this.cartItems.length === 0) return false;
+    if (!this.cartItems.length) return false;
+    if (!this.cartItems.every(i => i.available)) return false;
 
-    // Check if all items are available
-    if (!this.cartItems.every(item => item.available)) return false;
-
-    // Check minimum order for delivery
-    if (this.selectedOrderType === 'delivery' && this.subtotal < this.minimumOrder) return false;
-
-    // Check delivery details
     if (this.selectedOrderType === 'delivery') {
-      if (!this.deliveryAddress.trim() || !this.deliveryZipCode.trim() || !this.deliveryCity.trim()) {
-        return false;
-      }
+      if (this.subtotal < this.minimumOrder) return false;
+      if (!this.deliveryAddress || !this.deliveryZipCode || !this.deliveryCity) return false;
     }
 
     return true;
   }
 
-  proceedToCheckout() {
+  proceedToCheckout(): void {
     if (!this.canCheckout) return;
 
     this.processingOrder = true;
 
-    // Simulate order processing
     setTimeout(() => {
-      const orderData = {
-        items: this.cartItems,
-        orderType: this.selectedOrderType,
-        deliveryDetails: this.selectedOrderType === 'delivery' ? {
-          address: this.deliveryAddress,
-          zipCode: this.deliveryZipCode,
-          city: this.deliveryCity
-        } : null,
-        specialInstructions: this.specialInstructions,
-        totals: {
-          subtotal: this.subtotal,
-          tax: this.tax,
-          deliveryFee: this.selectedOrderType === 'delivery' ? this.deliveryFee : 0,
-          total: this.total
-        }
-      };
-
-      console.log('Processing order:', orderData);
-
-      // In a real app, this would call an order service
-      // For now, navigate to order confirmation
-      this.router.navigate(['/employee/order-confirmation', '12345']); // Mock order ID
-
+      this.router.navigate(['/employee/order-confirmation', '12345']);
       this.processingOrder = false;
     }, 2000);
   }
 
-  goToMenu() {
+  goToMenu(): void {
     this.router.navigate(['/employee/complete-menu']);
   }
 
@@ -244,14 +201,14 @@ export class EmployeCartComponent implements OnInit {
   }
 
   getCategoryName(category: string): string {
-    const categories: { [key: string]: string } = {
-      'appetizer': 'Entrante',
-      'main': 'Principal',
-      'dessert': 'Postre',
-      'drink': 'Bebida',
-      'side': 'Acompañamiento'
+    const map: Record<string, string> = {
+      appetizer: 'Entrante',
+      main: 'Principal',
+      dessert: 'Postre',
+      drink: 'Bebida',
+      side: 'Acompañamiento'
     };
-    return categories[category] || category;
+    return map[category] || category;
   }
 
   getCategoryClass(category: string): string {

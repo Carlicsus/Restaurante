@@ -1,54 +1,60 @@
-<div class="rate-container">
+<app-navbar-employee></app-navbar-employee>
 
-  <div class="rate-left">
+<div class="page-wrapper">
+  <div class="content-wrapper">
 
-    <h1>Calificar Platillo</h1>
-    <p class="subtitle">Valora tu experiencia con este platillo.</p>
-
-    <div class="dish-info">
-      <span class="status">Entregado</span>
-
-      <h2>{{ dish.name }}</h2>
-      <p class="date">Ordenado el {{ dish.date }}</p>
+    <!-- Header -->
+    <div class="rate-header">
+      <h1>Calificar Platillo</h1>
+      <p>Valora tu experiencia con este platillo.</p>
     </div>
 
-    <h3>Tu calificación</h3>
+    <div class="rate-layout">
 
-    <label class="label">Comentario (opcional)</label>
-    <textarea
-      [(ngModel)]="comment"
-      rows="5"
-      placeholder="Escribe tu comentario aquí..."
-    ></textarea>
+      <!-- LEFT -->
+      <div class="rate-info">
+        <div class="order-info">
+          <span class="label">Entregado</span>
+          <h3>{{ dishName }}</h3>
+          <p class="date">Ordenado el {{ orderDate }}</p>
+          <span class="status">Entregado</span>
+        </div>
 
+        <div class="rating-section">
+          <h4>Tu calificación</h4>
+
+          <label class="comment-label">Comentario (opcional)</label>
+          <textarea
+            class="comment-box"
+            placeholder="Escribe tu comentario..."
+            [(ngModel)]="comment">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="rate-image">
+        <img src="/img-dashEm.jpg" alt="Platillo" />
+
+        <div class="stars">
+          <span
+            *ngFor="let star of stars; let i = index"
+            (click)="setRating(i + 1)"
+            [class.filled]="i < rating">
+            ★
+          </span>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" (click)="submitRating()">
+            Enviar Calificación
+          </button>
+          <button class="btn-secondary" (click)="cancel()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+    </div>
   </div>
-
-  <div class="rate-right">
-
-    <div class="image-card">
-      <img [src]="dish.image" alt="Platillo" />
-    </div>
-
-    <div class="stars">
-      <span
-        *ngFor="let star of [1,2,3,4,5]"
-        (click)="setRating(star)"
-        [class.filled]="star <= rating"
-      >
-        ★
-      </span>
-    </div>
-
-    <div class="actions">
-      <button class="primary" (click)="submitRating()">
-        Enviar Calificación
-      </button>
-
-      <button class="secondary" (click)="cancel()">
-        Cancelar
-      </button>
-    </div>
-
-  </div>
-
 </div>

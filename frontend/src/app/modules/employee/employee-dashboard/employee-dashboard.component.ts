@@ -1,8 +1,31 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NavbarEmployeeComponent } from '../../../shared/navbar-employee/navbar-employee.component';
+
+interface QuickAction {
+  icon: string;
+  label: string;
+  route: string;
+  color: string;
+}
+
+interface OrderInfo {
+  id: string;
+  customerName: string;
+  items: number;
+  total: number;
+  timeElapsed: number;
+}
+
+interface Table {
+  id: number;
+  status: 'available' | 'occupied' | 'reserved' | 'cleaning';
+  capacity: number;
+  currentOrder?: OrderInfo;
+}
 
 @Component({
   selector: 'app-employee-dashboard',
+  standalone: true,
   imports: [NavbarEmployeeComponent],
   templateUrl: './employee-dashboard.component.html',
   styleUrls: ['./employee-dashboard.component.css']

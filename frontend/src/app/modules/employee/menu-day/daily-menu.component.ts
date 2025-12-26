@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-// Interfaces
+import { NavbarEmployeeComponent } from '../../../shared/navbar-employee/navbar-employee.component';
+
+/* Interfaces */
 interface Dish {
   id: number;
   name: string;
@@ -43,11 +45,16 @@ interface MenuHighlight {
 @Component({
   selector: 'app-daily-menu',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    NavbarEmployeeComponent // ✅ CLAVE
+  ],
   templateUrl: './daily-menu.component.html',
   styleUrls: ['./daily-menu.component.css']
 })
 export class DailyMenuComponent implements OnInit {
+
   private router = inject(Router);
 
   loading = true;
@@ -55,9 +62,10 @@ export class DailyMenuComponent implements OnInit {
   currentDate = new Date();
   availabilityTime = '15:30';
 
-  // Menu data
+  /* Menu data */
   menuTheme = 'Cocina Mediterránea Tradicional';
-  menuDescription = 'Descubre nuestra selección especial del día, preparada con los mejores ingredientes frescos de temporada. Cada plato ha sido cuidadosamente elaborado por nuestro chef para ofrecerte una experiencia culinaria excepcional.';
+  menuDescription =
+    'Descubre nuestra selección especial del día, preparada con los mejores ingredientes frescos de temporada.';
   menuPrice = 25.99;
 
   menuHighlights: MenuHighlight[] = [
@@ -83,121 +91,13 @@ export class DailyMenuComponent implements OnInit {
   dishes: Dish[] = [];
   filteredDishes: Dish[] = [];
 
-  // Mock data - in a real app, this would come from a service
-  private mockDishes: Dish[] = [
-    {
-      id: 1,
-      name: 'Ensalada de Tomate con Jamón Ibérico',
-      description: 'Tomates maduros de temporada, jamón ibérico de bellota, aceite de oliva virgen extra y albahaca fresca.',
-      price: 12.50,
-      image: '/assets/img/ensalada-tomate-jamon.jpg',
-      category: 'appetizer',
-      available: true,
-      rating: 4.8,
-      ingredients: ['Tomate', 'Jamón ibérico', 'Aceite de oliva', 'Albahaca', 'Sal marina'],
-      allergens: ['Ninguno'],
-      nutrition: {
-        calories: 280,
-        protein: 18,
-        carbs: 12
-      }
-    },
-    {
-      id: 2,
-      name: 'Paella de Mariscos del Día',
-      description: 'Arroz bomba con calamares, gambas, mejillones y verduras frescas. Elaborada siguiendo la receta tradicional valenciana.',
-      price: 18.99,
-      originalPrice: 22.99,
-      image: '/assets/img/paella-mariscos.jpg',
-      category: 'main',
-      available: true,
-      rating: 4.9,
-      ingredients: ['Arroz bomba', 'Calamares', 'Gambas', 'Mejillones', 'Pimiento', 'Azafrán'],
-      allergens: ['Mariscos', 'Moluscos'],
-      nutrition: {
-        calories: 520,
-        protein: 32,
-        carbs: 68
-      }
-    },
-    {
-      id: 3,
-      name: 'Cordero Asado con Hierbas',
-      description: 'Pierna de cordero lechal asada lentamente con romero, tomillo y ajo. Acompañado de verduras de temporada.',
-      price: 16.75,
-      image: '/assets/img/cordero-asado.jpg',
-      category: 'main',
-      available: true,
-      rating: 4.6,
-      ingredients: ['Cordero lechal', 'Romero', 'Tomillo', 'Ajo', 'Verduras de temporada'],
-      allergens: ['Ninguno'],
-      nutrition: {
-        calories: 480,
-        protein: 45,
-        carbs: 8
-      }
-    },
-    {
-      id: 4,
-      name: 'Tarta de Santiago Casera',
-      description: 'Tarta de almendra tradicional gallega, elaborada con almendras marcona y decorada con azúcar glas.',
-      price: 7.25,
-      image: '/assets/img/tarta-santiago.jpg',
-      category: 'dessert',
-      available: true,
-      rating: 4.7,
-      ingredients: ['Almendras marcona', 'Huevos', 'Azúcar', 'Mantequilla', 'Limón'],
-      allergens: ['Frutos secos', 'Huevos', 'Lácteos'],
-      nutrition: {
-        calories: 380,
-        protein: 12,
-        carbs: 35
-      }
-    },
-    {
-      id: 5,
-      name: 'Gazpacho Andaluz',
-      description: 'Sopa fría tradicional de tomate, pepino, pimiento y ajo. Servida con toppings de jamón y huevo duro.',
-      price: 8.99,
-      image: '/assets/img/gazpacho.jpg',
-      category: 'appetizer',
-      available: false,
-      rating: 4.5,
-      ingredients: ['Tomate', 'Pepino', 'Pimiento', 'Ajo', 'Aceite de oliva', 'Vinagre'],
-      allergens: ['Ninguno'],
-      nutrition: {
-        calories: 120,
-        protein: 3,
-        carbs: 15
-      }
-    },
-    {
-      id: 6,
-      name: 'Vino Tinto Rioja Reserva',
-      description: 'Vino tinto de la D.O. Rioja, con 24 meses de crianza en barrica. Notas de frutas rojas y taninos suaves.',
-      price: 6.50,
-      image: '/assets/img/vino-tinto.jpg',
-      category: 'drink',
-      available: true,
-      rating: 4.4,
-      ingredients: ['Vino tinto', 'Uvas Tempranillo'],
-      allergens: ['Sulfitos'],
-      nutrition: {
-        calories: 125,
-        protein: 0,
-        carbs: 3
-      }
-    }
-  ];
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadMenu();
   }
 
-  private loadMenu() {
+  private loadMenu(): void {
     this.loading = true;
 
-    // Simulate API call
     setTimeout(() => {
       this.dishes = this.mockDishes;
       this.filteredDishes = this.dishes;
@@ -205,54 +105,42 @@ export class DailyMenuComponent implements OnInit {
     }, 800);
   }
 
-  setActiveCategory(category: string) {
+  setActiveCategory(category: string): void {
     this.activeCategory = category;
     this.filterDishes();
   }
 
-  private filterDishes() {
-    if (this.activeCategory === 'all') {
-      this.filteredDishes = this.dishes;
-    } else {
-      this.filteredDishes = this.dishes.filter(dish => dish.category === this.activeCategory);
-    }
+  private filterDishes(): void {
+    this.filteredDishes =
+      this.activeCategory === 'all'
+        ? this.dishes
+        : this.dishes.filter(d => d.category === this.activeCategory);
   }
 
-  trackByDishId(index: number, dish: Dish): number {
+  trackByDishId(_: number, dish: Dish): number {
     return dish.id;
   }
 
-  addToCart(dish: Dish) {
+  addToCart(dish: Dish): void {
     if (!dish.available) return;
-
-    // In a real app, this would call a cart service
-    console.log('Adding to cart:', dish);
-
-    // Show success message
     alert(`¡${dish.name} agregado al carrito!`);
   }
 
-  viewDishDetails(dishId: number) {
+  viewDishDetails(dishId: number): void {
     this.router.navigate(['/employee/product', dishId]);
   }
 
-  orderFullMenu() {
-    const availableDishes = this.dishes.filter(dish => dish.available);
-
-    if (availableDishes.length === 0) return;
-
-    // In a real app, this would add all available dishes to cart
-    console.log('Ordering full menu:', availableDishes);
-
-    alert(`¡Menú completo agregado al carrito por ${this.formatCurrency(this.menuPrice)}!`);
+  orderFullMenu(): void {
+    if (!this.canOrderMenu) return;
+    alert(`¡Menú completo agregado por ${this.formatCurrency(this.menuPrice)}!`);
   }
 
   get canOrderMenu(): boolean {
-    return this.dishes.some(dish => dish.available);
+    return this.dishes.some(d => d.available);
   }
 
   get totalDishes(): number {
-    return this.dishes.filter(dish => dish.available).length;
+    return this.dishes.filter(d => d.available).length;
   }
 
   formatCurrency(amount: number): string {
@@ -263,16 +151,30 @@ export class DailyMenuComponent implements OnInit {
   }
 
   getCategoryName(category: string): string {
-    const categoryMap: { [key: string]: string } = {
-      'appetizer': 'Entrante',
-      'main': 'Principal',
-      'dessert': 'Postre',
-      'drink': 'Bebida'
+    const map: Record<string, string> = {
+      appetizer: 'Entrante',
+      main: 'Principal',
+      dessert: 'Postre',
+      drink: 'Bebida'
     };
-    return categoryMap[category] || category;
+    return map[category] ?? category;
   }
 
   getCategoryClass(category: string): string {
     return `category-${category}`;
   }
+
+  /* Mock dishes */
+  private mockDishes: Dish[] = [
+    {
+      id: 1,
+      name: 'Paella de Mariscos',
+      description: 'Paella tradicional con mariscos frescos.',
+      price: 18.99,
+      image: '/assets/img/paella-mariscos.jpg',
+      category: 'main',
+      available: true,
+      rating: 4.9
+    }
+  ];
 }

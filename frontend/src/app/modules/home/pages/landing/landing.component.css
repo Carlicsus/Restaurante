@@ -1,17 +1,14 @@
-/* Estilos minimalistas para GRANDRESTAURANT */
 :host {
   display: block;
   font-feature-settings: "kern" 1;
   font-kerning: normal;
 }
 
-/* Tipografía minimalista */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 300;
   letter-spacing: 0.05em;
 }
 
-/* Animación de fade in */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -23,12 +20,10 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Aplicar animación a elementos principales */
 section {
   animation: fadeIn 0.8s ease-out forwards;
 }
 
-/* Hero Section mejoras */
 .relative.h-screen {
   min-height: 100vh;
 }
@@ -42,7 +37,6 @@ section {
   transform: scale(1.02);
 }
 
-/* Scroll indicator */
 .animate-bounce {
   animation: bounce 2s infinite;
 }
@@ -59,12 +53,10 @@ section {
   }
 }
 
-/* Transiciones suaves */
 button, a {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Border hover effects */
 .border-gray-200 {
   transition: border-color 0.3s ease;
 }
@@ -73,14 +65,12 @@ button, a {
   border-color: #d1d5db;
 }
 
-/* Mejoras de accesibilidad */
 button:focus-visible,
 a:focus-visible {
   outline: 2px solid #04578D;
   outline-offset: 2px;
 }
 
-/* Scrollbar minimalista */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -99,7 +89,6 @@ a:focus-visible {
   background: #034672;
 }
 
-/* Mejoras responsivas */
 @media (max-width: 768px) {
   .text-8xl {
     font-size: 3.5rem;
@@ -118,7 +107,6 @@ a:focus-visible {
     padding-bottom: 4rem;
   }
   
-  /* Optimización móvil para imagen hero */
   .relative.min-h-screen .absolute.inset-0.z-0 img {
     object-fit: cover !important;
     object-position: center center !important;
@@ -127,12 +115,10 @@ a:focus-visible {
   }
 }
 
-/* Efecto de overlay en hero */
 .bg-black\/40 {
   backdrop-filter: blur(2px);
 }
 
-/* Estilos para los botones */
 button {
   position: relative;
   overflow: hidden;
@@ -156,17 +142,14 @@ button:hover::after {
   height: 300px;
 }
 
-/* Mejoras para textos */
 .text-white\/80 {
   line-height: 1.6;
 }
 
-/* Separadores */
 .border-t {
   border-top-width: 1px;
 }
 
-/* Grid gaps responsivos */
 @media (max-width: 640px) {
   .gap-12 {
     gap: 3rem;
@@ -177,14 +160,12 @@ button:hover::after {
   }
 }
 
-/* Imagen responsiva */
 img {
   max-width: 100%;
   height: auto;
   display: block;
 }
 
-/* Fade in escalonado */
 section:nth-child(2) { animation-delay: 0.1s; }
 section:nth-child(3) { animation-delay: 0.2s; }
 section:nth-child(4) { animation-delay: 0.3s; }
@@ -192,7 +173,6 @@ section:nth-child(5) { animation-delay: 0.3s; }
 section:nth-child(6) { animation-delay: 0.4s; }
 section:nth-child(7) { animation-delay: 0.5s; }
 
-/* Asegurar que el hero ocupe toda la pantalla en mobile */
 @media (max-width: 768px) {
   .relative.min-h-screen {
     min-height: 100vh;
@@ -200,17 +180,14 @@ section:nth-child(7) { animation-delay: 0.5s; }
   }
 }
 
-/* Mejoras de legibilidad */
 .text-gray-600 {
   line-height: 1.7;
 }
 
-/* Efecto hover para enlaces del footer */
 a:hover {
   text-decoration: none;
 }
 
-/* Ajustes específicos para imagen en móvil */
 @media (max-width: 768px) {
   .relative.h-screen .absolute.inset-0.z-0 img {
     object-fit: cover;
@@ -219,7 +196,6 @@ a:hover {
     width: 100%;
   }
   
-  /* Asegurar que el contenedor también se ajuste */
   .relative.h-screen {
     height: 100vh;
     max-height: 100vh;

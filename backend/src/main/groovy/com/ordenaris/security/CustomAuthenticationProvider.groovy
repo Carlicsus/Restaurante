@@ -29,8 +29,7 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
     @Override
     Authentication authenticate(Authentication authentication)
             throws AuthenticationException {
-
-        return 
+        println "CustomAuthenticationProvider::authenticate -> Called"
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder()
 

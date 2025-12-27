@@ -1,5 +1,4 @@
-package restaurante_carlos
-
+package com.ordenaris.security
 
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint
@@ -17,7 +16,7 @@ class ErrorJsonController {
         def responseBody = [
             status: HttpStatus.UNAUTHORIZED.value(),
             error: "Unauthorized",
-            message: "You are not authorized to access this resource."
+            message: "No estas autorizado para ver este recurso"
         ]
         return respond(responseBody)
     }

@@ -30,10 +30,13 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = controllerAnnot
 
 //Spring Security REST API plugin config
 String statelessFilters = 'JOINED_FILTERS, -exceptionTranslationFilter, -authenticationProcessingFilter, -securityContextPersistenceFilter, -rememberMeAuthenticationFilter'
+String loginFilters = 'JOINED_FILTERS, -exceptionTranslationFilter, -securityContextPersistenceFilter, -rememberMeAuthenticationFilter'
 
 def filterChainChainMaps = [
     //Stateless chain
+    [pattern: '/api/login',filters: loginFilters],
     [pattern: '/api/**', filters: statelessFilters],
+    // LOGIN REST → necesita authenticationProcessingFilter
 	[pattern: '/static/docs/**', filters: statelessFilters],
     //[pattern: '/**',     filters: statelessFilters]
     //[pattern: '/**',     filters: statelessFilters]
@@ -69,6 +72,7 @@ grails.plugin.springsecurity.rest.login.endpointUrl="/api/login"
 grails.plugin.springsecurity.rest.login.useJsonCredentials=true
 grails.plugin.springsecurity.rest.login.usernamePropertyName="username"
 grails.plugin.springsecurity.rest.login.passwordPropertyName="password"
+grails.plugin.springsecurity.rest.login.failureStatusCode = 401
 
 //Login por google
 grails.plugin.springsecurity.rest.oauth.frontendCallbackUrl = { String token ->
@@ -83,6 +87,7 @@ grails.plugin.springsecurity.rest.oauth.google.defaultRoles = ['ROLE_USER']
 
 grails.plugin.springsecurity.providerNames = [
 		'customAuthenticationProvider',
+        'restAuthenticationProvider',
 		'anonymousAuthenticationProvider',
 		'rememberMeAuthenticationProvider'
 ]

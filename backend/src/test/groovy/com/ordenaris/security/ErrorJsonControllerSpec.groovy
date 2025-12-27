@@ -1,4 +1,4 @@
-package restaurante_carlos
+package com.ordenaris.security
 
 import grails.testing.web.controllers.ControllerUnitTest
 import spock.lang.Specification

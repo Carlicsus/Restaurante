@@ -50,6 +50,7 @@ class AuthManagerService implements GrailsUserDetailsService{
 
         User user = findUserByUsernameOrEmail(identifier)
         if (!user) {
+            println "User not found with identifier: ${identifier}"
             throw new NoStackUsernameNotFoundException()
         }
 

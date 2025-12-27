@@ -76,12 +76,4 @@ export class LandingComponent {
         { number: '98%', label: 'Customer Satisfaction' },
         { number: '50+', label: 'Expert Chefs' }
     ];
-
-    navigateToMenu() {
-        console.log('Navigating to menu');
-    }
-
-    navigateToReservation() {
-        console.log('Navigating to reservation');
-    }
 }

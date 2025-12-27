@@ -1,19 +1,17 @@
-/* Fondo general */
 .page-wrapper {
   background: #f8fafc;
   min-height: 100vh;
+  margin-top: 15dvh;
+  max-width: 1100px;
+  display: flex;
+  justify-content: center;
 }
 
-/* CONTENEDOR REAL (CLAVE DEL FIGMA) */
 .content-wrapper {
   max-width: 1200px; 
-  margin-left: 400px;
-  margin-right: 0;  
-  padding: 40px 0;
   font-family: 'Inter', sans-serif;
 }
 
-/* HEADER */
 .menu-header {
   margin-bottom: 16px;
 }

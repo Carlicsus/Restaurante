@@ -1,15 +1,9 @@
-/* ============================= */
-/* CONTENEDOR GLOBAL */
-/* ============================= */
 .container {
   max-width: 1100px; 
-  margin: 0 auto;
+  margin: 10dvh auto;
   padding: 48px 16px;
 }
 
-/* ============================= */
-/* HEADER */
-/* ============================= */
 .page-header {
   margin-bottom: 32px;
 }

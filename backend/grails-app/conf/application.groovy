@@ -7,6 +7,7 @@ grails.plugin.springsecurity.authority.className = 'com.ordenaris.security.Role'
 //common
 def controllerAnnotationsStaticRuleMaps = [
     [pattern: '/',                  access: ['permitAll']],
+    [pattern: '/api/login',         access: ['permitAll']],
     [pattern: '/error',             access: ['permitAll']],
     [pattern: '/index',             access: ['permitAll']],
     [pattern: '/login/auth',        access: ['denyAll']], //lock down spring security login form url
@@ -65,7 +66,6 @@ grails.plugin.springsecurity.rest.token.validation.enableAnonymousAccess = false
 //Login por usuario y contraseña
 grails.plugin.springsecurity.rest.login.active=true
 grails.plugin.springsecurity.rest.login.endpointUrl="/api/login"
-grails.plugin.springsecurity.rest.login.failureStatusCode=401
 grails.plugin.springsecurity.rest.login.useJsonCredentials=true
 grails.plugin.springsecurity.rest.login.usernamePropertyName="username"
 grails.plugin.springsecurity.rest.login.passwordPropertyName="password"
@@ -80,3 +80,9 @@ grails.plugin.springsecurity.rest.oauth.google.key = googleClientId
 grails.plugin.springsecurity.rest.oauth.google.secret = googleClientSecret
 grails.plugin.springsecurity.rest.oauth.google.scope = org.pac4j.oauth.client.Google2Client.Google2Scope.EMAIL_AND_PROFILE
 grails.plugin.springsecurity.rest.oauth.google.defaultRoles = ['ROLE_USER']
+
+grails.plugin.springsecurity.providerNames = [
+		'customAuthenticationProvider',
+		'anonymousAuthenticationProvider',
+		'rememberMeAuthenticationProvider'
+]

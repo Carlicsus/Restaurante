@@ -74,6 +74,8 @@ class UrlMappings {
 
 
         "/"(controller: 'application', action:'index')
+        "401"(controller: "errorJson", action: "unauthorized")
+        "/error"(controller: "errorJson", action: "unauthorized")
         "500"(view: '/error')
         "404"(view: '/notFound')
     }

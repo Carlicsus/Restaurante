@@ -7,15 +7,20 @@ import org.springframework.beans.factory.annotation.Autowired
 @Transactional
 class UserService {
 
-    Map register(String username, String rawPassword) {
+    Map register(String username, String rawPassword, String email) {
 
         if (User.findByUsername(username)) {
             return [ success: false, message: "Ya existe un usuario con el usuario ${username}" ]
         }
 
+        if (User.findByEmail(email)) {
+            return [ success: false, message: "Ya existe un usuario con el correo ${email}" ]
+        }
+
         User user = new User(
                 username,
-                rawPassword
+                rawPassword,
+                email
         )
 
         user.enabled = false 

@@ -29,7 +29,6 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
     @Override
     Authentication authenticate(Authentication authentication)
             throws AuthenticationException {
-        println "CustomAuthenticationProvider::authenticate -> Called"
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder()
 
@@ -53,8 +52,6 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
 
     @Override
     boolean supports(Class<?> authentication) {
-        println "CustomAuthenticationProvider::supports -> Called"
-        println "CustomAuthenticationProvider::authentication_bean -> ${authentication?.dump()}"
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
     }
 }

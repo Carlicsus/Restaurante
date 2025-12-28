@@ -10,7 +10,6 @@ class CustomRestAuthenticationFailureHandler extends RestAuthenticationFailureHa
     @Override
     void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
         response.setContentType("application/json;charset=UTF-8")
-        println "CustomRestAuthenticationFailureHandler::onAuthenticationFailure -> Called"
 
         // Ejemplo: puedes personalizar según la excepción
         def errorMessage = exception?.message ?: "Authentication failed"

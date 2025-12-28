@@ -52,10 +52,52 @@ class UrlMappings {
                 }
             }
 
-            group "/user", {  
+            group "/user", {
+
                 post "/register"(controller: "user", action: "register")
+                get "/view"(controller: "user", action: "paginateUsers")
+
+                patch "/enable/$username"(controller: "user", action: "setEnabled"){
+                    enable=true
+                }
+                patch "/disable/$username"(controller: "user", action: "setEnabled"){
+                    enable=false
+                }
+
+                patch "/lock/$username"(controller: "user", action: "setLocked"){
+                    lock=true
+                }
+                patch "/unlock/$username"(controller: "user", action: "setLocked"){
+                    lock=false
+                }
+
             }
 
+            group "/role", {
+
+                get "/"(controller: "role", action: "index")
+                get "/$id"(controller: "role", action: "show")
+
+                post "/"(controller: "role", action: "save")
+                put "/$id"(controller: "role", action: "update")
+                delete "/$id"(controller: "role", action: "delete")
+            }
+
+            group "/user-role", {
+
+                // Obtener todos los roles de un usuario
+                get "/user/$userId"(controller: "userRole", action: "getRolesByUser")
+
+                // Asignar un rol a un usuario
+                post "/"(controller: "userRole", action: "assignRole")
+
+                // Cambiar un rol por otro
+                put "/"(controller: "userRole", action: "updateRole")
+
+                // Eliminar un rol a un usuario
+                delete "/"(controller: "userRole", action: "removeRole")
+            }
+            
             group "/sale", {  
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {

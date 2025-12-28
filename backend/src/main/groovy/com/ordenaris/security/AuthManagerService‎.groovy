@@ -37,7 +37,6 @@ class AuthManagerService implements GrailsUserDetailsService{
 
     @Override
     UserDetails loadUserByUsername(String username, boolean loadRoles) throws UsernameNotFoundException, DataAccessException {
-        println "loadUserByUsername:: two params"
         return loadUserByUsername(username)
     }
 
@@ -46,18 +45,15 @@ class AuthManagerService implements GrailsUserDetailsService{
     UserDetails loadUserByUsername(String identifier)
             throws UsernameNotFoundException {
 
-        println "loadUserByUsername:: identifier -> ${identifier}"
 
         User user = findUserByUsernameOrEmail(identifier)
         if (!user) {
-            println "User not found with identifier: ${identifier}"
             throw new NoStackUsernameNotFoundException()
         }
 
         // ========= REGLAS DE NEGOCIO =========
 
         if (!user.enabled) {
-            println "Tu cuenta debe ser activada por un administrador"
             throw new DisabledException(
                 "Tu cuenta debe ser activada por un administrador"
             )
@@ -65,7 +61,6 @@ class AuthManagerService implements GrailsUserDetailsService{
 
         Set<Role> roles = user.authorities as Set<Role>
         if (!roles || roles.isEmpty()) {
-            println "Tu cuenta no tiene roles asignados por un administrador"
             throw new InsufficientAuthenticationException(
                 "Tu cuenta no tiene roles asignados por un administrador"
             )

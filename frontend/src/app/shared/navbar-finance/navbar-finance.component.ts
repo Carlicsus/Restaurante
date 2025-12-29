@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-navbar-finance',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   templateUrl: './navbar-finance.component.html',
-  styleUrl: './navbar-finance.component.css'
+  styleUrls: ['./navbar-finance.component.css']
 })
-export class NavbarFinanceComponent {
-
-}
+export class NavbarFinanceComponent {}

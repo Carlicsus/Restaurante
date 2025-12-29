@@ -1,1 +1,86 @@
-<p>debt-management works!</p>
+<app-navbar-finance></app-navbar-finance>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <h1 class="page-title">Gestión de Empleados</h1>
+    <p class="page-subtitle">
+      Bloquea o desbloquea empleados según su estado de cuenta.
+    </p>
+
+    <!-- BUSCADOR -->
+    <div class="search-box">
+      <input type="text" placeholder="Buscar empleado..." />
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-card">
+      <div class="table-header">
+        <span>Foto</span>
+        <span>Nombre</span>
+        <span>Posición</span>
+        <span>Estado</span>
+        <span>Acciones</span>
+      </div>
+
+      <div
+        class="table-row"
+        *ngFor="let emp of employees"
+      >
+        <div class="avatar">
+          <img [src]="emp.avatar" />
+        </div>
+
+        <span>{{ emp.name }}</span>
+        <span class="role">{{ emp.role }}</span>
+
+        <span
+          class="status"
+          [class.active]="emp.active"
+          [class.blocked]="!emp.active"
+        >
+          {{ emp.active ? 'Activo' : 'Bloqueado' }}
+        </span>
+
+        <button
+          class="action-link"
+          (click)="selectEmployee(emp)"
+        >
+          {{ emp.active ? 'Bloquear' : 'Desbloquear' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- BLOQUEO -->
+    <div
+      class="block-section"
+      *ngIf="selectedEmployee"
+    >
+      <h2>
+        {{ selectedEmployee.active ? 'Bloquear empleado' : 'Desbloquear empleado' }}
+      </h2>
+
+      <p class="block-subtitle">
+        Indica el motivo del bloqueo.
+      </p>
+
+      <input
+        type="text"
+        placeholder="Motivo del bloqueo"
+        [(ngModel)]="blockReason"
+        [disabled]="!selectedEmployee.active"
+      />
+
+      <div class="block-actions">
+        <button class="btn-primary" (click)="toggleEmployeeStatus()">
+          Confirmar
+        </button>
+
+        <button class="btn-secondary" (click)="cancelAction()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

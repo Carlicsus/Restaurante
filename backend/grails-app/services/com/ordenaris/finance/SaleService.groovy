@@ -106,40 +106,113 @@ class SaleService {
             }
     }
 
-        def paySingleSale(String saleUuid) {
-            try {
-                def sale = Sale.findByUuid(saleUuid)
-                if (!sale) {
-                    return [
-                        resp: [success: false, message: "Venta no encontrada"],
-                        status: 404
-                    ]
-                }
-                if (sale.status != 'Pending') {
-                    return [
-                        resp: [success: false, message: "Esta venta ya ha sido pagada"],
-                        status: 400
-                    ]
-                }
-
-                sale.status = 'Paid'
-                sale.save(flush: true)
-
+    def paySingleSale(String saleUuid) {
+        try {
+            def sale = Sale.findByUuid(saleUuid)
+            if (!sale) {
                 return [
-                    resp: [
-                        success: true,
-                        message: "Orden pagada exitosamente",
-                        data: mapOrder(sale) + [paidDate: new Date()]
-                    ],
-                    status: 200
-                ]
-            } catch (e) {
-                return [
-                    resp: [success: false, message: "Error al procesar el pago: ${e.getMessage()}"],
-                    status: 500
+                    resp: [success: false, message: "Venta no encontrada"],
+                    status: 404
                 ]
             }
+            if (sale.status != 'Pending') {
+                return [
+                    resp: [success: false, message: "Esta venta ya ha sido pagada"],
+                    status: 400
+                ]
+            }
+
+            sale.status = 'Paid'
+            sale.save(flush: true)
+
+            return [
+                resp: [
+                    success: true,
+                    message: "Orden pagada exitosamente",
+                    data: mapOrder(sale) + [paidDate: new Date()]
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error al procesar el pago: ${e.getMessage()}"],
+                status: 500
+            ]
         }
+    }
+
+    def paySingleDish(String saleUuid, String dishUuid) {
+        try {
+            def sale = Sale.findByUuid(saleUuid)
+            if (!sale) {
+                return [
+                    resp: [success: false, message: "Venta no encontrada"],
+                    status: 404
+                ]
+            }
+
+            def orderItems = OrderItem.createCriteria().list {
+                eq("customerOrder.id", sale.customerOrder.id)
+                eq("status", true)
+                eq("uuid", dishUuid)
+            }
+
+            println orderItems
+
+            if (!orderItems) {
+                return [
+                    resp: [success: false, message: "Platillo no encontrado en la orden"],
+                    status: 404
+                ]
+            }
+
+            if (orderItems.every { it.payed }) {
+                return [
+                    resp: [success: false, message: "Este platillo ya ha sido pagado"],
+                    status: 400
+                ]
+            }
+
+            orderItems.each { item ->
+                item.payed = true
+                item.save(flush: true)
+            }
+
+            def ordersLeftToPay = OrderItem.createCriteria().list {
+                eq("customerOrder.id", sale.customerOrder.id)
+                eq("status", true)
+                eq("payed", false)
+            }
+
+            println ordersLeftToPay
+
+            if (ordersLeftToPay.isEmpty()) {
+                sale.status = 'Paid'
+                sale.save(flush: true)
+            }
+
+            return [
+                resp: [
+                    success: true,
+                    message: "Platillo(s) pagado(s) exitosamente",
+                    data: orderItems.collect { item ->
+                        [
+                            dishName: item.dish?.name ?: "Plato desconocido",
+                            quantity: item.quantity,
+                            unitPrice: item.unitPrice,
+                            subtotal: item.quantity * item.unitPrice
+                        ]
+                    }
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error al procesar el pago del platillo: ${e.getMessage()}"],
+                status: 500
+            ]
+        }
+    }
 
     def payAllSalesForUser(String username) {
         try {
@@ -248,19 +321,6 @@ class SaleService {
         throw new IllegalArgumentException("Formato de fecha inválido")
     }
 
-    def mapSale = { sale ->
-        return [
-            id: sale.id,
-            dateCreated: sale.dateCreated,
-            total: sale.total,
-            customerOrderId: sale.customerOrderId,
-            status: sale.status,
-            dateCreated: sale.dateCreated,
-            lastUpdated: sale.lastUpdated
-        ]
-        return obj
-    }
-
     def createAutoSale(customerOrderId) {
         try {
             def order = CustomerOrder.findById(customerOrderId)
@@ -300,7 +360,7 @@ class SaleService {
                 ]
             }
                         
-            def response = mapSale(sale)
+            def response = mapOrder(sale)
             return [
                 resp: [success: true, data: response],
                 status: 200
@@ -331,7 +391,7 @@ class SaleService {
                 }
                 between("dateCreated", start, end)
                 order("dateCreated", "desc")
-            }.collect { sale -> mapSale(sale) }
+            }.collect { sale -> mapOrder(sale) }
             return [
                 resp: [success: true, data: list],
                 status: 200
@@ -356,7 +416,7 @@ class SaleService {
                     }
                     eq("status", "Pending")
                     order("dateCreated", "desc")
-                }.collect { sale -> mapSale(sale) }
+                }.collect { sale -> mapOrder(sale) }
             }
             if ( typeSale == 2 ) {
                 listOfSales = Sale.createCriteria().list {
@@ -367,7 +427,7 @@ class SaleService {
                     }
                     eq("status", "Payed")
                     order("dateCreated", "desc")
-                }.collect { sale -> mapSale(sale) }
+                }.collect { sale -> mapOrder(sale) }
             } 
             if ( typeSale == 3 ) {
                 listOfSales = Sale.createCriteria().list {
@@ -377,7 +437,7 @@ class SaleService {
                         }
                     }
                     order("dateCreated", "desc")
-                }.collect { sale -> mapSale(sale) }
+                }.collect { sale -> mapOrder(sale) }
             }
             return [
                 resp: [success: true, data: listOfSales],

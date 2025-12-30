@@ -36,6 +36,24 @@ class SaleController {
         return respond(response.resp, status: response.status)
     }
 
+    def paySingleDish() {
+        def data = request.JSON
+        if (!data.saleUuid) {
+            return respond([success: false, message: "El UUID de la venta es obligatorio"], status: 400)
+        }
+        if (data.saleUuid.size() != 32) {
+            return respond([success: false, message: "El UUID de la venta es inválido"], status: 400)
+        }
+        if (!data.dishUuid) {
+            return respond([success: false, message: "El UUID del platillo es obligatorio"], status: 400)
+        }
+        if (data.dishUuid.size() != 32) {
+            return respond([success: false, message: "El UUID del platillo es inválido"], status: 400)
+        }
+        def response = saleService.paySingleDish(data.saleUuid, data.dishUuid)
+        return respond(response.resp, status: response.status)
+    }
+
     def payAllSalesForUser() {
         if (!params.username) {
             return respond([success: false, message: "El nombre de usuario es obligatorio"], status: 400)

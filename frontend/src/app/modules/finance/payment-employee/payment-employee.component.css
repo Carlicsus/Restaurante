@@ -1,0 +1,140 @@
+.page-wrapper {
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  font-size: 18px;
+  color: #707172;
+  margin-bottom: 24px;
+}
+
+/* Header empleado */
+.employee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.employee-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.debt {
+  font-size: 14px;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.badge.active {
+  background: #e5f0ff;
+  color: #2563eb;
+}
+
+.employee-avatar {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+/* Tabla */
+.table-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr 1.2fr;
+  padding: 14px 20px;
+  align-items: center;
+}
+
+.table-header {
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.table-row {
+  border-top: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.date {
+  color: #2563eb;
+}
+
+.amount {
+  color: #2563eb;
+}
+
+.status {
+  background: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  width: fit-content;
+}
+
+.status.paid {
+  background: #e5f9ed;
+  color: #15803d;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Acciones */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn.secondary {
+  background: #f1f5f9;
+  color: #374151;
+}

@@ -1,1 +1,41 @@
-<p>finance-dashboard works!</p>
+<app-navbar-finance></app-navbar-finance>
+<div class="page-wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Panel de Finanzas</h1>
+    <p>Gestiona adeudos, pagos y empleados.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats">
+      <span class="stat-title">{{ stat.title }}</span>
+      <strong class="stat-value">{{ stat.value }}</strong>
+      <span
+        class="stat-change"
+        [class.positive]="stat.positive"
+        [class.negative]="!stat.positive"
+      >
+        {{ stat.change }}
+      </span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-grid">
+
+    <!-- SUMMARY -->
+    <div class="summary-card">
+      <h3>Resumen General</h3>
+      <p>Análisis de ingresos y gastos</p>
+      <span class="status">Actividad Financiera</span>
+
+      <button class="primary-btn">
+        Ir a Cobranza
+      </button>
+    </div>
+
+  </div>
+
+</div>

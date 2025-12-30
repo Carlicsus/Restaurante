@@ -1,1 +1,85 @@
-<p>payment-management works!</p>
+<app-navbar-finance></app-navbar-finance>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <h1 class="page-title">Cobranza</h1>
+    <p class="page-subtitle">Administra pagos por empleado.</p>
+
+    <!-- FILTROS -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Empleado</label>
+        <select [(ngModel)]="employeeFilter">
+          <option value="">Seleccionar empleado</option>
+          <option>Sofía Ramírez</option>
+          <option>Carlos López</option>
+          <option>Ana Martínez</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Fecha</label>
+        <input type="date" [(ngModel)]="dateFilter" />
+      </div>
+    </div>
+
+    <!-- TOGGLE -->
+    <div class="status-toggle">
+      <button
+        [class.active]="statusFilter === 'Pagado'"
+        (click)="setStatus('Pagado')"
+      >
+        Pagado
+      </button>
+      <button
+        [class.active]="statusFilter === 'No Pagado'"
+        (click)="setStatus('No Pagado')"
+      >
+        No pagado
+      </button>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-card">
+      <div class="table-header">
+        <span>Empleado</span>
+        <span>Pedido</span>
+        <span>Fecha</span>
+        <span>Total</span>
+        <span>Estado</span>
+        <span>Acciones</span>
+      </div>
+
+      <div
+        class="table-row"
+        *ngFor="let row of payments"
+        [hidden]="row.status !== statusFilter"
+      >
+        <span>{{ row.employee }}</span>
+        <span>{{ row.order }}</span>
+        <span class="date">{{ row.date }}</span>
+        <span class="price">{{ formatCurrency(row.total) }}</span>
+        <span>
+          <span class="badge" [class.paid]="row.status === 'Pagado'">
+            {{ row.status }}
+          </span>
+        </span>
+        <span>
+          <input type="checkbox" [(ngModel)]="row.selected" />
+        </span>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="actions">
+      <button class="btn primary" (click)="markAsPaid()">
+        Marcar como pagadas
+      </button>
+      <button class="btn secondary" (click)="cancelSelection()">
+        Cancelar selección
+      </button>
+    </div>
+
+  </div>
+</div>

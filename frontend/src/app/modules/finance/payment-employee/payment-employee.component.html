@@ -1,0 +1,77 @@
+<app-navbar-finance></app-navbar-finance>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <!-- Breadcrumb -->
+    <p class="breadcrumb">
+      Finanzas / Cobranza / <strong>Estado de Cuenta por Empleado</strong>
+    </p>
+
+    <!-- Header -->
+    <div class="employee-header">
+      <div>
+        <h2>{{ employeeName }}</h2>
+        <p class="debt">
+          Total adeudado: {{ formatCurrency(totalDebt) }}
+        </p>
+        <span class="badge active">Activo</span>
+      </div>
+
+      <img
+        src="https://i.pravatar.cc/300?img=47"
+        alt="Empleado"
+        class="employee-avatar"
+      />
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-card">
+      <div class="table-header">
+        <span>Pedido (#)</span>
+        <span>Fecha</span>
+        <span>Total</span>
+        <span>Estado de pago</span>
+        <span>Acción</span>
+      </div>
+
+      <div
+        class="table-row"
+        *ngFor="let order of orders"
+      >
+        <span>{{ order.id }}</span>
+        <span class="date">{{ order.date }}</span>
+        <span class="amount">{{ formatCurrency(order.total) }}</span>
+
+        <span
+          class="status"
+          [class.paid]="order.status === 'Pagado'"
+        >
+          {{ order.status }}
+        </span>
+
+        <button
+          class="link"
+          *ngIf="order.status === 'Pendiente'"
+          (click)="markAsPaid(order)"
+        >
+          Marcar como pagado
+        </button>
+
+        <span *ngIf="order.status === 'Pagado'">—</span>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="actions">
+      <button class="btn primary">
+        Marcar seleccionados como pagados
+      </button>
+
+      <button class="btn secondary">
+        Volver a Cobranza
+      </button>
+    </div>
+
+  </div>
+</div>

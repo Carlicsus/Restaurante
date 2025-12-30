@@ -80,4 +80,23 @@ class SaleController {
         def response = saleService.getSalesByUser(auth.id, params.typeSale)
         return respond(response.resp, status: response.status)
     }
+
+    def StatisticsData() {
+        try {
+            def data = [
+                topDishes: saleService.getTopDishes(),
+                popularCategories: saleService.getPopularCategories(),
+                weeklyReport: saleService.getWeeklyStats(),
+                topCustomers: saleService.getTopCustomers(),
+                topDebtors: saleService.getTopDebtors(),
+                paymentComparison: saleService.getPaymentStatusComparison()
+            ]
+            
+            return respond([success: true, statistics: data], status: 200)
+
+        } catch (e) {
+            e.printStackTrace()
+            return respond([success: false, message: e.getMessage()], status: 500)
+        }
+    }
 }

@@ -390,4 +390,105 @@ class SaleService {
             ]
         }
     }
+
+    def getTopDishes() {
+        return OrderItem.createCriteria().list {
+            createAlias("dish", "d")
+            projections {
+                groupProperty("dish")
+                sum("quantity", "totalSold") 
+            }
+            order("totalSold", "desc")
+            maxResults(10)
+        }.collect { row ->
+            [name: row[0].name, quantity: row[1]]
+        }
+    }
+
+    def getPopularCategories() {
+        return OrderItem.createCriteria().list {
+            createAlias("dish", "d")
+            projections {
+                groupProperty("d.menuType") 
+                count("id", "totalCount") 
+            }
+            order("totalCount", "desc")
+        }.collect { row ->
+            [category: row[0]?.name ?: "Sin categoría", totalSold: row[1]]
+        }
+    }
+
+    def getWeeklyStats() {
+        def lastWeek = Calendar.instance
+        lastWeek.add(Calendar.DAY_OF_YEAR, -7)
+
+        def result = Sale.createCriteria().list {
+            gt("dateCreated", lastWeek.time)
+            projections {
+                sqlGroupProjection "DATE(date_created) as day", "day", ["day"], [STRING]
+                count("id")
+                sum("total")
+            }
+        }
+
+        return result.collect { row ->
+            [date: row[0], totalOrders: row[1], totalMoney: row[2]]
+        }.sort { it.date }
+    }
+
+    def getTopCustomers() {
+        def byOrders = Sale.createCriteria().list {
+            createAlias("customerOrder", "co")
+            projections {
+                groupProperty("co.user")
+                count("id", "orderCount")
+            }
+            order("orderCount", "desc")
+            maxResults(1)
+        }
+
+        def byMoney = Sale.createCriteria().list {
+            createAlias("customerOrder", "co")
+            projections {
+                groupProperty("co.user")
+                sum("total", "totalSpent")
+            }
+            order("totalSpent", "desc")
+            maxResults(1)
+        }
+        
+        def topFreq = byOrders ? byOrders[0] : null
+        def topSpend = byMoney ? byMoney[0] : null
+
+        return [
+            mostFrequent: topFreq ? [user: topFreq[0].username, count: topFreq[1]] : null,
+            bigSpender: topSpend ? [user: topSpend[0].username, total: topSpend[1]] : null
+        ]
+    }
+
+    def getTopDebtors() {
+        return Sale.createCriteria().list {
+            eq("status", "Pending")
+            createAlias("customerOrder", "co")
+            projections {
+                groupProperty("co.user")
+                sum("total", "debtAmount") 
+            }
+            order("debtAmount", "desc")
+            maxResults(10)
+        }.collect { row ->
+            [user: row[0].username, debt: row[1]]
+        }
+    }
+
+    def getPaymentStatusComparison() {
+        return Sale.createCriteria().list {
+            projections {
+                groupProperty("status")
+                count("id")
+            }
+        }.collect { row ->
+            [status: row[0], count: row[1]]
+        }
+    }
 }

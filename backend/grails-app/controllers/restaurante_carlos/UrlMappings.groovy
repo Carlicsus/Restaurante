@@ -55,6 +55,7 @@ class UrlMappings {
             }
 
             group "/sale", {
+                get "/statics"(controller: "sale", action: "StatisticsData")
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
                 get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")

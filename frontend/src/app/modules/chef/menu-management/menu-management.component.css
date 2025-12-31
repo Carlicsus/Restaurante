@@ -6,8 +6,8 @@
 
 /* Contenedor principal */
 .content-wrapper {
-  max-width: 1300px;
-  margin-left: 360px;
+  max-width: 1100px;
+  margin: 10dvh auto 0 auto;
   padding: 40px 0;
   font-family: 'Inter', sans-serif;
 }

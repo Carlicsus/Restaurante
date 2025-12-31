@@ -1,10 +1,11 @@
-export interface Order {
-  uuid: string
+
+export interface Cart {
+  id: number
   status: string
   dateCreated: string
   lastUpdated: string
   user: User
-  items: Item[]
+  dishes: Dish[]
 }
 
 interface User {
@@ -12,14 +13,14 @@ interface User {
   username: string
 }
 
-interface Item {
+interface Dish {
   uuid: string
   quantityDish: number
   unitPrice: number
-  dish: Dish
+  dish: Dish2
 }
 
-interface Dish {
+interface Dish2 {
   uuid: string
   name: string
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { NavbarChefComponent } from '../../../shared/navbar-chef/navbar-chef.component';
 
 // amCharts imports
 import * as am5 from '@amcharts/amcharts5';
@@ -11,16 +12,18 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 @Component({
   selector: 'app-chef-statistics',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NavbarChefComponent],
   templateUrl: './chef-statistics.component.html',
-  styleUrls: ['./chef-statistics.component.css']
+  styleUrls: ['./chef-statistics.component.css'],
 })
-export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ChefStatisticsComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private root1: am5.Root | undefined;
   private root2: am5.Root | undefined;
   private root3: am5.Root | undefined;
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit(): void {
     // Inicializar datos si es necesario
@@ -50,59 +53,69 @@ export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy
 
     this.root1.setThemes([am5themes_Animated.new(this.root1)]);
 
-    const chart = this.root1.container.children.push(am5xy.XYChart.new(this.root1, {
-      panX: true,
-      panY: true,
-      wheelX: 'panX',
-      wheelY: 'zoomX',
-      pinchZoomX: true
-    }));
+    const chart = this.root1.container.children.push(
+      am5xy.XYChart.new(this.root1, {
+        panX: true,
+        panY: true,
+        wheelX: 'panX',
+        wheelY: 'zoomX',
+        pinchZoomX: true,
+      })
+    );
 
     const cursor = chart.set('cursor', am5xy.XYCursor.new(this.root1, {}));
     cursor.lineY.set('visible', false);
 
-    const xRenderer = am5xy.AxisRendererX.new(this.root1, { minGridDistance: 30 });
+    const xRenderer = am5xy.AxisRendererX.new(this.root1, {
+      minGridDistance: 30,
+    });
     xRenderer.labels.template.setAll({
       rotation: -45,
       centerY: am5.p50,
       centerX: am5.p100,
-      paddingRight: 15
+      paddingRight: 15,
     });
 
-    const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(this.root1, {
-      maxDeviation: 0.3,
-      categoryField: 'day',
-      renderer: xRenderer,
-      tooltip: am5.Tooltip.new(this.root1, {})
-    }));
-
-    const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(this.root1, {
-      maxDeviation: 0.3,
-      renderer: am5xy.AxisRendererY.new(this.root1, {})
-    }));
-
-    const series = chart.series.push(am5xy.LineSeries.new(this.root1, {
-      name: 'Pedidos',
-      xAxis: xAxis,
-      yAxis: yAxis,
-      valueYField: 'orders',
-      categoryXField: 'day',
-      tooltip: am5.Tooltip.new(this.root1, {
-        labelText: '{valueY}'
+    const xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(this.root1, {
+        maxDeviation: 0.3,
+        categoryField: 'day',
+        renderer: xRenderer,
+        tooltip: am5.Tooltip.new(this.root1, {}),
       })
-    }));
+    );
+
+    const yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(this.root1, {
+        maxDeviation: 0.3,
+        renderer: am5xy.AxisRendererY.new(this.root1, {}),
+      })
+    );
+
+    const series = chart.series.push(
+      am5xy.LineSeries.new(this.root1, {
+        name: 'Pedidos',
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: 'orders',
+        categoryXField: 'day',
+        tooltip: am5.Tooltip.new(this.root1, {
+          labelText: '{valueY}',
+        }),
+      })
+    );
 
     series.strokes.template.setAll({
       strokeWidth: 3,
-      stroke: am5.color(0x74b9ff)
+      stroke: am5.color(0x74b9ff),
     });
 
     series.bullets.push(() => {
       return am5.Bullet.new(this.root1!, {
         sprite: am5.Circle.new(this.root1!, {
           radius: 5,
-          fill: am5.color(0x74b9ff)
-        })
+          fill: am5.color(0x74b9ff),
+        }),
       });
     });
 
@@ -113,7 +126,7 @@ export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy
       { day: 'Jue', orders: 61 },
       { day: 'Vie', orders: 55 },
       { day: 'Sáb', orders: 67 },
-      { day: 'Dom', orders: 43 }
+      { day: 'Dom', orders: 43 },
     ];
 
     xAxis.data.setAll(data);
@@ -129,24 +142,28 @@ export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy
 
     this.root2.setThemes([am5themes_Animated.new(this.root2)]);
 
-    const chart = this.root2.container.children.push(am5percent.PieChart.new(this.root2, {
-      layout: this.root2.verticalLayout
-    }));
+    const chart = this.root2.container.children.push(
+      am5percent.PieChart.new(this.root2, {
+        layout: this.root2.verticalLayout,
+      })
+    );
 
-    const series = chart.series.push(am5percent.PieSeries.new(this.root2, {
-      valueField: 'orders',
-      categoryField: 'dish',
-      alignLabels: false
-    }));
+    const series = chart.series.push(
+      am5percent.PieSeries.new(this.root2, {
+        valueField: 'orders',
+        categoryField: 'dish',
+        alignLabels: false,
+      })
+    );
 
     series.labels.template.setAll({
       text: '{category}: {value}',
-      fontSize: 12
+      fontSize: 12,
     });
 
     series.slices.template.setAll({
       stroke: am5.color(0xffffff),
-      strokeWidth: 2
+      strokeWidth: 2,
     });
 
     const data = [
@@ -154,7 +171,7 @@ export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy
       { dish: 'Pollo al Limón', orders: 95 },
       { dish: 'Tacos de Pescado', orders: 78 },
       { dish: 'Hamburguesa', orders: 65 },
-      { dish: 'Sopa de Tomate', orders: 52 }
+      { dish: 'Sopa de Tomate', orders: 52 },
     ];
 
     series.data.setAll(data);
@@ -168,37 +185,45 @@ export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy
 
     this.root3.setThemes([am5themes_Animated.new(this.root3)]);
 
-    const chart = this.root3.container.children.push(am5xy.XYChart.new(this.root3, {
-      panX: false,
-      panY: false,
-      wheelX: 'none',
-      wheelY: 'none'
-    }));
+    const chart = this.root3.container.children.push(
+      am5xy.XYChart.new(this.root3, {
+        panX: false,
+        panY: false,
+        wheelX: 'none',
+        wheelY: 'none',
+      })
+    );
 
     const yRenderer = am5xy.AxisRendererY.new(this.root3, {});
-    const yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(this.root3, {
-      categoryField: 'hour',
-      renderer: yRenderer
-    }));
-
-    const xAxis = chart.xAxes.push(am5xy.ValueAxis.new(this.root3, {
-      renderer: am5xy.AxisRendererX.new(this.root3, {})
-    }));
-
-    const series = chart.series.push(am5xy.ColumnSeries.new(this.root3, {
-      name: 'Pedidos',
-      xAxis: xAxis,
-      yAxis: yAxis,
-      valueXField: 'orders',
-      categoryYField: 'hour',
-      tooltip: am5.Tooltip.new(this.root3, {
-        labelText: '{valueX}'
+    const yAxis = chart.yAxes.push(
+      am5xy.CategoryAxis.new(this.root3, {
+        categoryField: 'hour',
+        renderer: yRenderer,
       })
-    }));
+    );
+
+    const xAxis = chart.xAxes.push(
+      am5xy.ValueAxis.new(this.root3, {
+        renderer: am5xy.AxisRendererX.new(this.root3, {}),
+      })
+    );
+
+    const series = chart.series.push(
+      am5xy.ColumnSeries.new(this.root3, {
+        name: 'Pedidos',
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueXField: 'orders',
+        categoryYField: 'hour',
+        tooltip: am5.Tooltip.new(this.root3, {
+          labelText: '{valueX}',
+        }),
+      })
+    );
 
     series.columns.template.setAll({
       fill: am5.color(0x00b894),
-      stroke: am5.color(0x00a085)
+      stroke: am5.color(0x00a085),
     });
 
     const data = [
@@ -210,7 +235,7 @@ export class ChefStatisticsComponent implements OnInit, AfterViewInit, OnDestroy
       { hour: '17:00', orders: 22 },
       { hour: '18:00', orders: 35 },
       { hour: '19:00', orders: 40 },
-      { hour: '20:00', orders: 28 }
+      { hour: '20:00', orders: 28 },
     ];
 
     yAxis.data.setAll(data);

@@ -6,7 +6,7 @@ export interface Dish {
     status: number
     availableDishes: number
     availableDate: any
-    subMenu: Menu
+    menuType: Menu
 }
 
 export interface Menu {

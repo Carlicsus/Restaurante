@@ -1,6 +1,8 @@
 package com.ordenaris.restaurant
 
 import grails.gorm.transactions.Transactional
+import com.ordenaris.order.OrderItem
+import java.util.Calendar
 
 @Transactional
 class DishService {
@@ -79,6 +81,39 @@ def listDishes() {
             resp: [success: false, message: e.getMessage()],
             status: 500
         ]
+    }
+
+    // Datos para gráfico: top N platillos más vendidos
+    def getTopDishesChart(Integer days = 7, Integer limit = 10) {
+        try {
+            if (days == null || days < 1) days = 7
+            if (limit == null || limit < 1) limit = 10
+
+            def calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_MONTH, -days)
+            def startDate = calendar.time
+
+            def orderItems = OrderItem.createCriteria().list {
+                between('dateCreated', startDate, new Date())
+                eq('status', true)
+            }
+
+            def chartData = orderItems.groupBy { it.dish }.collect { dish, items ->
+                def totalQuantity = items.sum { it.quantity } ?: 0
+                def totalRevenue = items.sum { (it.unitPrice ?: 0) * (it.quantity ?: 0) } ?: 0
+                [
+                    uuid: dish?.uuid,
+                    name: dish?.name,
+                    quantity: totalQuantity,
+                    revenue: totalRevenue,
+                    orders: items.size()
+                ]
+            }.sort { -it.quantity }
+
+            return [resp: [success: true, message: "Top ${limit} platillos en últimos ${days} días", data: chartData.take(limit)], status: 200]
+        } catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
+        }
     }
 }
 

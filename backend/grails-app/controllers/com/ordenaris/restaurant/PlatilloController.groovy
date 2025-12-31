@@ -214,4 +214,21 @@ class PlatilloController {
         return respond(response.resp, status: response.status)
     }
 
+    def topDishesChart() {
+        try {
+            Integer days = params.days ? params.days.toInteger() : 7
+            Integer limit = params.limit ? params.limit.toInteger() : 10
+
+            if (days < 1) return respond([success: false, mensaje: "El número de días debe ser mayor a 0"], status: 400)
+            if (limit < 1) return respond([success: false, mensaje: "El límite debe ser mayor a 0"], status: 400)
+
+            def response = DishService.getTopDishesChart(days, limit)
+            return respond(response.resp, status: response.status)
+        } catch (NumberFormatException e) {
+            return respond([success: false, mensaje: "Los parámetros deben ser números"], status: 400)
+        } catch (e) {
+            return respond([success: false, mensaje: "Error: ${e.getMessage()}"], status: 500)
+        }
+    }
+
 }

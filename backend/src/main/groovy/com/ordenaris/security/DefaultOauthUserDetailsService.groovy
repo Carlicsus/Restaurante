@@ -31,7 +31,7 @@ import com.ordenaris.security.Role
 class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
     private static final String PASSWORD_CHARS =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$/@!%*?&()-_=+[]{}<>'
 
     private static final SecureRandom secureRandom = new SecureRandom()
 
@@ -62,6 +62,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
     // === LÓGICA PRINCIPAL ===
     // =========================
     protected OauthUser loadExistingUser(String email, OAuth20Profile profile) {
+        println profile.pictureUrl
 
         User domainUser = findUserByEmail(email)
         if (!domainUser) {
@@ -74,6 +75,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
                 userDetailsService.loadUserByUsername(domainUser.username)
 
         validateUserIsEnabled(userDetails)
+
         Collection<GrantedAuthority> roles =
                 validateAndExtractRoles(userDetails)
 

@@ -14,6 +14,7 @@ class User implements Serializable {
     String username
     String password
     String email
+    String profileImagePath   
     boolean enabled = true
     boolean accountExpired
     boolean accountLocked
@@ -34,6 +35,7 @@ class User implements Serializable {
         password nullable: false, blank: false, password: true
         username nullable: false, blank: false, unique: true
         email nullable: false, blank: false, unique: true
+        profileImagePath nullable: true
     }
 
     static mapping = {

@@ -4,6 +4,7 @@ import com.ordenaris.security.DefaultOauthUserDetailsService
 import com.ordenaris.security.AuthManagerService
 import com.ordenaris.security.CustomAuthenticationProvider
 import com.ordenaris.security.CustomRestAuthenticationFailureHandler
+import org.springframework.web.multipart.commons.CommonsMultipartResolver
 
 // Place your Spring DSL code here
 beans = {
@@ -22,4 +23,8 @@ beans = {
     customAuthenticationProvider(CustomAuthenticationProvider) {
         
     }
+
+    // multipartResolver (org.springframework.web.multipart.commons.CommonsMultipartResolver) {
+    //     maxUploadSize=2500000
+    // }
 }

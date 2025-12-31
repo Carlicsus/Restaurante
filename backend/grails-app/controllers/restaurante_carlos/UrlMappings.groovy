@@ -3,6 +3,7 @@ package restaurante_carlos
 class UrlMappings {
 
     static mappings = {
+        
         group "/api",{
             group "/menu", {
                 group "/type", {
@@ -70,6 +71,9 @@ class UrlMappings {
                 patch "/unlock/$username"(controller: "user", action: "setLocked"){
                     lock=false
                 }
+
+                get "/me/photo"(controller: "userProfile", action: "myPhoto") 
+                post "/me/photo"(controller: "userProfile", action: "uploadPhoto") 
 
             }
 

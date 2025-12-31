@@ -91,3 +91,5 @@ grails.plugin.springsecurity.providerNames = [
 		'anonymousAuthenticationProvider',
 		'rememberMeAuthenticationProvider'
 ]
+
+app.upload.basePath = System.getenv('UPLOAD_PATH') ?: System.getProperty('UPLOAD_PATH') ?: "${System.getProperty('user.home')}"

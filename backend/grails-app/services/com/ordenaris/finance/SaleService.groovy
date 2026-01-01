@@ -365,7 +365,7 @@ class SaleService {
                             eq("id", userId)
                         }
                     }
-                    eq("status", "Payed")
+                    eq("status", "Paid")
                     order("dateCreated", "desc")
                 }.collect { sale -> mapSale(sale) }
             } 

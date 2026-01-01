@@ -11,7 +11,10 @@ def controllerAnnotationsStaticRuleMaps = [
     [pattern: '/index',             access: ['permitAll']],
     [pattern: '/login/auth',        access: ['denyAll']], //lock down spring security login form url
     //spring rest security api end-point
+    [pattern: '/api/login',         access: ['permitAll']],
     [pattern: '/api/logout',        access: ['isAuthenticated()']],
+    //finance endpoints
+    [pattern: '/api/sale/**',       access: ['permitAll']],
     //Spring boot Actuator management end-points
     [pattern: '/api/management/**', access:['ROLE_ADMIN']]
 ]
@@ -31,6 +34,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules = controllerAnnot
 String statelessFilters = 'JOINED_FILTERS, -exceptionTranslationFilter, -authenticationProcessingFilter, -securityContextPersistenceFilter, -rememberMeAuthenticationFilter'
 
 def filterChainChainMaps = [
+    //Public endpoints - no security
+    [pattern: '/api/sale/**', filters: 'none'],
+    [pattern: '/api/login', filters: 'none'],
     //Stateless chain
     [pattern: '/api/**', filters: statelessFilters],
 	[pattern: '/static/docs/**', filters: statelessFilters],
@@ -40,6 +46,15 @@ def filterChainChainMaps = [
 ]
 
 grails.plugin.springsecurity.filterChain.chainMap = filterChainChainMaps
+
+// CORS Configuration
+grails.cors.enabled = true
+grails.cors.allowedOrigins = ['http://localhost:4200', 'http://localhost:3000']
+grails.cors.allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+grails.cors.allowedHeaders = ['*']
+grails.cors.exposedHeaders = ['Authorization', 'Content-Type']
+grails.cors.maxAge = 3600
+grails.cors.allowCredentials = true
 
 String apiKey = System.getenv('API_KEY') ?: System.getProperty('API_KEY') ?: null
 

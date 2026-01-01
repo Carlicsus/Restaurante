@@ -1,0 +1,74 @@
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+
+    width: 100%;
+    height: 80px;
+
+    background-color: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+
+
+/* CONTENEDOR CENTRAL (MISMO ANCHO QUE EL CONTENIDO) */
+.nav-container {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 30px;
+}
+
+/* LOGO */
+.brand-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+/* OPCIONES */
+.options {
+    margin-left: auto;
+}
+
+.options ul {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.options button {
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    font-family: 'Inter', sans-serif;
+}
+
+/* PERFIL */
+.perfil {
+    margin-left: 24px;
+}
+
+.perfil img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.imagen {
+    flex-shrink: 0;
+}

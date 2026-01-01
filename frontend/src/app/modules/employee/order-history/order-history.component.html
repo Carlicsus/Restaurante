@@ -1,1 +1,83 @@
-<p>order-history works!</p>
+<app-navbar-employee></app-navbar-employee>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <h2>Historial de Pedidos</h2>
+        <p>Consulta y filtra todos tus pedidos anteriores.</p>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filters">
+        <div class="chips">
+            <button class="chip active">Todos</button>
+            <button class="chip">Pagados</button>
+            <button class="chip">No Pagados</button>
+            <button class="chip">En Proceso</button>
+            <button class="chip">Entregados</button>
+        </div>
+
+        <div class="date-filter">
+            <input type="date" class="date-input" placeholder="Seleccionar fechas" />
+
+        </div>
+    </div>
+
+    <!-- LISTA DE PEDIDOS -->
+    <div class="orders">
+
+        <!-- CARD -->
+        <div class="order-card">
+            <div class="order-info">
+                <span class="status paid">Pagado</span>
+
+                <h4>Pedido #GR-12045</h4>
+                <p>Fecha: 15 de Octubre, 2023 · Monto: $14.50</p>
+
+                <div class="rating">★★★★★</div>
+
+                <button class="btn-secondary">Ver Detalles</button>
+            </div>
+
+            <div class="order-image" style="background-image: url('/img-order.jpg')">
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="order-card">
+            <div class="order-info">
+                <span class="status unpaid">No Pagado</span>
+
+                <h4>Pedido #GR-12046</h4>
+                <p>Fecha: 16 de Octubre, 2023 · Monto: $22.75</p>
+
+                <div class="rating">★★★★☆</div>
+
+                <button class="btn-secondary">Ver Detalles</button>
+            </div>
+
+            <div class="order-image" style="background-image: url('/img-order.jpg')">
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="order-card">
+            <div class="order-info">
+                <span class="status process">En Proceso</span>
+
+                <h4>Pedido #GR-12047</h4>
+                <p>Fecha: 17 de Octubre, 2023 · Monto: $18.90</p>
+
+                <div class="rating">★★★★★</div>
+
+                <button class="btn-secondary">Ver Detalles</button>
+            </div>
+
+            <div class="order-image" style="background-image: url('/img-order.jpg')">
+            </div>
+        </div>
+
+    </div>
+
+</div>

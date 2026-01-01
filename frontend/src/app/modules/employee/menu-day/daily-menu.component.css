@@ -1,0 +1,126 @@
+/* CONTENEDOR */
+.daily-menu-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 50px;
+  font-family: 'Inter', sans-serif;
+  color: #111827;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.menu-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
+  color: #111827;
+}
+
+.menu-header p {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+/* =========================
+   FILTROS
+========================= */
+
+.menu-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.filter {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.filter:hover {
+  background: #f3f4f6;
+}
+
+.filter.active {
+  background: #e6f0fa;
+  color: #04578d;
+  border-color: #cfe2f3;
+}
+
+/* =========================
+   LISTA DE PLATILLOS (NUEVO)
+========================= */
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ITEM */
+.menu-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px 18px;
+  align-items: flex-start;
+  transition: background 0.2s ease;
+}
+
+.menu-item:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.menu-item:hover {
+  background: #f9fafb;
+}
+
+/* ICONO */
+.menu-item .icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-top: 2px;
+  color: #9ca3af;
+}
+
+/* TITULO */
+.menu-item h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #111827;
+}
+
+/* DESCRIPCIÓN */
+.menu-item p {
+  font-size: 13px;
+  line-height: 18px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.menu-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}

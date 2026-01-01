@@ -1,0 +1,279 @@
+/* detail-product.component.css */
+.product-detail-container {
+  max-width: 1200px;
+  margin: 15dvh auto 0 auto;
+  padding: 0 1rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border-left-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+
+.breadcrumb-link {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 0.5rem;
+  color: var(--muted);
+}
+
+/* Product Content */
+.product-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* Product Images */
+.product-images {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: var(--white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Product Info */
+.product-info {
+  padding: 1rem 0;
+}
+
+.product-header {
+  margin-bottom: 1.5rem;
+}
+
+.product-title {
+  font-size: 2rem;
+  color: var(--primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.product-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.product-description {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  opacity: 0.9;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+
+.quantity-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.quantity-btn:hover {
+  background-color: var(--muted);
+}
+
+.quantity {
+  width: 50px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* Add to Cart Button */
+.add-to-cart-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.add-to-cart-btn:hover {
+  background-color: var(--accent);
+}
+
+/* Additional Info */
+.additional-info {
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.info-label {
+  color: var(--foreground);
+  opacity: 0.7;
+}
+
+.info-value {
+  font-weight: 500;
+}
+
+.out-of-stock {
+  color: var(--danger);
+}
+
+/* Related Products */
+.related-products {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.related-products h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary);
+}
+
+.related-dishes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.related-dish-card {
+  background: var(--white);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.related-dish-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.related-dish-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.related-dish-card h3 {
+  padding: 0.75rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.related-dish-card .price {
+  display: block;
+  padding: 0 0.75rem 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.error-state p {
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+}
+
+.back-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+  background-color: var(--accent);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .product-content {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .related-dishes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-detail-container {
+    padding: 0 2rem;
+  }
+}

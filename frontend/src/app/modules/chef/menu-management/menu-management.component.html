@@ -1,1 +1,42 @@
-<p>menu-management works!</p>
+<app-navbar-chef></app-navbar-chef>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div>
+        <h1>Gestión de Menús</h1>
+        <p>Crea, edita y administra los platillos.</p>
+      </div>
+
+      <button class="create-btn" (click)="createDish()">
+        Crear nuevo platillo
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button
+        *ngFor="let filter of filters"
+        (click)="setFilter(filter)"
+        [class.active]="activeFilter === filter">
+        {{ filter }}
+      </button>
+    </div>
+
+    <!-- Grid -->
+    <div class="menu-grid">
+      <div class="menu-card" *ngFor="let dish of dishes">
+        <img [src]="dish.image" [alt]="dish.name">
+
+        <div class="card-body">
+          <h4>{{ dish.name }}</h4>
+          <span class="categories">{{ dish.categories }}</span>
+          <strong>${{ dish.price }}</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

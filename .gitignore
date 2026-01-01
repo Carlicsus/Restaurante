@@ -16,7 +16,7 @@ out/
 .classpath
 
 # FRONTEND (angular)
-
+/frontend/.angular
 # Compiled output
 /dist
 /tmp

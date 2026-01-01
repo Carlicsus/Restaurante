@@ -26,7 +26,6 @@ class UrlMappings {
                     }
                 }
             }
-
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
@@ -52,9 +51,7 @@ class UrlMappings {
                     }
                 }
             }
-
-            group "/user", {
-
+            group "/user", {  
                 post "/register"(controller: "user", action: "register")
                 get "/view"(controller: "user", action: "paginateUsers")
 
@@ -101,8 +98,12 @@ class UrlMappings {
                 // Eliminar un rol a un usuario
                 delete "/"(controller: "userRole", action: "removeRole")
             }
-            
-            group "/sale", {  
+            group "/sale", {
+                get "/debtors/all"(controller: "sale", action: "listDebtors")
+                get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
+                post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
+                post "/orders/pay-dish"(controller: "sale", action: "paySingleDish")
+                post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 1
@@ -115,6 +116,57 @@ class UrlMappings {
                 }
                 get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
             }
+            group "/order", {
+                post "/newOrder"(controller: "ordersModule", action: "newOrder")
+                get "/listOrders"(controller: "ordersModule", action: "listOrders")
+                group "/$uuidOrder", {
+                    get "/info"(controller: "ordersModule", action: "orderInfo")
+                    group "/edit/$uuidDish",{
+                        patch "/dish"(controller: "ordersModule", action: "editOrder")
+                    }
+                    patch "/edit"(controller: "ordersModule", action: "editOrder")
+                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Cancelled"
+                    }
+                    patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Preparing"
+                    }
+                    patch "/finish"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Finished"
+                    }
+                    patch "/queue"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Queue"
+                    }
+                    /*patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
+                        status = "Pending"
+                    }
+                    */
+                }
+            }
+            group "/shoppingCart", {
+                get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+                post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
+                group "/$uuidSC", {
+                    get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
+                    post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
+                    delete "/deleteItem/$uuidDish"(controller: "shoppingCart", action: "deleteItemShoppingCart")
+                    patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
+                        status = "Finished"
+                    }
+                    delete "/delete"(controller: "shoppingCart", action: "editStatusShoppingCart"){
+                        status = "Delete"
+                    }
+                }
+            }
+            group "/review", {
+                get "/list"(controller: "review", action: "listReviews")
+                get "/stats/$dishId"(controller: "review", action: "reviewsWithStats")
+                post "/new"(controller: "review", action: "createReview")
+                group "/$uuid", {
+                    delete "/delete"(controller: "review", action: "deleteReview")
+                    patch "/edit"(controller: "review", action: "editReview")
+                }
+            }
 
             group "/schedule", {
                 get "/"(controller: "schedule", action: "index")
@@ -123,16 +175,10 @@ class UrlMappings {
                 delete "/$id"(controller: "schedule", action: "delete")
                 get "/$id"(controller: "schedule", action: "show")
             }
-
-            
-
         }
-
-
         "/"(controller: 'application', action:'index')
         "401"(controller: "application", action: "unauthorized")
         "500"(view: '/error')
         "404"(view: '/notFound')
     }
-
 }

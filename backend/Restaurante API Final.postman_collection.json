@@ -809,6 +809,494 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Ordenes",
+			"item": [
+				{
+					"name": "CrearOrden",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"dishId\": 1,\r\n        \"quantityDish\": 4\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/order/newOrder",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"newOrder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListarOrdenes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"usuario\": \"1\",\r\n    \"dishId\": \"35b7d9a2b2b649e693d480b008c2077e\",\r\n    \"numberOrder\": \"1\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/order/listOrders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"listOrders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelarOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"usuario\": \"1\",\r\n    \"dishId\": \"35b7d9a2b2b649e693d480b008c2077e\",\r\n    \"numberOrder\": \"1\"\r\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/order/{{uuidOrder}}/cancel",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"{{uuidOrder}}",
+								"cancel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PrepararOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/order/{{uuidOrder}}/prepare",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"{{uuidOrder}}",
+								"prepare"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EsperaOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/order/{{uuidOrder}}/queue?=",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"{{uuidOrder}}",
+								"queue"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PendienteOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/order/{{uuidOrder}}/pend",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"{{uuidOrder}}",
+								"pend"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FinalizadaOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/order/{{uuidOrder}}/finish",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuidOrder}}",
+								"finish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EditarOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dishId\": 1,\r\n    \"numberOrders\": 2,\r\n    \"status\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/order/{{uuidOrder}}/edit/{{uuidDish}}/dish",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"order",
+								"{{uuidOrder}}",
+								"edit",
+								"{{uuidDish}}",
+								"dish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AgregarPlatilloOrden",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dishId\": 12,\r\n    \"quantityDish\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/order/{{uuidOrder}}/edit",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"order",
+								"{{uuidOrder}}",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Carrito Compras",
+			"item": [
+				{
+					"name": "Listar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/shoppingCart/list",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"shoppingCart",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"dishId\": 1,\r\n        \"quantityDish\": 4\r\n    },\r\n    {\r\n        \"dishId\": 2,\r\n        \"quantityDish\": 1\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/shoppingCart/new",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"shoppingCart",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agregar Platillo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\r\n        \"user_id\": 3,\r\n        \"dishId\": 5,\r\n        \"numberOrders\": 1\r\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/shoppingCart/{{uuidSC}}/addItem",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shoppingCart",
+								"{{uuidSC}}",
+								"addItem"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Platillo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/shoppingCart/{{uuidSC}}/deleteItem/{{uuidDish}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shoppingCart",
+								"{{uuidSC}}",
+								"deleteItem",
+								"{{uuidDish}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/shoppingCart/{{uuidSC}}/delete",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shoppingCart",
+								"{{uuidSC}}",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Finalizar",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtAdmin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}/api/shoppingCart/{{uuidSC}}/finish",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"shoppingCart",
+								"{{uuidSC}}",
+								"finish"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [

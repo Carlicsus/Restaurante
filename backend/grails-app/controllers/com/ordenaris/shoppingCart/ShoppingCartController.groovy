@@ -14,16 +14,7 @@ class ShoppingCartController {
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
     def listOrderShoppingCartByUser(){
-        def data = [
-            id: params.id,
-            max: params.max,
-            offset: params.offset,
-            sort: params.sort,
-            order: params.order,
-            status: params.status,
-            query: params.query
-        ]
-        def serviceResponse = shoppingCartService.listOrderShoppingCartByUser(data, auth)
+        def serviceResponse = shoppingCartService.listOrderShoppingCartByUser(auth) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
     def newOrderShoppingCart(){

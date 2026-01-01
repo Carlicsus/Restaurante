@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 })
 export class AuthService {
 
-  URL_BASE = 'http://localhost:3050/backendapi';
+  URL_BASE = 'http://localhost:8080';
 
   constructor(private http:HttpClient) { }
  

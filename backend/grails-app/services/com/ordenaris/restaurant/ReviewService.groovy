@@ -1,4 +1,4 @@
-package com.ordenaris.review
+package com.ordenaris.restaurant
 
 import grails.gorm.transactions.Transactional
 import com.ordenaris.security.User
@@ -22,15 +22,53 @@ class ReviewService {
             dateCreated: review.dateCreated,
         ]
     }
-    def listReviews(dishId) {
-        def reviews = Review.findAllByDish(Dish.get(dishId))
-        def formattedReviews = reviews.collect { review ->
-            mapReview(review) 
+    def listReviews(dishId, page, max, query) {
+        Integer offset = page * max - max
+
+        def reviews = Review.createCriteria().list {
+            eq("dish.id", dishId as Long)
+            if(query){
+                eq("rating", query as Float)
+            }
+            firstResult(offset)
+            maxResults(max)
+            order("dateCreated", "desc")
+        }.collect { review -> mapReview(review) }
+        return [
+            resp: [success: true, message: 'Reseñas listadas', reviews: reviews],
+            status: 200
+        ]
+    }
+    def ReviewsWithStats(dishId) {
+        def totalReviews = Review.createCriteria().count {
+            eq("dish.id", dishId as Long)
+        }
+        def avgRating = Review.createCriteria().get {
+            eq("dish.id", dishId as Long)
+            projections {
+                avg("rating")
+            }
+        } ?: 0
+        avgRating = avgRating ? avgRating.round(1) : 0
+        def ratingsBreakdown = [:]
+        (1..5).each { rating ->
+            ratingsBreakdown[rating] = Review.createCriteria().count {
+                eq("dish.id", dishId as Long)
+                eq("rating", rating)
+            }
         }
         return [
-                resp: [success: true, message: 'Reseñas listadas', reviews: formattedReviews],
-                status: 200
-            ]
+            resp: [
+                success: true,
+                message: 'Reseñas obtenidas correctamente',
+                stats: [
+                    averageRating: avgRating,
+                    totalReviews: totalReviews,
+                    ratings: ratingsBreakdown
+                ]
+            ],
+            status: 200
+        ]
     }
     def createReview(data, auth) {
         try {

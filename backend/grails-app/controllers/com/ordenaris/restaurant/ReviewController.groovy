@@ -1,11 +1,11 @@
-package com.ordenaris.review
-import com.ordenaris.review.Review
+package com.ordenaris.restaurant
+import com.ordenaris.restaurant.Review
 import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 import grails.rest.*
 import grails.converters.*
 
-@Secured(['permitAll'])
+@Secured(['isAuthenticated()'])
 class ReviewController {
 	static responseFormats = ['json']
     def reviewService
@@ -13,10 +13,22 @@ class ReviewController {
 	
     def listReviews() {
         def dishId = params.dishId
+        def page = params.page ? params.int('page') : 1
+        def max = params.max ? params.int('max') : 5
+        def query = params.query ? params.query : null
+
         if (!dishId) {
             return respond([success: false, mensaje: "Se requiere el identificador del platillo"], status: 400)
         }
-        def response = reviewService.listReviews(dishId)
+        def response = reviewService.listReviews(dishId, page, max, query)
+        return respond(response.resp, status: response.status)
+    }
+    def reviewsWithStats() {
+        def dishId = params.dishId
+        if (!dishId) {
+            return respond([success: false, mensaje: "Se requiere el identificador del platillo"], status: 400)
+        }
+        def response = reviewService.ReviewsWithStats(dishId)
         return respond(response.resp, status: response.status)
     }
     def createReview() {

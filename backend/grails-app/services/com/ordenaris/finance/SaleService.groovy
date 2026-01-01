@@ -2,9 +2,8 @@ package com.ordenaris.finance
 
 import grails.gorm.transactions.Transactional
 import com.ordenaris.security.User
-import com.ordenaris.order.CustomerOrder
+import com.ordenaris.order.*
 import com.ordenaris.finance.Sale
-import com.ordenaris.order.OrderItem
 import org.hibernate.FetchMode
 import java.text.SimpleDateFormat
 
@@ -125,6 +124,16 @@ class SaleService {
             sale.status = 'Paid'
             sale.save(flush: true)
 
+            def orderItems = OrderItem.createCriteria().list {
+                eq("customerOrder.id", sale.customerOrder.id)
+                eq("status", true)
+            }
+
+            orderItems.each { item ->
+                item.payed = true
+                item.save(flush: true)
+            }
+
             return [
                 resp: [
                     success: true,
@@ -141,7 +150,7 @@ class SaleService {
         }
     }
 
-    def paySingleDish(String saleUuid, String dishUuid) {
+    def paySingleDish(String saleUuid, String orderItemUuid) {
         try {
             def sale = Sale.findByUuid(saleUuid)
             if (!sale) {
@@ -150,41 +159,40 @@ class SaleService {
                     status: 404
                 ]
             }
-
-            def orderItems = OrderItem.createCriteria().list {
+            if (sale.status != 'Pending') {
+                return [
+                    resp: [success: false, message: "Esta venta ya ha sido pagada"],
+                    status: 400
+                ]
+            }
+            def orderItem = OrderItem.createCriteria().get {
                 eq("customerOrder.id", sale.customerOrder.id)
                 eq("status", true)
-                eq("uuid", dishUuid)
+                eq("uuid", orderItemUuid)
             }
 
-            println orderItems
-
-            if (!orderItems) {
+            if (!orderItem) {
                 return [
                     resp: [success: false, message: "Platillo no encontrado en la orden"],
                     status: 404
                 ]
             }
 
-            if (orderItems.every { it.payed }) {
+            if (orderItem.payed) {
                 return [
                     resp: [success: false, message: "Este platillo ya ha sido pagado"],
                     status: 400
                 ]
             }
 
-            orderItems.each { item ->
-                item.payed = true
-                item.save(flush: true)
-            }
+            orderItem.payed = true
+            orderItem.save(flush: true)
 
             def ordersLeftToPay = OrderItem.createCriteria().list {
                 eq("customerOrder.id", sale.customerOrder.id)
                 eq("status", true)
                 eq("payed", false)
             }
-
-            println ordersLeftToPay
 
             if (ordersLeftToPay.isEmpty()) {
                 sale.status = 'Paid'

@@ -1,4 +1,4 @@
-package com.ordenaris.review
+package com.ordenaris.restaurant
 import java.util.UUID
 import com.ordenaris.security.User
 import com.ordenaris.restaurant.Dish

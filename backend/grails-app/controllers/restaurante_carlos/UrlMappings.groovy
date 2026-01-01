@@ -53,7 +53,6 @@ class UrlMappings {
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
             }
-
             group "/sale", {
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
                 get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
@@ -72,7 +71,6 @@ class UrlMappings {
                 }
                 get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
             }
-
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
@@ -116,7 +114,7 @@ class UrlMappings {
                 }
             }
             group "/review", {
-                get "/list/$dishId"(controller: "review", action: "listReviews")
+                get "/list"(controller: "review", action: "listReviews")
                 post "/new"(controller: "review", action: "createReview")
                 group "/$uuid", {
                     delete "/delete"(controller: "review", action: "deleteReview")

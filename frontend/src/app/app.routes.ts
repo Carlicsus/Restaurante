@@ -11,6 +11,7 @@ import { DailyMenuComponent } from './modules/employee/menu-day/daily-menu.compo
 import { EmployeCartComponent } from './modules/employee/employe-cart/employe-cart.component';
 import { CompleteMenuComponent } from './modules/employee/complete-menu/complete-menu.component';
 import { RateDishComponent } from './modules/employee/rate-dish/rate-dish.component';
+import { DetailProductComponent } from './modules/employee/detail-product/detail-product.component';
 //chef
 import { ChefDashboardComponent } from './modules/chef/chef-dashboard/chef-dashboard.component';
 import { ChefStatisticsComponent } from './modules/chef/chef-statistics/chef-statistics.component';
@@ -38,6 +39,7 @@ export const routes: Routes = [
   { path:'employee/menu-day', component: DailyMenuComponent},
   { path:'employee/cart', component: EmployeCartComponent},
   { path:'employee/complete-menu', component: CompleteMenuComponent},
+  { path:'employee/dish/:id', component: DetailProductComponent},
   { path:'employee/rate-dish', component: RateDishComponent},
   { path:'finance/dashboard', component: FinanceDashboardComponent },
   { path:'finance/debt', component: DebtManagementComponent },

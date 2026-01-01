@@ -1,117 +1,70 @@
+// complete-menu.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { NavbarEmployeeComponent } from '../../../shared/navbar-employee/navbar-employee.component';
-
-interface Dish {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  image: string;
-}
+import { MenuService } from '../../../core/services/menu.service';
+import { DishService } from '../../../core/services/dish.service';
+import { Menu } from '../../../core/models/dish';
 
 @Component({
   selector: 'app-complete-menu',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    NavbarEmployeeComponent
-  ],
+  imports: [CommonModule, FormsModule, NavbarEmployeeComponent, RouterModule],
+  providers: [MenuService, DishService],
   templateUrl: './complete-menu.component.html',
-  styleUrls: ['./complete-menu.component.css']
+  styleUrls: ['./complete-menu.component.css'],
 })
 export class CompleteMenuComponent implements OnInit {
+  menus: Menu[] = [];
+  selectedMenu: string | null = null;
+  searchTerm: string = '';
 
-  /* =======================
-     DATA
-  ======================= */
-
-  dishes: Dish[] = [];
-  filteredDishes: Dish[] = [];
-
-  cartItemsCount = 0;
-
-  searchTerm = '';
-  selectedCategory = 'Todos';
-
-  constructor(private router: Router) {}
+  constructor(private menuService: MenuService, private dishService: DishService) {}
 
   ngOnInit(): void {
-    this.loadMenu();
+    this.getMenus();
   }
 
-  /* =======================
-     METHODS
-  ======================= */
-
-  loadMenu(): void {
-    this.dishes = [
-      {
-        id: 1,
-        name: 'Omelette de queso',
-        price: 8.0,
-        category: 'Desayunos',
-        image: '/assets/menu/omelette.jpg'
+  getMenus() {
+    this.dishService.getDishes().subscribe({
+      next: (response: any) => {
+        this.menus = response.data || [];
+        if (this.menus.length > 0) {
+          this.selectedMenu = this.menus[0].uuid;
+        }
       },
-      {
-        id: 2,
-        name: 'Huevos revueltos',
-        price: 7.5,
-        category: 'Desayunos',
-        image: '/assets/menu/huevos.jpg'
-      },
-      {
-        id: 3,
-        name: 'Panqueques',
-        price: 9.0,
-        category: 'Desayunos',
-        image: '/assets/menu/panqueques.jpg'
+      error: (error) => {
+        console.error('Error loading menus:', error);
       }
-    ];
-
-    this.filteredDishes = this.dishes;
+    });
   }
 
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value);
+  filterByMenu(menuUuid: string) {
+    this.selectedMenu = menuUuid;
   }
 
-  addToCart(): void {
-    this.cartItemsCount++;
-  }
-
-  filterByCategory(category: string): void {
-    this.selectedCategory = category;
-
-    if (category === 'Todos') {
-      this.filteredDishes = this.dishes;
-    } else {
-      this.filteredDishes = this.dishes.filter(
-        dish => dish.category === category
+  get filteredDishes() {
+    if (!this.selectedMenu) return [];
+    const menu = this.menus.find(m => m.uuid === this.selectedMenu);
+    if (!menu) return [];
+    
+    let dishes = [...menu.dishes];
+    
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      dishes = dishes.filter(dish => 
+        dish.name.toLowerCase().includes(term) || 
+        dish.description.toLowerCase().includes(term)
       );
     }
+    
+    return dishes;
   }
 
-  goToCart(): void {
-    this.router.navigate(['/employee/cart']);
+  get selectedMenuName(): string {
+    if (!this.selectedMenu) return '';
+    return this.menus.find(m => m.uuid === this.selectedMenu)?.name || '';
   }
-
-  getCategoryName(category: string): string {
-  const categoriesMap: { [key: string]: string } = {
-    Desayunos: 'Desayunos',
-    Comidas: 'Comidas',
-    Bebidas: 'Bebidas',
-    Postres: 'Postres',
-    Especiales: 'Especiales'
-  };
-
-  return categoriesMap[category] || category;
-}
-
 }

@@ -7,7 +7,7 @@ import { Dish } from '../models/dish';
 })
 export class DishService {
 
-  URL_BASE = 'http://localhost:8080/api';
+  URL_BASE = 'http://localhost:3050/backend/api';
 
   constructor(private http:HttpClient) { }
 

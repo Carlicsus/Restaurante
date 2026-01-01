@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Menu } from '../models/dish';
+
 @Injectable({
   providedIn: 'root'
 })
 export class MenuService {
 
-  URL_BASE = 'http://localhost:8080/api';
+  URL_BASE = 'http://localhost:3050/backend/api';
 
   constructor(private http: HttpClient) { }
 
@@ -18,14 +18,14 @@ export class MenuService {
     return this.http.post(`${this.URL_BASE}/menu/type/new`, menu);
   }
 
-  editMenu(menu: Menu) {
+  editMenu(menu: any) {
     return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/edit`, menu.name);
   }
 
-  activateMenu(menu: Menu) {
+  activateMenu(menu: any) {
     return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/activate`, menu.status);
   }
-  deactivateMenu(menu: Menu) {
+  deactivateMenu(menu: any) {
     return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/deactivate`, menu.status)
   }
 }

@@ -6,7 +6,7 @@ import { Menu } from '../models/dish';
 })
 export class MenuService {
 
-  URL_BASE = 'http://localhost:3050/backendapi';
+  URL_BASE = 'http://localhost:8080/api';
 
   constructor(private http: HttpClient) { }
 

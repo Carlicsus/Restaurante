@@ -109,7 +109,7 @@
             (click)="markAsPaid(order)"
             [disabled]="processingPayment"
           >
-            {{ selectedOrderUuid === order.saleUuid ? : '✓ Pagar' }}
+            {{ selectedOrderUuid === order.saleUuid ? '⏳ Procesando...' : '✓ Pagar' }}
           </button>
         </div>
       </div>

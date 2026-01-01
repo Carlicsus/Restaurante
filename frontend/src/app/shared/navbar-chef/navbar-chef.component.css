@@ -15,17 +15,20 @@ nav {
 
 /* CONTENEDOR CENTRAL (MISMO ANCHO QUE EL CONTENIDO) */
 .nav-container {
-    max-width: 1200px;
+    width: 100%;
     height: 100%;
-    margin: 0 auto;
 
     display: flex;
     align-items: center;
 
-    padding: 0 30px;
+    padding: 0 40px;
 }
 
 /* LOGO */
+.imagen {
+    flex-shrink: 0;
+}
+
 .brand-logo {
     width: 64px;
     height: 64px;
@@ -34,7 +37,9 @@ nav {
 
 /* OPCIONES */
 .options {
-    margin-left: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .options ul {
@@ -59,7 +64,7 @@ nav {
 
 /* PERFIL */
 .perfil {
-    margin-left: 24px;
+    margin-left: auto;
 }
 
 .perfil img {

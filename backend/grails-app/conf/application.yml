@@ -8,6 +8,10 @@ grails:
   gorm:
     reactor:
       events: false
+  controllers:
+    upload:
+      maxFileSize: 5242880
+      maxRequestSize: 5242880
 
 info:
   app:
@@ -15,16 +19,34 @@ info:
     version: "@info.app.version@"
     grailsVersion: "@info.app.grailsVersion@"
 
+server:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  tomcat:
+    max-http-post-size: 5242880
+
 spring:
-  main:
-    banner-mode: "off"
   groovy:
     template:
       check-template-location: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 # customize Spring Boot Actuator end-points
 management:
   context-path: /api/management
+
+# Configuración para manejo de imágenes
+restaurant:
+  images:
+    # Directorio donde se guardarán las imágenes (fuera de src/main)
+    upload-dir: /uploads/dishes
+    # URL base para acceder a las imágenes (sin barra final)
+    base-url: http://localhost:8080/api/images
 
 ---
 grails:

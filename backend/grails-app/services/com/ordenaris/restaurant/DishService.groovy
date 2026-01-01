@@ -82,7 +82,7 @@ def listDishes() {
             status: 500
         ]
     }
-
+}
     // Datos para gráfico: top N platillos más vendidos
     def getTopDishesChart(Integer days = 7, Integer limit = 10) {
         try {
@@ -115,7 +115,7 @@ def listDishes() {
             return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
-}
+
 
     def mapMenuType = { type, list ->
         def obj = [
@@ -132,7 +132,7 @@ def listDishes() {
         return obj
     }
 
-    def newDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl) {
+    def newDish(name, menuType, availableDate, cost, description, availableDishes) {
         try {
             def menuTypeObj = MenuType.findByUuid(menuType)
 
@@ -145,7 +145,6 @@ def listDishes() {
                 cost: (cost * 100),
                 description: description,
                 availableDishes: availableDishes,
-                imageUrl: imageUrl,
                 status: status
             ]).save(flush: true, failOnError: true)
 
@@ -196,7 +195,7 @@ def listDishes() {
         ]
     }
 
-    def editDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl, uuid) {
+    def editDish(name, menuType, availableDate, cost, description, availableDishes, uuid) {
         try {
             def dish = Dish.findByUuid(uuid)
 
@@ -222,7 +221,6 @@ def listDishes() {
             dish.cost = (cost * 100)
             dish.description = description
             dish.availableDishes = availableDishes
-            dish.imageUrl = imageUrl
 
             if (availableDishes == 0) {
                 dish.status = 0

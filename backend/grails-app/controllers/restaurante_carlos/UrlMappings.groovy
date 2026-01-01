@@ -49,7 +49,15 @@ class UrlMappings {
                     delete "/delete"(controller: "platillo", action: "editDishStatus") {
                         status = 2
                     }
+                    // Imagen: subida y borrado (protegidos)
+                    post "/upload-image"(controller: "platillo", action: "uploadDishImage")
+                    delete "/image"(controller: "platillo", action: "deleteDishImage")
                 }
+            }
+
+            // Imagen: descarga pública
+            group "/images", {
+                get "/$fileName"(controller: "platillo", action: "downloadDishImage")
             }
             group "/user", {  
                 post "/register"(controller: "user", action: "register")

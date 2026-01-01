@@ -3,11 +3,14 @@ package com.ordenaris.restaurant
 import grails.rest.*
 import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.multipart.MultipartHttpServletRequest
 
 @Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
 class PlatilloController {
     static responseFormats = ['json', 'xml']
-    def DishService  
+    def DishService
+    def ImageService  
 
     def listDishes() {
         def response = DishService.listDishes()
@@ -77,19 +80,13 @@ class PlatilloController {
             availableDishes = data.availableDishes
         }
 
-        // Validar imageUrl si viene
-        if (data.imageUrl && data.imageUrl.size() > 500) {
-            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
-        }
-
         def response = DishService.newDish(
             data.name,  
             data.menuType,  
             availableDate,  
             data.cost.toInteger(),  
             data.description,  
-            availableDishes?.toInteger() ?: -1,
-            data.imageUrl
+            availableDishes?.toInteger() ?: -1
         )
         return respond(response.resp, status: response.status)
     }
@@ -158,19 +155,13 @@ class PlatilloController {
             availableDishes = data.availableDishes
         }
 
-        // Validar imageUrl si viene
-        if (data.imageUrl && data.imageUrl.size() > 500) {
-            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
-        }
-
         def response = DishService.editDish(
             data.name,
             data.menuType,
             availableDate,
             data.cost.toInteger(),
             data.description,
-            availableDishes?.toInteger() ?: -1,  // Usar ?: para manejar null
-            data.imageUrl,
+            availableDishes?.toInteger() ?: -1,
             params.uuid
         )
         return respond(response.resp, status: response.status)
@@ -228,6 +219,125 @@ class PlatilloController {
             return respond([success: false, mensaje: "Los parámetros deben ser números"], status: 400)
         } catch (e) {
             return respond([success: false, mensaje: "Error: ${e.getMessage()}"], status: 500)
+        }
+    }
+
+    /**
+     * Endpoint para subir imagen de un platillo
+     * POST /api/dish/{uuid}/upload-image
+     * Content-Type: multipart/form-data
+     * Parámetro: image (archivo)
+     * 
+     * Protegido con IS_AUTHENTICATED_FULLY
+     */
+    @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
+    def uploadDishImage() {
+        println "========== UPLOAD IMAGE DEBUG =========="
+        println "UUID recibido: ${params.uuid}"
+        println "Content-Type: ${request.contentType}"
+        println "Method: ${request.method}"
+        
+        // Validar UUID
+        if (!params.uuid || params.uuid.size() != 32) {
+            println "ERROR: UUID inválido"
+            return respond([success: false, mensaje: "UUID inválido"], status: 400)
+        }
+
+        // Validar que sea multipart/form-data
+        if (!request.method.equalsIgnoreCase('POST')) {
+            println "ERROR: Método no es POST"
+            return respond([success: false, mensaje: "Solo se aceptan peticiones POST"], status: 405)
+        }
+
+        // Validar Content-Type multipart para evitar 500
+        def ct = request.contentType?.toLowerCase()
+        if (!ct || !ct.contains('multipart/form-data')) {
+            println "ERROR: Content-Type no es multipart/form-data (actual: ${request.contentType})"
+            return respond([success: false, mensaje: "Content-Type debe ser multipart/form-data"], status: 400)
+        }
+
+        try {
+            println "Request class: ${request.class}"
+            println "Is MultipartHttpServletRequest: ${request instanceof MultipartHttpServletRequest}"
+            println "Content length: ${request.contentLength}"
+            println "All parameters: ${params}"
+            
+            // Obtener archivo usando getPart (Servlet 3.0 standard)
+            def part = request.getPart('image')
+            println "Part obtenido: ${part}"
+            println "Part name: ${part?.name}"
+            println "Part size: ${part?.size}"
+            
+            // Convertir Part a bytes y crear archivo virtual
+            def file = null
+            if (part) {
+                file = part.getInputStream().bytes
+                println "File bytes obtenidos: ${file?.size()}"
+            }
+            
+            println "Archivo recibido: ${file?.size()} bytes"
+            
+            def result = ImageService.uploadDishImage(params.uuid, file)
+            println "Resultado: ${result}"
+            println "========================================"
+            
+            return respond(result, status: result.status)
+        } catch (Exception e) {
+            println "EXCEPCIÓN: ${e.message}"
+            e.printStackTrace()
+            println "========================================"
+            return respond([success: false, mensaje: "Error: ${e.message}"], status: 500)
+        }
+    }
+
+    /**
+     * Endpoint para descargar imagen de un platillo
+     * GET /api/images/{fileName}
+     * 
+     * Acceso público (sin @Secured)
+     */
+    def downloadDishImage() {
+        if (!params.fileName) {
+            return respond([success: false, mensaje: "Falta el nombre del archivo"], status: 400)
+        }
+
+        try {
+            // Si llega la URL completa, tomar solo el nombre de archivo
+            def fileName = params.fileName.contains('/') ? params.fileName.tokenize('/').last() : params.fileName
+            def imageBytes = ImageService.getDishImage(fileName)
+            
+            if (!imageBytes) {
+                return respond([success: false, mensaje: "Imagen no encontrada"], status: 404)
+            }
+
+            def mimeType = ImageService.getMimeType(fileName)
+            response.contentType = mimeType
+            response.contentLength = imageBytes.length
+            response.outputStream.write(imageBytes)
+            response.outputStream.flush()
+
+        } catch (Exception e) {
+            return respond([success: false, mensaje: "Error: ${e.message}"], status: 500)
+        }
+    }
+
+    /**
+     * Endpoint para eliminar imagen de un platillo
+     * DELETE /api/dish/{uuid}/image
+     * 
+     * Protegido con IS_AUTHENTICATED_FULLY
+     */
+    @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
+    def deleteDishImage() {
+        if (!params.uuid || params.uuid.size() != 32) {
+            return respond([success: false, mensaje: "UUID inválido"], status: 400)
+        }
+
+        try {
+            def result = ImageService.deleteDishImage(params.uuid)
+            return respond(result, status: result.status)
+        } catch (Exception e) {
+            return respond([success: false, mensaje: "Error: ${e.message}"], status: 500)
         }
     }
 

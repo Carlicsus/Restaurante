@@ -17,15 +17,14 @@ export class LoginComponent {
     password: ''
   };
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService) { }
 
   onSubmit() {
     console.log('Attempting login with:', this.credentials);
     this.auth.login(this.credentials).subscribe({
-      next: (response:any) => {
-        console.log('Login successful', response);
-        sessionStorage.setItem('token', response.access_token);
-        sessionStorage.setItem('expiredToken', response.refresh_token)
+      next: (response: any) => {
+        sessionStorage.setItem('token', response.access_token)
+        sessionStorage.setItem('info', JSON.stringify(response))
       },
       error: (error) => {
         console.error('Login failed', error);

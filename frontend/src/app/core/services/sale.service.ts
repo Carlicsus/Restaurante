@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 })
 export class SaleService {
 
-  URL_BASE = 'http://localhost:3050/backendapi';
+  URL_BASE = 'http://localhost:3050/backend/api';
 
   constructor(private http:HttpClient) { }
 

@@ -1,11 +1,19 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = sessionStorage.getItem('token');
-  
-  const newReq = req.clone({
-    headers: req.headers.append('Authorization', `Bearer ${token}`)
-  });
-  
-  return next(newReq);
+  // Don't attach auth header for login route
+  if (req.url?.endsWith('/login')) {
+    return next(req);
+  }
+
+  const info = sessionStorage.getItem('token');
+  if (info) {
+    const newReq = req.clone({
+      headers: req.headers.set('Authorization', `Bearer ${info}`)
+    });
+    console.log('Intercepted HTTP call', newReq);
+    return next(newReq);
+  }
+
+  return next(req);
 };

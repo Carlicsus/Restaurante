@@ -1,53 +1,52 @@
+<!-- complete-menu.component.html -->
 <app-navbar-employee></app-navbar-employee>
 
 <div class="page-wrapper">
   <div class="content-wrapper">
-
     <div class="menu-header">
       <h1 class="menu-title">Menú Completo</h1>
-      <p class="menu-subtitle">Explora todos los platillos disponibles.</p>
+      <p class="menu-subtitle">Explora todos los platillos disponibles en nuestro menú.</p>
     </div>
 
     <!-- Search -->
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Buscar platillo..."
-    />
-
-    <!-- Filters -->
-    <div class="filters">
-      <button class="filter active">Todos</button>
-      <button class="filter">Desayunos</button>
-      <button class="filter">Comidas</button>
-      <button class="filter">Bebidas</button>
-      <button class="filter">Postres</button>
-      <button class="filter">Especiales</button>
+    <div class="search-container">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar platillo..."
+        [(ngModel)]="searchTerm"
+      />
     </div>
 
-    <!-- Grid -->
-    <div class="menu-grid">
-      <div class="menu-card">
-        <img src="/assets/img/omelette.jpg">
-        <h4>Omelette de queso</h4>
-        <span class="category">Desayunos</span>
-        <strong>$8.00</strong>
-      </div>
-
-      <div class="menu-card">
-        <img src="/assets/img/huevos.jpg">
-        <h4>Huevos revueltos</h4>
-        <span class="category">Desayunos</span>
-        <strong>$7.50</strong>
-      </div>
-
-      <div class="menu-card">
-        <img src="/assets/img/panqueques.jpg">
-        <h4>Panqueques</h4>
-        <span class="category">Desayunos</span>
-        <strong>$9.00</strong>
-      </div>
+    <!-- Menu Tabs -->
+    <div class="menu-tabs">
+      <button
+        *ngFor="let menu of menus"
+        [class.active]="selectedMenu === menu.uuid"
+        (click)="filterByMenu(menu.uuid)"
+        class="menu-tab"
+      >
+        {{ menu.name }}
+      </button>
     </div>
 
+    <!-- Dishes Grid -->
+    <div class="menu-content">    
+      <div *ngIf="filteredDishes.length > 0; else noDishes" class="dishes-grid">
+        <div *ngFor="let dish of filteredDishes" class="dish-card" [routerLink]="'/employee/dish/'+(dish.uuid)">
+          <div class="dish-header">
+            <h3 class="dish-name">{{ dish.name }}</h3>
+            <span class="dish-price">${{ dish.cost | number:'1.2-2' }}</span>
+          </div>
+          <p class="dish-description">{{ dish.description }}</p>
+        </div>
+      </div>
+
+      <ng-template #noDishes>
+        <div class="no-dishes">
+          <p>No se encontraron platillos que coincidan con tu búsqueda.</p>
+        </div>
+      </ng-template>
+    </div>
   </div>
 </div>

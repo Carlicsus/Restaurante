@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarFinanceComponent } from '../../../shared/navbar-finance/navbar-finance.component';
 import { SaleService } from '../../../core/services/sale.service';
+import { UserService } from '../../../core/services/user.service';
 import { OrderDetail } from '../../../core/models/payment';
 
 @Component({
@@ -24,9 +25,12 @@ export class PaymentEmployeeComponent implements OnInit {
   errorMessage = '';
   processingPayment = false;
   selectedOrderUuid: string | null = null;
+  isUserLocked = false;
+  lockingInProgress = false;
 
   constructor(
     private saleService: SaleService,
+    private userService: UserService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -164,5 +168,47 @@ export class PaymentEmployeeComponent implements OnInit {
 
   retryLoad(): void {
     this.loadDebtorDetails();
+  }
+
+  toggleLockUser(): void {
+    if (this.lockingInProgress) return;
+
+    const action = this.isUserLocked ? 'desbloquear' : 'bloquear';
+    const confirmed = confirm(`¿Estás seguro de que deseas ${action} a ${this.username}?`);
+
+    if (!confirmed) return;
+
+    this.lockingInProgress = true;
+
+    const request$ = this.isUserLocked
+      ? this.userService.unlockUser(this.username)
+      : this.userService.lockUser(this.username);
+
+    request$.subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.isUserLocked = !this.isUserLocked;
+          alert(`Usuario ${this.username} ${this.isUserLocked ? 'bloqueado' : 'desbloqueado'} exitosamente`);
+        } else {
+          alert(`Error: ${response.message}`);
+        }
+        this.lockingInProgress = false;
+      },
+      error: (error) => {
+        console.error('Error al cambiar estado del usuario:', error);
+        let errorMsg = 'Error al procesar la solicitud';
+
+        if (error.status === 403) {
+          errorMsg = 'No tienes permisos para realizar esta acción';
+        } else if (error.status === 404) {
+          errorMsg = 'Usuario no encontrado';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        }
+
+        alert(errorMsg);
+        this.lockingInProgress = false;
+      }
+    });
   }
 }

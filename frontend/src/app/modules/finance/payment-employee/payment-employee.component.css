@@ -104,6 +104,13 @@
   align-items: center;
 }
 
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
 .avatar-circle {
   width: 80px;
   height: 80px;
@@ -183,6 +190,41 @@
 }
 
 .pay-all-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lock-user-btn {
+  padding: 10px 20px;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.lock-user-btn:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+.lock-user-btn.locked {
+  background: #22c55e;
+}
+
+.lock-user-btn.locked:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.lock-user-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

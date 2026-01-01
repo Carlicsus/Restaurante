@@ -59,6 +59,8 @@ dependencies {
     compile "org.grails.plugins:spring-security-rest:${springSecurityRestVersion}"
     compile 'com.nimbusds:nimbus-jose-jwt:9.37.3'
     compile "org.grails.plugins:views-json:1.2.10"
+    compile "org.pac4j:pac4j-core:3.6.1"
+    compile "org.pac4j:pac4j-oauth:3.6.1"
     console "org.grails:grails-console"
     profile "org.grails.profiles:rest-api"
     runtime "org.glassfish.web:el-impl:2.1.2-b03"
@@ -74,6 +76,13 @@ dependencies {
 
     runtime 'mysql:mysql-connector-java:5.1.49'
 
+}
+
+configurations.all {
+    resolutionStrategy.force(
+        "org.pac4j:pac4j-core:3.6.1",
+        "org.pac4j:pac4j-oauth:3.6.1"
+    )
 }
 
 bootRun {

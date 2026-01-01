@@ -4,7 +4,7 @@ import grails.rest.*
 import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
 
-@Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
+@Secured(['permitAll'])
 class PlatilloController {
     static responseFormats = ['json', 'xml']
     def DishService  

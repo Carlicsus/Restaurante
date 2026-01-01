@@ -23,6 +23,7 @@ class ImageService {
      * @param uuid UUID del Dish
      * @param file archivo (bytes o MultipartFile)
      * @return Map con [success: boolean, message: String, imageUrl: String]
+     
      */
     def uploadDishImage(String uuid, def file) {
         try {

@@ -49,7 +49,7 @@ class UrlMappings {
                     delete "/delete"(controller: "platillo", action: "editDishStatus") {
                         status = 2
                     }
-                    // Imagen: subida y borrado (protegidos)
+                    // Imagen: subida y borrado (protegidos) 
                     post "/upload-image"(controller: "platillo", action: "uploadDishImage")
                     delete "/image"(controller: "platillo", action: "deleteDishImage")
                 }

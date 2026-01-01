@@ -224,11 +224,6 @@ class PlatilloController {
 
     /**
      * Endpoint para subir imagen de un platillo
-     * POST /api/dish/{uuid}/upload-image
-     * Content-Type: multipart/form-data
-     * Parámetro: image (archivo)
-     * 
-     * Protegido con IS_AUTHENTICATED_FULLY
      */
     @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
     def uploadDishImage() {

@@ -23,8 +23,4 @@ beans = {
     customAuthenticationProvider(CustomAuthenticationProvider) {
         
     }
-
-    // multipartResolver (org.springframework.web.multipart.commons.CommonsMultipartResolver) {
-    //     maxUploadSize=2500000
-    // }
 }

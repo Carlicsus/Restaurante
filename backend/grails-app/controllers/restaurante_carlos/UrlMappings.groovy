@@ -116,6 +116,16 @@ class UrlMappings {
                 get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
             }
 
+            group "/schedule", {
+                get "/"(controller: "schedule", action: "index")
+                post "/"(controller: "schedule", action: "save")
+                get "/is-open"(controller: "schedule", action: "isOpen")
+                delete "/$id"(controller: "schedule", action: "delete")
+                get "/$id"(controller: "schedule", action: "show")
+            }
+
+            
+
         }
 
 

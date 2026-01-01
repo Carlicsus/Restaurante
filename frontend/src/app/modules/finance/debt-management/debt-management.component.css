@@ -170,7 +170,7 @@
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr 1fr;
+  grid-template-columns: 2fr 1fr 1.5fr 2fr;
   align-items: center;
   padding: 16px 20px;
   gap: 12px;
@@ -229,6 +229,46 @@
 
 .debt-amount.high-debt {
   color: #dc2626;
+}
+
+/* ACTIONS GROUP */
+.actions-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lock-btn {
+  background: #f97316;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lock-btn:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+.lock-btn.locked {
+  background: #22c55e;
+}
+
+.lock-btn.locked:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.lock-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .action-btn {

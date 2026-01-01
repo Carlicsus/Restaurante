@@ -45,19 +45,31 @@
           </div>
         </div>
 
-        <button 
-          *ngIf="totalOrders > 0" 
-          class="pay-all-btn"
-          (click)="payAllOrders()"
-          [disabled]="processingPayment"
-        >
-          {{ processingPayment ? '⏳ Procesando...' : '💳 Pagar Todo' }}
-        </button>
+        <div class="header-actions">
+          <button 
+            *ngIf="totalOrders > 0" 
+            class="pay-all-btn"
+            (click)="payAllOrders()"
+            [disabled]="processingPayment"
+          >
+            {{ processingPayment ? '⏳ Procesando...' : 'Pagar Todo' }}
+          </button>
+
+          <button 
+            class="lock-user-btn"
+            [class.locked]="isUserLocked"
+            [disabled]="lockingInProgress"
+            (click)="toggleLockUser()"
+            [title]="isUserLocked ? 'Desbloquear usuario' : 'Bloquear usuario'"
+          >
+            {{ lockingInProgress ? '⏳' : (isUserLocked ? '🔓' : '🔒') }}
+            {{ isUserLocked ? 'Desbloquear' : 'Bloquear' }}
+          </button>
+        </div>
       </div>
 
       <!-- NO ORDERS STATE -->
       <div *ngIf="orders.length === 0" class="empty-state">
-        <div class="empty-icon">✅</div>
         <h3>¡Sin deudas pendientes!</h3>
         <p>Este empleado no tiene órdenes pendientes de pago</p>
         <button class="btn-secondary" (click)="goBack()">Volver a Cobranza</button>
@@ -97,7 +109,7 @@
             (click)="markAsPaid(order)"
             [disabled]="processingPayment"
           >
-            {{ selectedOrderUuid === order.saleUuid ? '⏳' : '✓ Pagar' }}
+            {{ selectedOrderUuid === order.saleUuid ? : '✓ Pagar' }}
           </button>
         </div>
       </div>

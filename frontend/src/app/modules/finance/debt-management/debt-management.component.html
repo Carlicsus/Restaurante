@@ -95,12 +95,25 @@
         <span class="order-count">{{ debtor.pendingOrdersCount }}</span>
         <span class="debt-amount" [class.high-debt]="debtor.totalPendingAmount > 50000">{{ formatCurrency(debtor.totalPendingAmount) }}</span>
 
-        <button
-          class="action-btn"
-          (click)="viewDebtorDetails(debtor.username)"
-        >
-          Ver Detalles →
-        </button>
+        <div class="actions-group">
+          <button
+            class="lock-btn"
+            [class.locked]="isUserLocked(debtor.username)"
+            [disabled]="isLockingInProgress(debtor.username)"
+            (click)="toggleLockUser(debtor.username, $event)"
+            [title]="isUserLocked(debtor.username) ? 'Desbloquear usuario' : 'Bloquear usuario'"
+          >
+            {{ isLockingInProgress(debtor.username) ? '⏳' : (isUserLocked(debtor.username) ? '🔓' : '🔒') }}
+            {{ isUserLocked(debtor.username) ? 'Desbloquear' : 'Bloquear' }}
+          </button>
+          
+          <button
+            class="action-btn"
+            (click)="viewDebtorDetails(debtor.username)"
+          >
+            Ver Detalles →
+          </button>
+        </div>
       </div>
     </div>
 

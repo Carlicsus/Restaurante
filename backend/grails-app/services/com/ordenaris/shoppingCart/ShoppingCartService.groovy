@@ -42,15 +42,41 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
-    def listOrderShoppingCartByUser(data) {
+    def listOrderShoppingCartByUser(data, auth) {
         try{
-            def user = User.get(data.id)
-            def shoppingCarts = ShoppingCart.findAllByUser(user)
-            def formattedCarts = shoppingCarts.collect { cart -> mapShoppingCart(cart) }
-            return [resp: [success: true, shoppingCarts: formattedCarts], status: 200]    
+            def user = com.ordenaris.security.User.get(data.id)
+            if (!user) { 
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+            }
+            def max = data.max ? data.max.toInteger() : 10
+            def offset = data.offset ? data.offset.toInteger() : 0
+            def sortCol = data.sort ?: "dateCreated"
+            def orderDir = data.order ?: "desc"
+            def criteria = ShoppingCart.createCriteria()
+            def resultList = criteria.list(max: max, offset: offset) {
+                
+                eq("user", user)
+                if (data.status) {
+                    eq("status", data.status)
+                }
+                if (data.query) {
+                    ilike("uuid", "%${data.query}%")
+                }
+                order(sortCol, orderDir)
+            }
+            def formattedCarts = resultList.collect { cart -> mapShoppingCart(cart) }
+
+            return [
+                resp: [
+                    success: true, 
+                    shoppingCarts: formattedCarts, 
+                    total: resultList.totalCount 
+                ], 
+                status: 200
+            ]    
         }
         catch (e) {
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
     def newOrderShoppingCart(data, auth) {

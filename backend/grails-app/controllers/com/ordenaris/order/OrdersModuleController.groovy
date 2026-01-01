@@ -19,7 +19,16 @@ class OrdersModuleController {
     }
 
     def listOrdersByUser(){
-        def serviceResponse = orderModuleService.listOrdersByUser(auth)
+        def data = [
+            id: auth.id,
+            max: params.max,
+            offset: params.offset,
+            sort: params.sort,
+            order: params.order,
+            status: params.status,
+            query: params.query
+        ]
+        def serviceResponse = orderModuleService.listOrdersByUser(data)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 

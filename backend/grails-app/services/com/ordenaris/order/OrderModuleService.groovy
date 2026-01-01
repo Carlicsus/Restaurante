@@ -43,20 +43,49 @@ class OrderModuleService {
             ]
     }
     def listOrdersByUser(data) {
-        try{
+        try {
             def user = User.get(data.id)
-            def orders = CustomerOrder.findAllByUserAndStatus(user, "Queue")
-            def formattedOrders = orders.collect { order ->
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+            }
+
+            def max = data.max ? data.max.toInteger() : 10
+            def offset = data.offset ? data.offset.toInteger() : 0
+            def sortCol = data.sort ?: "dateCreated"
+            def orderDir = data.order ?: "desc"
+
+            def criteria = CustomerOrder.createCriteria()
+            def resultList = criteria.list(max: max, offset: offset) {
+                eq("user", user)
+                
+                if (data.status) {
+                    eq("status", data.status)
+                }
+                
+                if (data.query) {
+                    ilike("uuid", "%${data.query}%")
+                }
+
+                order(sortCol, orderDir)
+            }
+
+            def formattedOrders = resultList.collect { order -> 
                 mapOrder(order) 
             }
+
             return [
-                    resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
-                    status: 200
-                ]
+                resp: [
+                    success: true, 
+                    message: 'Ordenes listadas', 
+                    orders: formattedOrders,
+                    total: resultList.totalCount
+                ],
+                status: 200
+            ]
         }
         catch (e) {
             return [
-                resp: [success:false, message: e.getMessage()],
+                resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
         }

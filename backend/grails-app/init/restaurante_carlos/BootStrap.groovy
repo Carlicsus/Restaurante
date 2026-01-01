@@ -60,6 +60,8 @@ class BootStrap {
         assert Role.count() == 4
         assert UserRole.count() == 4
 
+        }
+
         if (Dish.count() == 0) {
             println "Iniciando carga de Dish..."
             
@@ -169,8 +171,6 @@ class BootStrap {
                 
             println "Dish cargados."
         }
-
-        
 
     }
     def destroy = {

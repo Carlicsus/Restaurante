@@ -216,14 +216,24 @@ class PlatilloController {
 
     def dishRanking(){
         try{
-            Integer days = params.days ? Integer.parseInt(params.days.toString()): 7
-            if (days < 1){
-                return respond([success: false, message: "El numero de dias debe ser mayor a 0 "], status: 400)
+            Integer days = params.days ? Integer.parseInt(params.days.toString()) : null
+            Integer limit = params.limit ? Integer.parseInt(params.limit.toString()) : 10
+            Integer minReviews = params.minReviews ? Integer.parseInt(params.minReviews.toString()) : 1
+
+            if (days != null && days < 1){
+                return respond([success: false, message: "El numero de dias debe ser mayor a 0"], status: 400)
             }
-            def response = DishService.getDishRanking(days)
+            if (limit == null || limit < 1){
+                return respond([success: false, message: "El limite debe ser mayor a 0"], status: 400)
+            }
+            if (minReviews == null || minReviews < 1){
+                return respond([success: false, message: "El minimo de reseñas debe ser mayor a 0"], status: 400)
+            }
+
+            def response = DishService.getDishRanking(days, limit, minReviews)
             return respond(response.resp, status: response.status)
         }catch (NumberFormatException e){
-            return respond([success: false, message: "El numero de dias debe ser un numero entero"], status: 400)
+            return respond([success: false, message: "Los parametros deben ser numeros enteros"], status: 400)
         }catch (e){
             return respond([success: false, message: "Error: ${e.getMessage()}"], status: 500)
         }

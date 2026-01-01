@@ -302,35 +302,48 @@ def listDishes() {
 
     }
 
-    def getDishRanking(Integer days = 7) {
+    def getDishRanking(Integer days = null, Integer limit = 10, Integer minReviews = 1) {
         try {
-            if (days == null || days < 1) {
-                days = 7
-            }
-            def calendar = Calendar.getInstance()
-            calendar.add(Calendar.DAY_OF_MONTH, -days)
-            def startDate = calendar.time
-
-            def orderItems = OrderItem.createCriteria().list {
-                between("dateCreated", startDate, new Date())
-                eq("status", true)
+            Date startDate = null
+            if (days != null && days > 0) {
+                def calendar = Calendar.getInstance()
+                calendar.add(Calendar.DAY_OF_MONTH, -days)
+                startDate = calendar.time
             }
 
-            def rankingMap = orderItems.groupBy { it.dish }.collect { dish, items ->
+            def rows = Review.createCriteria().list {
+                if (startDate) {
+                    ge("dateCreated", startDate)
+                }
+                projections {
+                    groupProperty("dish")
+                    avg("rating", "avgRating")
+                    count("id", "reviewsCount")
+                }
+                order("avgRating", "desc")
+                order("reviewsCount", "desc")
+                maxResults(limit ?: 10)
+            }
+
+            def data = rows.collect { r ->
+                def dish = r[0] as Dish
+                def avgRating = (r[1] ?: 0)?.round(1)
+                def reviewsCount = (r[2] ?: 0) as Integer
                 [
-                    uuid: dish.uuid,
-                    name: dish.name,
-                    totalOrdenes: items.size(),
-                    cost: dish.cost,
-                    description: dish.description
+                    uuid: dish?.uuid,
+                    name: dish?.name,
+                    avgRating: avgRating,
+                    reviewsCount: reviewsCount,
+                    description: dish?.description,
+                    cost: dish?.cost
                 ]
-            }.sort { -it.totalOrdenes }
+            }.findAll { it.reviewsCount >= (minReviews ?: 1) }
 
             return [
                 resp: [
                     success: true,
-                    data: rankingMap,
-                    message: "Ranking de platillos en los últimos ${days} días"
+                    data: data,
+                    message: startDate ? "Ranking por calificación (últimos ${days} días)" : "Ranking por calificación"
                 ],
                 status: 200
             ]

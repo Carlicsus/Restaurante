@@ -72,8 +72,8 @@ class UrlMappings {
                     lock=false
                 }
 
-                get "/me/photo"(controller: "userProfile", action: "myPhoto") 
-                post "/me/photo"(controller: "userProfile", action: "uploadPhoto") 
+                get "/me/photo"(controller: "user", action: "myPhoto") 
+                post "/me/photo"(controller: "user", action: "uploadPhoto") 
 
             }
 
@@ -130,7 +130,7 @@ class UrlMappings {
 
 
         "/"(controller: 'application', action:'index')
-        "401"(controller: "errorJson", action: "unauthorized")
+        "401"(controller: "application", action: "unauthorized")
         "500"(view: '/error')
         "404"(view: '/notFound')
     }

@@ -6,9 +6,14 @@ import grails.converters.*
 
 import grails.plugin.springsecurity.annotation.Secured
 
+import grails.plugin.springsecurity.userdetails.GrailsUser
+
+import java.nio.file.Files
+
 class UserController {
 	static responseFormats = ['json', 'xml']
 	
+    def springSecurityService
     UserService userService
 
     @Secured(['permitAll'])
@@ -78,6 +83,36 @@ class UserController {
     def setLocked() {
         def response = userService.setLocked(params.username, params.lock.toBoolean())
         return respond(response.resp, status: response.status)
+    }
+
+    @Secured(['isAuthenticated()'])
+    def uploadPhoto() {
+
+        def file = request.getFile('file')
+        GrailsUser principal =
+                springSecurityService.principal as GrailsUser
+
+        User user = User.get(principal.id)
+
+        userService.saveProfileImage(user, file)
+
+        respond([success: true])
+    }
+
+    @Secured(['isAuthenticated()'])
+    def myPhoto() {
+
+        GrailsUser principal =
+                springSecurityService.principal as GrailsUser
+
+        User user = User.get(principal.id)
+        File image = userService.resolveProfileImage(user)
+
+        response.contentType =
+                Files.probeContentType(image.toPath())
+
+        response.outputStream << image.bytes
+        response.outputStream.flush()
     }
 
 }

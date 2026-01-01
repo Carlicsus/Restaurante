@@ -5,72 +5,130 @@
 
     <!-- Breadcrumb -->
     <p class="breadcrumb">
-      Finanzas / Cobranza / <strong>Estado de Cuenta por Empleado</strong>
+      <span class="link" (click)="goBack()">← Finanzas / Cobranza</span> / <strong>{{ username }}</strong>
     </p>
 
-    <!-- Header -->
-    <div class="employee-header">
-      <div>
-        <h2>{{ employeeName }}</h2>
-        <p class="debt">
-          Total adeudado: {{ formatCurrency(totalDebt) }}
-        </p>
-        <span class="badge active">Activo</span>
-      </div>
-
-      <img
-        src="https://i.pravatar.cc/300?img=47"
-        alt="Empleado"
-        class="employee-avatar"
-      />
+    <!-- LOADING STATE -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner">⏳</div>
+      <p>Cargando detalles del empleado...</p>
     </div>
 
-    <!-- Tabla -->
-    <div class="table-card">
-      <div class="table-header">
-        <span>Pedido (#)</span>
-        <span>Fecha</span>
-        <span>Total</span>
-        <span>Estado de pago</span>
-        <span>Acción</span>
-      </div>
+    <!-- ERROR MESSAGE -->
+    <div *ngIf="errorMessage && !loading" class="error-banner">
+      <p>⚠️ {{ errorMessage }}</p>
+      <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
+    </div>
 
-      <div
-        class="table-row"
-        *ngFor="let order of orders"
-      >
-        <span>{{ order.id }}</span>
-        <span class="date">{{ order.date }}</span>
-        <span class="amount">{{ formatCurrency(order.total) }}</span>
+    <!-- CONTENT -->
+    <div *ngIf="!loading && !errorMessage">
 
-        <span
-          class="status"
-          [class.paid]="order.status === 'Pagado'"
+      <!-- Header -->
+      <div class="employee-header">
+        <div class="employee-info">
+          <div class="avatar-circle" [style.background-color]="'#3b82f6'">
+            {{ username.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h2>{{ username }}</h2>
+            <p class="debt">
+              Total adeudado: <strong>{{ formatCurrency(totalDebt) }}</strong>
+            </p>
+            <div class="meta-info">
+              <span class="badge" [class.success]="totalOrders === 0" [class.warning]="totalOrders > 0">
+                {{ totalOrders }} {{ totalOrders === 1 ? 'orden pendiente' : 'órdenes pendientes' }}
+              </span>
+              <span *ngIf="oldestOrderDate" class="oldest-order">
+                Orden más antigua: {{ formatDate(oldestOrderDate) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          *ngIf="totalOrders > 0" 
+          class="pay-all-btn"
+          (click)="payAllOrders()"
+          [disabled]="processingPayment"
         >
-          {{ order.status }}
-        </span>
-
-        <button
-          class="link"
-          *ngIf="order.status === 'Pendiente'"
-          (click)="markAsPaid(order)"
-        >
-          Marcar como pagado
+          {{ processingPayment ? '⏳ Procesando...' : '💳 Pagar Todo' }}
         </button>
-
-        <span *ngIf="order.status === 'Pagado'">—</span>
       </div>
-    </div>
 
-    <!-- Acciones -->
-    <div class="actions">
-      <button class="btn primary">
-        Marcar seleccionados como pagados
-      </button>
+      <!-- NO ORDERS STATE -->
+      <div *ngIf="orders.length === 0" class="empty-state">
+        <div class="empty-icon">✅</div>
+        <h3>¡Sin deudas pendientes!</h3>
+        <p>Este empleado no tiene órdenes pendientes de pago</p>
+        <button class="btn-secondary" (click)="goBack()">Volver a Cobranza</button>
+      </div>
 
-      <button class="btn secondary">
-        Volver a Cobranza
-      </button>
+      <!-- Tabla -->
+      <div class="table-card" *ngIf="orders.length > 0">
+        <div class="table-header">
+          <span>Orden</span>
+          <span>Fecha</span>
+          <span>Estado</span>
+          <span>Días Pendientes</span>
+          <span>Platillos</span>
+          <span>Total</span>
+          <span>Acción</span>
+        </div>
+
+        <div
+          class="table-row"
+          *ngFor="let order of orders"
+        >
+          <span class="order-id">#{{ order.orderUuid.substring(0, 8) }}</span>
+          <span class="date">{{ formatDate(order.dateCreated) }}</span>
+          <span class="order-status">
+            <span class="status-badge" [style.background-color]="getStatusColor(order.orderStatus)">
+              {{ order.orderStatus }}
+            </span>
+          </span>
+          <span class="days-pending" [class.urgent]="order.daysPending > 7">
+            {{ order.daysPending }} {{ order.daysPending === 1 ? 'día' : 'días' }}
+          </span>
+          <span class="items-count">{{ order.items.length }} items</span>
+          <span class="amount">{{ formatCurrency(order.amount) }}</span>
+
+          <button
+            class="pay-btn"
+            (click)="markAsPaid(order)"
+            [disabled]="processingPayment"
+          >
+            {{ selectedOrderUuid === order.saleUuid ? '⏳' : '✓ Pagar' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Order Items Details (Expandable) -->
+      <div class="items-details" *ngIf="orders.length > 0">
+        <h3>Detalles de Platillos</h3>
+        <div class="order-details" *ngFor="let order of orders">
+          <details>
+            <summary>
+              Orden #{{ order.orderUuid.substring(0, 8) }} - {{ order.items.length }} items
+            </summary>
+            <div class="items-list">
+              <div class="item-row" *ngFor="let item of order.items">
+                <span class="dish-name">{{ item.dishName }}</span>
+                <span class="quantity">x{{ item.quantity }}</span>
+                <span class="unit-price">{{ formatCurrency(item.unitPrice) }}</span>
+                <span class="subtotal">{{ formatCurrency(item.subtotal) }}</span>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button class="btn-secondary" (click)="goBack()">
+          ← Volver a Cobranza
+        </button>
+      </div>
+
     </div>
 
   </div>

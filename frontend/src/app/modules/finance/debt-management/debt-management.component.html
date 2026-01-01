@@ -3,83 +3,111 @@
 <div class="page-wrapper">
   <div class="content-wrapper">
 
-    <h1 class="page-title">Gestión de Empleados</h1>
+    <h1 class="page-title">Gestión de Deudores</h1>
     <p class="page-subtitle">
-      Bloquea o desbloquea empleados según su estado de cuenta.
+      Consulta empleados con deudas pendientes y gestiona sus pagos.
     </p>
 
-    <!-- BUSCADOR -->
-    <div class="search-box">
-      <input type="text" placeholder="Buscar empleado..." />
+    <!-- SUMMARY CARDS -->
+    <div class="summary-grid" *ngIf="!loading">
+      <div class="summary-card">
+        <span class="summary-label">Total Deudores</span>
+        <span class="summary-value">{{ totalDebtors }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Deuda Total</span>
+        <span class="summary-value">{{ formatCurrency(totalDebt) }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Promedio por Deudor</span>
+        <span class="summary-value">{{ totalDebtors > 0 ? formatCurrency(totalDebt / totalDebtors) : '$0' }}</span>
+      </div>
+    </div>
+
+    <!-- ERROR MESSAGE -->
+    <div *ngIf="errorMessage" class="error-banner">
+      <p>⚠️ {{ errorMessage }}</p>
+      <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
+    </div>
+
+    <!-- BUSCADOR Y FILTROS -->
+    <div class="toolbar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre de usuario..." 
+          [(ngModel)]="searchTerm"
+          (input)="filterDebtors()"
+        />
+      </div>
+
+      <div class="sort-buttons">
+        <button 
+          (click)="setSorting('name')" 
+          [class.active]="sortBy === 'name'"
+          class="sort-btn"
+        >
+          Nombre {{ sortBy === 'name' ? (sortOrder === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button 
+          (click)="setSorting('debt')" 
+          [class.active]="sortBy === 'debt'"
+          class="sort-btn"
+        >
+          Deuda {{ sortBy === 'debt' ? (sortOrder === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button 
+          (click)="setSorting('orders')" 
+          [class.active]="sortBy === 'orders'"
+          class="sort-btn"
+        >
+          Órdenes {{ sortBy === 'orders' ? (sortOrder === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando deudores...</p>
     </div>
 
     <!-- TABLA -->
-    <div class="table-card">
+    <div class="table-card" *ngIf="!loading && filteredDebtors.length > 0">
       <div class="table-header">
-        <span>Foto</span>
-        <span>Nombre</span>
-        <span>Posición</span>
-        <span>Estado</span>
+        <span>Usuario</span>
+        <span>Órdenes Pendientes</span>
+        <span>Deuda Total</span>
         <span>Acciones</span>
       </div>
 
       <div
         class="table-row"
-        *ngFor="let emp of employees"
+        *ngFor="let debtor of filteredDebtors"
       >
-        <div class="avatar">
-          <img [src]="emp.avatar" />
+        <div class="user-info">
+          <div class="avatar-circle" [style.background-color]="getAvatarColor(debtor.username)">
+            {{ getDebtorInitial(debtor.username) }}
+          </div>
+          <span class="username">{{ debtor.username }}</span>
         </div>
 
-        <span>{{ emp.name }}</span>
-        <span class="role">{{ emp.role }}</span>
-
-        <span
-          class="status"
-          [class.active]="emp.active"
-          [class.blocked]="!emp.active"
-        >
-          {{ emp.active ? 'Activo' : 'Bloqueado' }}
-        </span>
+        <span class="order-count">{{ debtor.pendingOrdersCount }}</span>
+        <span class="debt-amount" [class.high-debt]="debtor.totalPendingAmount > 50000">{{ formatCurrency(debtor.totalPendingAmount) }}</span>
 
         <button
-          class="action-link"
-          (click)="selectEmployee(emp)"
+          class="action-btn"
+          (click)="viewDebtorDetails(debtor.username)"
         >
-          {{ emp.active ? 'Bloquear' : 'Desbloquear' }}
+          Ver Detalles →
         </button>
       </div>
     </div>
 
-    <!-- BLOQUEO -->
-    <div
-      class="block-section"
-      *ngIf="selectedEmployee"
-    >
-      <h2>
-        {{ selectedEmployee.active ? 'Bloquear empleado' : 'Desbloquear empleado' }}
-      </h2>
-
-      <p class="block-subtitle">
-        Indica el motivo del bloqueo.
-      </p>
-
-      <input
-        type="text"
-        placeholder="Motivo del bloqueo"
-        [(ngModel)]="blockReason"
-        [disabled]="!selectedEmployee.active"
-      />
-
-      <div class="block-actions">
-        <button class="btn-primary" (click)="toggleEmployeeStatus()">
-          Confirmar
-        </button>
-
-        <button class="btn-secondary" (click)="cancelAction()">
-          Cancelar
-        </button>
-      </div>
+    <!-- EMPTY STATE -->
+    <div *ngIf="!loading && filteredDebtors.length === 0" class="empty-state">
+      <h3>{{ searchTerm ? 'No se encontraron resultados' : '¡Excelente!' }}</h3>
+      <p>{{ searchTerm ? 'Intenta con otro término de búsqueda' : 'No hay deudores pendientes en este momento' }}</p>
     </div>
 
   </div>

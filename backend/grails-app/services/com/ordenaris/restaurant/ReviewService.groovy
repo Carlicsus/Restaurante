@@ -26,7 +26,9 @@ class ReviewService {
         Integer offset = page * max - max
 
         def reviews = Review.createCriteria().list {
-            eq("dish.id", dishId as Long)
+            dish {
+                eq("id", dishId)
+            }
             if(query){
                 eq("rating", query as Float)
             }
@@ -44,7 +46,9 @@ class ReviewService {
             eq("dish.id", dishId as Long)
         }
         def avgRating = Review.createCriteria().get {
-            eq("dish.id", dishId as Long)
+            dish {
+                eq("id", dishId)
+            }
             projections {
                 avg("rating")
             }
@@ -53,8 +57,10 @@ class ReviewService {
         def ratingsBreakdown = [:]
         (1..5).each { rating ->
             ratingsBreakdown[rating] = Review.createCriteria().count {
-                eq("dish.id", dishId as Long)
-                eq("rating", rating)
+                dish {
+                    eq("id", dishId)
+                }
+                eq("rating", rating as Float)
             }
         }
         return [

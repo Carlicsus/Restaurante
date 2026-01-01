@@ -24,7 +24,7 @@ class ReviewController {
         return respond(response.resp, status: response.status)
     }
     def reviewsWithStats() {
-        def dishId = params.dishId
+        def dishId = params.dishId as Long
         if (!dishId) {
             return respond([success: false, mensaje: "Se requiere el identificador del platillo"], status: 400)
         }

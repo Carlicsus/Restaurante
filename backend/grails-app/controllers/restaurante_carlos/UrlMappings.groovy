@@ -115,6 +115,7 @@ class UrlMappings {
             }
             group "/review", {
                 get "/list"(controller: "review", action: "listReviews")
+                get "/stats/$dishId"(controller: "review", action: "reviewsWithStats")
                 post "/new"(controller: "review", action: "createReview")
                 group "/$uuid", {
                     delete "/delete"(controller: "review", action: "deleteReview")

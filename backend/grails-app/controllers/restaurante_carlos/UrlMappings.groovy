@@ -53,11 +53,11 @@ class UrlMappings {
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
             }
-
             group "/sale", {
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
                 get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
+                post "/orders/pay-dish"(controller: "sale", action: "paySingleDish")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
@@ -71,7 +71,6 @@ class UrlMappings {
                 }
                 get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
             }
-
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
@@ -112,6 +111,15 @@ class UrlMappings {
                     delete "/delete"(controller: "shoppingCart", action: "editStatusShoppingCart"){
                         status = "Delete"
                     }
+                }
+            }
+            group "/review", {
+                get "/list"(controller: "review", action: "listReviews")
+                get "/stats/$dishId"(controller: "review", action: "reviewsWithStats")
+                post "/new"(controller: "review", action: "createReview")
+                group "/$uuid", {
+                    delete "/delete"(controller: "review", action: "deleteReview")
+                    patch "/edit"(controller: "review", action: "editReview")
                 }
             }
         }

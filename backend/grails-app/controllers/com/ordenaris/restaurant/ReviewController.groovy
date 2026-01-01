@@ -12,15 +12,15 @@ class ReviewController {
     SpringSecurityService springSecurityService
 	
     def listReviews() {
-        def dishId = params.dishId
+        def dishId = params.dishId as Long
         def page = params.page ? params.int('page') : 1
         def max = params.max ? params.int('max') : 5
-        def query = params.query ? params.query : null
+        def rating = params.rating ? params.rating : null
 
         if (!dishId) {
             return respond([success: false, mensaje: "Se requiere el identificador del platillo"], status: 400)
         }
-        def response = reviewService.listReviews(dishId, page, max, query)
+        def response = reviewService.listReviews(dishId, page, max, rating)
         return respond(response.resp, status: response.status)
     }
     def reviewsWithStats() {

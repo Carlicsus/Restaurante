@@ -7,37 +7,36 @@ import com.ordenaris.restaurant.Dish
 @Transactional
 class ReviewService {
     def mapReview = { Review review ->
-        def obj = [
+        def obj = 
+        [
             uuid: review.uuid,
             user: [
-                uuid: review.user?.id,
                 username: review.user?.username,
-            ],
-            dish: [
-                uuid: review.dish?.uuid,
-                name: review.dish?.name
             ],
             comment: review.comment,
             rating: review.rating,
             dateCreated: review.dateCreated,
         ]
+        
     }
-    def listReviews(dishId, page, max, query) {
+    def listReviews(dishId, page, max, rating) {
         Integer offset = page * max - max
 
         def reviews = Review.createCriteria().list {
             dish {
                 eq("id", dishId)
             }
-            if(query){
-                eq("rating", query as Float)
+            if(rating){
+                eq("rating", rating as Float)
             }
             firstResult(offset)
             maxResults(max)
             order("dateCreated", "desc")
-        }.collect { review -> mapReview(review) }
+        }
+        
+        def reviewsMapper = reviews.collect { review -> mapReview(review) }
         return [
-            resp: [success: true, message: 'Reseñas listadas', reviews: reviews],
+            resp: [success: true, message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid, reviews: reviewsMapper],
             status: 200
         ]
     }

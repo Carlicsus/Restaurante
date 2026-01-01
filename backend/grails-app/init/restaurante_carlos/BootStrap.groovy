@@ -5,6 +5,8 @@ import com.ordenaris.restaurant.Dish
 import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
 import com.ordenaris.security.Role
+import com.ordenaris.schedule.Schedule
+import java.time.LocalTime
 import java.util.regex.*
 class BootStrap {
 
@@ -45,6 +47,13 @@ class BootStrap {
                 it.flush()
                 it.clear()
             }
+
+            new Schedule(
+                user: chefUser,
+                entryTime: LocalTime.of(9, 0),
+                exitTime: LocalTime.of(18, 0),
+                isWorking: true
+            ).save(flush: true)
 
             assert User.count() == 4
             assert Role.count() == 4

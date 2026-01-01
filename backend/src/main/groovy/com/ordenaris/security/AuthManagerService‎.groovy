@@ -16,15 +16,6 @@ import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.AccountExpiredException
 import org.springframework.security.authentication.CredentialsExpiredException
 
-/**
- *
- * @author ArmandodeJesus
- * @email aj.montoya@outlook.com
- * @Date 3/7/2017
- * @Copyright © Armando Montoya, 2015
- * All rights reserved
- *
- */
 @Service
 class AuthManagerService implements GrailsUserDetailsService{
 
@@ -71,7 +62,7 @@ class AuthManagerService implements GrailsUserDetailsService{
         }
 
         return new AuthManagerBean(
-            user.username,      // 🔹 SIEMPRE username real
+            user.username,     
             user.password,
             user.enabled,
             !user.accountExpired,

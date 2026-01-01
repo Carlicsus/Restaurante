@@ -12,13 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 
-/**
- *
- * @author ArmandodeJesus
- * @email aj.montoya@outlook.com
- * @Date 3/7/2017
- *
- */
 @Service
 @GrailsCompileStatic
 class CustomAuthenticationProvider implements AuthenticationProvider{

@@ -10,6 +10,7 @@ class ShoppingCartService {
     def mapShoppingCart = { ShoppingCart cart ->
     def obj = [
         id: cart.id,
+        uuid: cart.uuid,
         status: cart.status,
         dateCreated: cart.dateCreated,
         lastUpdated: cart.lastUpdated,
@@ -23,8 +24,10 @@ class ShoppingCartService {
                 uuid: item.uuid,
                 quantityDish: item.quantity,
                 unitPrice: item.unitPrice / 100,
+                dishId: item.dish?.id,
                 dish: [
                     uuid: item.dish?.uuid,
+                    id: item.dish?.id,
                     name: item.dish?.name
                 ]
             ]
@@ -178,6 +181,38 @@ def editStatusShoppingCart(data){
         }
         catch (e) {
             return [resp: [success:false, message: e.getMessage()], status: 500]
+        }
+    }
+
+    def getCartByUser(userId) {
+        try {
+            def user = User.get(userId)
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+            }
+            def shoppingCart = ShoppingCart.findByUser(user)
+            if (!shoppingCart) {
+                return [resp: [success: false, message: "El usuario no tiene un carrito de compras activo"], status: 404]
+            }
+            def formattedCart = mapShoppingCart(shoppingCart)
+            return [resp: [success: true, shoppingCart: formattedCart], status: 200]
+        }
+        catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
+        }
+    }
+
+    def shoppingCartInfo(uuid) {
+        try {
+            def shoppingCart = ShoppingCart.findByUuid(uuid)
+            if (!shoppingCart) {
+                return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
+            }
+            def formattedCart = mapShoppingCart(shoppingCart)
+            return [resp: [success: true, shoppingCart: formattedCart], status: 200]
+        }
+        catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
 }

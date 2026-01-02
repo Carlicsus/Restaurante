@@ -8,76 +8,56 @@
         <p>Consulta y filtra todos tus pedidos anteriores.</p>
     </div>
 
+    <!-- CARGANDO -->
+    <div *ngIf="loading" class="loading">
+        <p>Cargando órdenes...</p>
+    </div>
+
     <!-- FILTROS -->
-    <div class="filters">
+    <div class="filters" *ngIf="!loading">
         <div class="chips">
-            <button class="chip active">Todos</button>
-            <button class="chip">Pagados</button>
-            <button class="chip">No Pagados</button>
-            <button class="chip">En Proceso</button>
-            <button class="chip">Entregados</button>
+            <button class="chip" [class.active]="activeFilter === 'todos'" (click)="setFilter('todos')">Todos</button>
+            <button class="chip" [class.active]="activeFilter === 'pagado'"
+                (click)="setFilter('pagado')">Pagados</button>
+            <button class="chip" [class.active]="activeFilter === 'no-pagado'" (click)="setFilter('no-pagado')">No
+                Pagados</button>
+            <button class="chip" [class.active]="activeFilter === 'en-proceso'" (click)="setFilter('en-proceso')">En
+                Proceso</button>
+            <button class="chip" [class.active]="activeFilter === 'entregado'"
+                (click)="setFilter('entregado')">Entregados</button>
         </div>
 
         <div class="date-filter">
-            <input type="date" class="date-input" placeholder="Seleccionar fechas" />
-
+            <input type="date" class="date-input" [(ngModel)]="startDate" placeholder="Desde" />
+            <input type="date" class="date-input" [(ngModel)]="endDate" placeholder="Hasta" />
         </div>
     </div>
 
     <!-- LISTA DE PEDIDOS -->
-    <div class="orders">
+    <div class="orders" *ngIf="!loading">
+        <ng-container *ngIf="filteredOrders.length; else noOrders">
+            <div class="order-card" *ngFor="let order of filteredOrders">
+                <div class="order-info">
+                    <span class="status" [ngClass]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
 
-        <!-- CARD -->
-        <div class="order-card">
-            <div class="order-info">
-                <span class="status paid">Pagado</span>
+                    <h4>Pedido #{{ order.code }}</h4>
+                    <p>Fecha: {{ formatDate(order.date) }} · Monto: {{ formatCurrency(order.amount) }}</p>
 
-                <h4>Pedido #GR-12045</h4>
-                <p>Fecha: 15 de Octubre, 2023 · Monto: $14.50</p>
+                    <div class="items-summary">
+                        <span class="item-count">{{ order.items.length || 0 }} artículo(s)</span>
+                    </div>
 
-                <div class="rating">★★★★★</div>
+                    <div class="rating">{{ starString(order.rating) }}</div>
 
-                <button class="btn-secondary">Ver Detalles</button>
+                </div>
+
+                <div class="order-image" [style.backgroundImage]="'url(' + (order.imageUrl || '/img-order.jpg') + ')'">
+                </div>
             </div>
+        </ng-container>
 
-            <div class="order-image" style="background-image: url('/img-order.jpg')">
-            </div>
-        </div>
-
-        <!-- CARD -->
-        <div class="order-card">
-            <div class="order-info">
-                <span class="status unpaid">No Pagado</span>
-
-                <h4>Pedido #GR-12046</h4>
-                <p>Fecha: 16 de Octubre, 2023 · Monto: $22.75</p>
-
-                <div class="rating">★★★★☆</div>
-
-                <button class="btn-secondary">Ver Detalles</button>
-            </div>
-
-            <div class="order-image" style="background-image: url('/img-order.jpg')">
-            </div>
-        </div>
-
-        <!-- CARD -->
-        <div class="order-card">
-            <div class="order-info">
-                <span class="status process">En Proceso</span>
-
-                <h4>Pedido #GR-12047</h4>
-                <p>Fecha: 17 de Octubre, 2023 · Monto: $18.90</p>
-
-                <div class="rating">★★★★★</div>
-
-                <button class="btn-secondary">Ver Detalles</button>
-            </div>
-
-            <div class="order-image" style="background-image: url('/img-order.jpg')">
-            </div>
-        </div>
-
+        <ng-template #noOrders>
+            <p class="no-orders">No hay pedidos para mostrar.</p>
+        </ng-template>
     </div>
-
 </div>

@@ -28,6 +28,7 @@ class OrderModuleService {
                     payed: item.payed,
                     dish: [
                         uuid: item.dish?.uuid,
+                        id:item.dish?.id,
                         name: item.dish?.name
                     ]
                 ]
@@ -42,6 +43,28 @@ class OrderModuleService {
                 resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
                 status: 200
             ]
+    }
+
+    def listOrdersByUser(userId) {
+        try {
+            def user = User.get(userId)
+            if (!user) {
+                return [resp: [success: false, message: 'Usuario no encontrado'], status: 404]
+            }
+            def orders = CustomerOrder.findAllByUser(user)
+            def formattedOrders = orders.collect { order ->
+                mapOrder(order)
+            }
+            return [
+                resp: [success: true, message: 'Ordenes del usuario listadas', orders: formattedOrders],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
     }
     def newOrder(data, auth) {
         println data
@@ -135,6 +158,18 @@ class OrderModuleService {
                 resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
+        }
+    }
+
+    def orderInfo(uuid) {
+        try {
+            def order = CustomerOrder.findByUuid(uuid)
+            if (!order) {
+                return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
+            }
+            return [resp: [success: true, order: mapOrder(order)], status: 200]
+        } catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
 }

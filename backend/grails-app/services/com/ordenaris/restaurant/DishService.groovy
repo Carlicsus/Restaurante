@@ -140,6 +140,7 @@ def listDishes() {
 
         def response = [
             uuid: dish.uuid,
+            id:dish.id,
             name: dish.name,
             description: dish.description,
             cost: dish.cost,

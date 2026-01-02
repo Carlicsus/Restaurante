@@ -3,40 +3,126 @@
 <div class="page-wrapper">
   <div class="content-wrapper">
 
-    <!-- Header -->
-    <div class="header-row">
-      <div>
-        <h1>Gestión de Menús</h1>
-        <p>Crea, edita y administra los platillos.</p>
+    <!-- Tabs Navigation -->
+    <div class="tabs-container">
+      <button class="tab-btn" [class.active]="activeTab === 'menus'" (click)="setActiveTab('menus')">
+        Tipos de Menú
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'dishes'" (click)="setActiveTab('dishes')">
+        Platillos
+      </button>
+    </div>
+
+    <!-- MENUS TAB -->
+    <div *ngIf="activeTab === 'menus'" class="tab-content">
+      <div class="header-row">
+        <div>
+          <h1>Tipos de Menú</h1>
+          <p>Crea y administra los tipos de menú disponibles.</p>
+        </div>
+        <button class="create-btn" (click)="createMenuType()">
+          + Crear tipo de menú
+        </button>
       </div>
 
-      <button class="create-btn" (click)="createDish()">
-        Crear nuevo platillo
-      </button>
-    </div>
-
-    <!-- Filters -->
-    <div class="filters">
-      <button
-        *ngFor="let filter of filters"
-        (click)="setFilter(filter)"
-        [class.active]="activeFilter === filter">
-        {{ filter }}
-      </button>
-    </div>
-
-    <!-- Grid -->
-    <div class="menu-grid">
-      <div class="menu-card" *ngFor="let dish of dishes">
-        <img [src]="dish.image" [alt]="dish.name">
-
-        <div class="card-body">
-          <h4>{{ dish.name }}</h4>
-          <span class="categories">{{ dish.categories }}</span>
-          <strong>${{ dish.price }}</strong>
+      <div class="menus-container">
+        <div class="menu-item" *ngFor="let menuType of menuTypes; let i = index">
+          <div class="menu-info">
+            <h3>{{ menuType.name }}</h3>
+            <p class="menu-description">{{ menuType.dishes?.length || 0 }} platillos</p>
+          </div>
+          <div class="menu-actions">
+            <button class="btn-edit" (click)="editMenuType(i)">Editar</button>
+            <button class="btn-delete" (click)="deleteMenuType(i)">Eliminar</button>
+          </div>
         </div>
+
+        <!-- Loading State -->
+        <div class="empty-state" *ngIf="loadingMenus">
+          <p>Cargando tipos de menú...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="menuTypes.length === 0 && !loadingMenus">
+          <p>No hay tipos de menú. Crea uno para comenzar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISHES TAB -->
+    <div *ngIf="activeTab === 'dishes'" class="tab-content">
+      <div class="header-row">
+        <div>
+          <h1>Gestión de Platillos</h1>
+          <p>Crea, edita y administra los platillos.</p>
+        </div>
+        <button class="create-btn" (click)="openCreateDishModal()">
+          + Crear nuevo platillo
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <button *ngFor="let filter of dishFilters" (click)="setDishFilter(filter)"
+          [class.active]="activeDishFilter === filter">
+          {{ filter }}
+        </button>
+      </div>
+
+      <!-- Grid -->
+      <div class="menu-grid">
+        <div class="menu-card" *ngFor="let dish of getFilteredDishes()">
+          <img [src]="dish.image || 'https://via.placeholder.com/250x200?text=Sin+imagen'" [alt]="dish.name"
+            class="dish-image">
+
+          <div class="card-body">
+            <h4>{{ dish.name }}</h4>
+            <span class="categories">{{ dish.description || 'Sin descripción' }}</span>
+            <strong class="price">${{ (dish.cost / 100).toFixed(2) }}</strong>
+          </div>
+
+          <div class="card-actions">
+            <button [class.active]="dish.status === 1" (click)="toggleDishStatus(dish.uuid)"
+              [title]="dish.status === 1 ? 'Desactivar' : 'Activar'" class="btn-status">
+              {{ dish.status === 1 ? '✓' : '○' }}
+            </button>
+            <button (click)="openCloneDishModal(dish)" class="btn-clone" title="Clonar">
+              ⧂
+            </button>
+            <button (click)="editDish(dish.uuid)" class="btn-edit" title="Editar">
+              ✎
+            </button>
+            <button (click)="deleteDish(dish.uuid)" class="btn-delete" title="Eliminar">
+              🗑
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="empty-state" *ngIf="loadingDishes">
+        <p>Cargando platillos...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="getFilteredDishes().length === 0 && dishes.length > 0 && !loadingDishes">
+        <p>No hay platillos que coincidan con el filtro.</p>
+      </div>
+
+      <div class="empty-state" *ngIf="dishes.length === 0 && !loadingDishes">
+        <p>No hay platillos. Crea uno para comenzar.</p>
       </div>
     </div>
 
   </div>
 </div>
+
+<!-- Modal para crear/clonar platillos -->
+<app-dish-modal [isOpen]="isDishModalOpen" [mode]="dishModalMode" [menuTypes]="menuTypes" (close)="closeDishModal()"
+  (save)="saveDish($event)">
+</app-dish-modal>
+
+<!-- Modal para crear/clonar platillos -->
+<app-dish-modal [isOpen]="isDishModalOpen" [mode]="dishModalMode" [categories]="availableCategories"
+  (close)="closeDishModal()" (save)="saveDish($event)">
+</app-dish-modal>

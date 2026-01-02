@@ -5,7 +5,7 @@ import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 
-@Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
+@Secured(['isAuthenticated()'])
 class MenuController {
     static responseFormats = ['json', 'xml']
     def MenuService

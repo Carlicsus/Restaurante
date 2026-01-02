@@ -8,29 +8,37 @@ export class OrderService {
 
   URL_BASE = 'http://localhost:3050/backend/api';
 
-  constructor(private http:HttpClient) {  }
+  constructor(private http: HttpClient) { }
 
   getOrders() {
     return this.http.get(`${this.URL_BASE}/order/listOrders`)
   }
 
-  getOrdersUsuario(id:string){
+  getOrdersUsuario(id: string) {
     return this.http.get(`${this.URL_BASE}/order/listOrdersByUser/${id}`)
   }
 
-  createOrder(order:any){
+  getMyOrders() {
+    return this.http.get(`${this.URL_BASE}/order/myOrders`)
+  }
+
+  createOrder(order: any) {
     return this.http.post(`${this.URL_BASE}/order/newOrder`, order)
   }
 
-  prepareOrder(uuid:string){
+  prepareOrder(uuid: string) {
     return this.http.patch(`${this.URL_BASE}/order/${uuid}/prepare`, uuid)
   }
 
-  finishOrder(uuid:string){
+  finishOrder(uuid: string) {
     return this.http.patch(`${this.URL_BASE}/order/${uuid}/finish`, uuid)
   }
 
-  cancelOrder(uuid:string){
+  cancelOrder(uuid: string) {
     return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel`, uuid)
+  }
+
+  getOrder(uuid: string) {
+    return this.http.get(`${this.URL_BASE}/order/${uuid}/info`)
   }
 }

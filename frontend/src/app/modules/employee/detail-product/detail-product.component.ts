@@ -28,7 +28,7 @@ export class DetailProductComponent implements OnInit {
     private cartService: CartService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -70,9 +70,11 @@ export class DetailProductComponent implements OnInit {
 
     this.addingToCart = true;
 
-    this.cartService.getCart().subscribe({
+    // Primero intentamos obtener el carrito existente del usuario
+    this.cartService.getCartByUser().subscribe({
       next: (cartResponse: any) => {
-        const cartUuid = cartResponse.data.uuid;
+        // Si existe el carrito, agregamos el producto
+        const cartUuid = cartResponse.shoppingCart.uuid;
         const item = {
           dishId: this.dish?.id,
           quantityDish: this.quantity,
@@ -81,36 +83,41 @@ export class DetailProductComponent implements OnInit {
         this.cartService.addDish(item, cartUuid).subscribe({
           next: () => {
             this.showSuccessMessage();
+            this.addingToCart = false;
           },
           error: (error) => {
             console.error('Error adding item to cart:', error);
             alert('Error al agregar al carrito. Por favor, intente de nuevo.');
+            this.addingToCart = false;
           },
         });
       },
       error: (error: any) => {
+        // Si no existe carrito (404), lo creamos primero
         if (error.status === 404) {
-          const newCartItem = {
-            dishId: this.dish?.id,
-            quantityDish: this.quantity,
-          };
+          const newCartData = [
+            {
+              dishId: this.dish?.id,
+              quantityDish: this.quantity,
+            },
+          ];
 
-          this.cartService.create(newCartItem).subscribe({
+          this.cartService.create(newCartData).subscribe({
             next: () => {
               this.showSuccessMessage();
+              this.addingToCart = false;
             },
             error: (createError) => {
               console.error('Error creating cart:', createError);
               alert('Error al crear el carrito. Por favor, intente de nuevo.');
+              this.addingToCart = false;
             },
           });
         } else {
           console.error('Error fetching cart:', error);
           alert('Error al verificar el carrito. Por favor, intente de nuevo.');
+          this.addingToCart = false;
         }
-      },
-      complete: () => {
-        this.addingToCart = false;
       },
     });
   }

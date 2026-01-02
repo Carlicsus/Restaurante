@@ -119,13 +119,15 @@ class UrlMappings {
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
+                get "/listOrdersByUser/$id"(controller: "ordersModule", action: "listOrdersByUser")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
                     group "/edit/$uuidDish",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
                     }
                     patch "/edit"(controller: "ordersModule", action: "editOrder")
-                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
+                    //patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
+                    patch "/cancel/comment"(controller: "ordersModule", action: "cancelOrder") {
                         status = "Cancelled"
                     }
                     patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
@@ -145,6 +147,7 @@ class UrlMappings {
             }
             group "/shoppingCart", {
                 get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+                get "/listByUser/$id"(controller: "shoppingCart", action: "listOrderShoppingCartByUser")
                 post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
                 group "/$uuidSC", {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")

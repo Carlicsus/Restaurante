@@ -128,6 +128,7 @@ class UserService {
 
     private mapUser(User user) {
         return [
+            id            : user.id,
             username      : user.username,
             email         : user.email,
             enabled       : user.enabled,

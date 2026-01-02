@@ -32,3 +32,17 @@
         </form>
     </div>
 </div>
+
+<!-- Modal de error -->
+<div class="modal-backdrop" *ngIf="showErrorModal" (click)="closeErrorModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div class="warning-icon">⚠️</div>
+            <h3>{{ errorTitle }}</h3>
+        </div>
+        <p class="modal-description">{{ errorMessage }}</p>
+        <div class="modal-actions">
+            <button class="btn btn--primary" (click)="closeErrorModal()">Entendido</button>
+        </div>
+    </div>
+</div>

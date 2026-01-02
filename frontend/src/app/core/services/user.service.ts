@@ -13,8 +13,8 @@ export interface UserResponse {
 })
 export class UserService {
 
-  URL_BASE = 'http://localhost:8080/api';
-
+  URL_BASE = 'http://localhost:3050/backend/api';
+  
   constructor(private http: HttpClient) { }
 
   private getHeaders(): HttpHeaders {

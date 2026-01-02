@@ -26,11 +26,13 @@ import { DebtManagementComponent } from './modules/finance/debt-management/debt-
 import { PaymentEmployeeComponent } from './modules/finance/payment-employee/payment-employee.component';
 
 import { LandingComponent } from './modules/home/pages/landing/landing.component';
+import { AuthSuccesComponent } from './modules/auth-succes/auth-succes.component';
 
 export const routes: Routes = [
   { path:'', component: LandingComponent },
   { path:'login', component: LoginComponent },
   { path:'signup', component: SignUpComponent },
+  { path:'auth-success', component: AuthSuccesComponent },
   { path:'employee/dashboard', component: EmployeeDashboardComponent },
   { path:'employee/details/:id', component: OrderDetailsComponent},
   { path:'employee/history', component: OrderHistoryComponent},

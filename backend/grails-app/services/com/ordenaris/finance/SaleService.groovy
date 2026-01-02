@@ -458,4 +458,78 @@ class SaleService {
             ]
         }
     }
+
+    def getUserSpendingChart(startDate, endDate, userId) {
+        try {
+            def start = parseDate(startDate)
+            def end = parseDate(endDate)
+            
+            if (start > end) {
+                return [
+                    resp: [success: false, message: "La fecha de inicio no puede ser mayor a la fecha de fin"],
+                    status: 400
+                ]
+            }
+
+            // Obtener todas las ventas del usuario en el rango de fechas
+            def sales = Sale.createCriteria().list {
+                customerOrder {
+                    user {
+                        eq("id", userId)
+                    }
+                }
+                between("dateCreated", start, end)
+                order("dateCreated", "asc")
+            }
+
+            // Agrupar ventas por día
+            def dailyData = [:]
+            def totalSpent = 0
+            
+            sales.each { sale ->
+                def dateKey = new SimpleDateFormat("yyyy-MM-dd").format(sale.dateCreated)
+                if (!dailyData[dateKey]) {
+                    dailyData[dateKey] = 0
+                }
+                dailyData[dateKey] += sale.total
+                totalSpent += sale.total
+            }
+
+            // Convertir a lista ordenada para la gráfica
+            def dailyList = dailyData.collect { date, total ->
+                [
+                    date: date,
+                    total: total
+                ]
+            }.sort { it.date }
+
+            // Calcular estadísticas
+            def transactionCount = sales.size()
+            def averagePerTransaction = transactionCount > 0 ? (totalSpent / transactionCount) : 0
+            def daysWithPurchases = dailyData.size()
+            def averagePerDay = daysWithPurchases > 0 ? (totalSpent / daysWithPurchases) : 0
+
+            return [
+                resp: [
+                    success: true,
+                    data: [
+                        daily: dailyList,
+                        summary: [
+                            totalSpent: totalSpent,
+                            transactionCount: transactionCount,
+                            averagePerTransaction: averagePerTransaction,
+                            averagePerDay: averagePerDay,
+                            daysWithPurchases: daysWithPurchases
+                        ]
+                    ]
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
 }

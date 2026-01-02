@@ -30,7 +30,8 @@ class ShoppingCartService {
             ]
         }
     ]
-}
+    }
+    def scheduleService
 
     def listOrderShoppingCart() {
         try{
@@ -97,6 +98,15 @@ class ShoppingCartService {
             }
             
             if (data.status == "Finished") {
+                if (!scheduleService.isAnyChefAvailable()) {
+                    return [
+                        resp: [
+                            success: false, 
+                            message: "No se puede finalizar el pedido: La cocina está cerrada."
+                        ], 
+                        status: 409
+                    ]
+                }
                 def user = User.findById(shoppingCart.user.id) 
                 println "Hola"
 
@@ -114,7 +124,7 @@ class ShoppingCartService {
                 
                 for (item in shoppingCartItems) {
                     def orderItemEntry = new OrderItem ([
-                        customerOrder: newOrder, // Antes tenías newOrder.id (eso causaba el error)
+                        customerOrder: newOrder, 
                         dish: item.dish,
                         quantity: item.quantity,
                         unitPrice: item.unitPrice

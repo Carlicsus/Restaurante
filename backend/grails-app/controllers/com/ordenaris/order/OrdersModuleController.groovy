@@ -8,6 +8,7 @@ import grails.converters.*
 class OrdersModuleController {
 	static responseFormats = ['json']
 	def orderModuleService
+    def scheduleService
     SpringSecurityService springSecurityService
 
     private static final List<String> VALID_STATUSES = ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]
@@ -48,6 +49,12 @@ class OrdersModuleController {
             if(item.quantityDish > 5){
                 return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
             }
+        }
+        if (!scheduleService.isAnyChefAvailable()) {
+            return respond([
+                success: false, 
+                message: "Lo sentimos, la cocina está cerrada en este momento. No hay chefs disponibles."
+            ], status: 409) 
         }
         def serviceResponse = orderModuleService.newOrder(data, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status) 

@@ -80,16 +80,21 @@
                 availableDishes = data.availableDishes
             }
 
-            def response = DishService.newDish(
-                data.name,  
-                data.menuType,  
-                availableDate,  
-                data.cost.toInteger(),  
-                data.description,  
-                availableDishes?.toInteger() ?: -1
-            )
-            return respond(response.resp, status: response.status)
+         if (data.imageUrl && data.imageUrl.size() > 500) {
+            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
         }
+
+        def response = DishService.newDish(
+            data.name,  
+            data.menuType,  
+            availableDate,  
+            data.cost.toInteger(),  
+            data.description,  
+            availableDishes?.toInteger() ?: -1,
+            data.imageUrl
+        )
+        return respond(response.resp, status: response.status)
+    }
 
         def dishInfo() {  
             if (params.uuid.size() != 32) {
@@ -155,17 +160,22 @@
                 availableDishes = data.availableDishes
             }
 
-            def response = DishService.editDish(
-                data.name,
-                data.menuType,
-                availableDate,
-                data.cost.toInteger(),
-                data.description,
-                availableDishes?.toInteger() ?: -1,
-                params.uuid
-            )
-            return respond(response.resp, status: response.status)
+            if (data.imageUrl && data.imageUrl.size() > 500) {
+            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
         }
+
+        def response = DishService.editDish(
+            data.name,
+            data.menuType,
+            availableDate,
+            data.cost.toInteger(),
+            data.description,
+            availableDishes?.toInteger() ?: -1,  // Usar ?: para manejar null
+            data.imageUrl,
+            params.uuid
+        )
+        return respond(response.resp, status: response.status)
+    }
 
         def editDishStatus() {
             def response = DishService.editDishStatus(params.status, params.uuid)

@@ -137,7 +137,7 @@ def listDishes() {
         return obj
     }
 
-    def newDish(name, menuType, availableDate, cost, description, availableDishes) {
+    def newDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl) {
         try {
             def menuTypeObj = MenuType.findByUuid(menuType)
 
@@ -150,6 +150,7 @@ def listDishes() {
                 cost: (cost * 100),
                 description: description,
                 availableDishes: availableDishes,
+                imageUrl: imageUrl,
                 status: status
             ]).save(flush: true, failOnError: true)
 
@@ -200,7 +201,7 @@ def listDishes() {
         ]
     }
 
-    def editDish(name, menuType, availableDate, cost, description, availableDishes, uuid) {
+    def editDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl, uuid) {
         try {
             def dish = Dish.findByUuid(uuid)
 
@@ -226,6 +227,7 @@ def listDishes() {
             dish.cost = (cost * 100)
             dish.description = description
             dish.availableDishes = availableDishes
+            dish.imageUrl = imageUrl
 
             if (availableDishes == 0) {
                 dish.status = 0

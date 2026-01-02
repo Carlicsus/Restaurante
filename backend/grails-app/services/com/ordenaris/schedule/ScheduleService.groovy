@@ -3,7 +3,7 @@ package com.ordenaris.schedule
 import grails.gorm.transactions.Transactional
 import com.ordenaris.security.User
 import java.time.LocalTime
-
+import java.sql.Time
 @Transactional
 class ScheduleService {
 
@@ -27,8 +27,8 @@ class ScheduleService {
             schedule = new Schedule(user: user)
         }
 
-        schedule.entryTime = entry
-        schedule.exitTime = exit
+        schedule.entryTime = Time.valueOf(entry)
+        schedule.exitTime = Time.valueOf(exit)
         schedule.isWorking = isWorking
         schedule.save(failOnError: true)
 
@@ -42,12 +42,16 @@ class ScheduleService {
         }
     }
 
-    boolean isAnyChefAvailable(LocalTime now = LocalTime.now()) {
-
-        Schedule.where {
-            isWorking == true &&
-            entryTime <= now &&
-            exitTime >= now
-        }.count() > 0
+    boolean isAnyChefAvailable() {
+        
+        LocalTime nowLocal = LocalTime.now(java.time.ZoneId.of("America/Mexico_City"))
+        Time nowSql = Time.valueOf(nowLocal)
+        def count = Schedule.createCriteria().count {
+            eq("isWorking", true)
+            le("entryTime", nowSql) 
+            ge("exitTime", nowSql)  
+        }
+        
+        return count > 0
     }
 }

@@ -19,6 +19,15 @@
 
             <button class="btn btn--primary" type="submit">Iniciar sesión</button>
 
+            <div class="separator">
+                <span class="separator-text">o</span>
+            </div>
+
+            <button class="btn btn--google" type="button" (click)="loginWithGoogle()">
+                <img src="/google.png" alt="Google" class="google-icon" />
+                Continuar con Google
+            </button>
+
             <a class="forgot" href="#">Olvidaste tu contraseña?</a>
         </form>
     </div>

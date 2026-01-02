@@ -6,7 +6,7 @@ import grails.plugin.springsecurity.annotation.Secured
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.multipart.MultipartHttpServletRequest
 
-@Secured(['ROLE_ADMIN', 'ROLE_CHEF'])
+@Secured(['permitAll'])
 class PlatilloController {
     static responseFormats = ['json', 'xml']
     def DishService

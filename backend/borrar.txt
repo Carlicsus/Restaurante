@@ -1,7 +1,0 @@
-
-com.ordenaris.order
-	CustomOrder
-	OrderUtem
-
-com.ordenaris.finance
-	Sale

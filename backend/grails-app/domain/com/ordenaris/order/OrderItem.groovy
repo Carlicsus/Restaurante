@@ -7,6 +7,7 @@ class OrderItem {
     Integer unitPrice 
     Integer quantity
     Boolean status = true // true = activo, false = cancelado/removido
+    Boolean payed = false // true = pagado, false = no pagado
     Date dateCreated
     Date lastUpdated
 
@@ -20,6 +21,7 @@ class OrderItem {
         unitPrice min: 0, max: 60000, nullable: false
         quantity min: 1, nullable: false
         status nullable: false
+        payed nullable: false
         lastUpdated nullable: true
     }
 

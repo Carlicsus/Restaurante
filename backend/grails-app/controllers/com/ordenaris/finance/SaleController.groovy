@@ -5,7 +5,7 @@ import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 
-@Secured(['permitAll'])
+@Secured(['isAuthenticated()'])
 class SaleController {
     static responseFormats = ['json', 'xml']
     def saleService
@@ -33,6 +33,24 @@ class SaleController {
             return respond([success: false, message: "El UUID de la venta es inválido"], status: 400)
         }
         def response = saleService.paySingleSale(saleUuid)
+        return respond(response.resp, status: response.status)
+    }
+
+    def paySingleDish() {
+        def data = request.JSON
+        if (!data.saleUuid) {
+            return respond([success: false, message: "El UUID de la venta es obligatorio"], status: 400)
+        }
+        if (data.saleUuid.size() != 32) {
+            return respond([success: false, message: "El UUID de la venta es inválido"], status: 400)
+        }
+        if (!data.orderItemUuid) {
+            return respond([success: false, message: "El UUID del platillo es obligatorio"], status: 400)
+        }
+        if (data.orderItemUuid.size() != 32) {
+            return respond([success: false, message: "El UUID del platillo es inválido"], status: 400)
+        }
+        def response = saleService.paySingleDish(data.saleUuid, data.orderItemUuid)
         return respond(response.resp, status: response.status)
     }
 

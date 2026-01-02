@@ -1,0 +1,23 @@
+<app-navbar-admin></app-navbar-admin>
+
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Panel de Administración</h1>
+    <p class="dashboard-subtitle">Gestiona usuarios, roles y permisos del sistema</p>
+  </div>
+
+  <div class="quick-actions">
+    <h2 class="section-title">Acciones Rápidas</h2>
+    <div class="actions-grid">
+      <button class="action-btn" (click)="navigateTo('/admin/users')">
+        <img src="/control-de-acceso.png" alt="Usuarios" class="action-icon-img">
+        <span class="action-label">Gestionar Usuarios</span>
+      </button>
+
+      <button class="action-btn" (click)="navigateTo('/admin/roles')">
+        <img src="/usuario.png" alt="Roles" class="action-icon-img">
+        <span class="action-label">Gestionar Roles</span>
+      </button>
+    </div>
+  </div>
+</div>

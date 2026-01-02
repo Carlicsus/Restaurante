@@ -1,0 +1,181 @@
+<app-navbar-admin></app-navbar-admin>
+
+<div class="user-management-container">
+  <div class="header">
+    <h1 class="title">Gestión de Usuarios</h1>
+    <p class="subtitle">Administra el estado y permisos de los usuarios del sistema</p>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por usuario o email..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()">
+    </div>
+
+    <div class="filter-group">
+      <label>Estado:</label>
+      <select [(ngModel)]="filterEnabled" (change)="onFilterChange()" class="filter-select">
+        <option [ngValue]="null">Todos</option>
+        <option [ngValue]="true">Habilitados</option>
+        <option [ngValue]="false">Deshabilitados</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Bloqueo:</label>
+      <select [(ngModel)]="filterLocked" (change)="onFilterChange()" class="filter-select">
+        <option [ngValue]="null">Todos</option>
+        <option [ngValue]="false">Desbloqueados</option>
+        <option [ngValue]="true">Bloqueados</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Página:</label>
+      <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="filter-select">
+        <option [ngValue]="5">1</option>
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-container" *ngIf="!loading && users.length > 0">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th (click)="sortBy('username')" class="sortable">
+            Usuario 
+            <span class="sort-icon" *ngIf="sortColumn === 'username'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sortBy('email')" class="sortable">
+            Email
+            <span class="sort-icon" *ngIf="sortColumn === 'email'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th>Estado</th>
+          <th>Bloqueo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td data-label="Usuario">{{ user.username }}</td>
+          <td data-label="Email">{{ user.email }}</td>
+          <td data-label="Estado">
+            <span class="badge" [ngClass]="user.enabled ? 'badge-success' : 'badge-danger'">
+              {{ user.enabled ? 'Habilitado' : 'Deshabilitado' }}
+            </span>
+          </td>
+          <td data-label="Bloqueo">
+            <span class="badge" [ngClass]="user.accountLocked ? 'badge-warning' : 'badge-info'">
+              {{ user.accountLocked ? 'Bloqueado' : 'Desbloqueado' }}
+            </span>
+          </td>
+          <td data-label="Acciones" class="actions-cell">
+            <button 
+              class="action-btn btn-toggle"
+              (click)="toggleEnabled(user)"
+              [title]="user.enabled ? 'Deshabilitar' : 'Habilitar'">
+              <img [src]="user.enabled ? '/bloquear.png' : '/bloquear.png'" alt="Toggle" class="action-icon">
+            </button>
+            <button 
+              class="action-btn btn-lock"
+              (click)="toggleLocked(user)"
+              [title]="user.accountLocked ? 'Desbloquear' : 'Bloquear'">
+              <img [src]="user.accountLocked ? '/candado-abierto.png' : '/candado.png'" alt="Lock" class="action-icon">
+            </button>
+            <button 
+              class="action-btn btn-roles"
+              (click)="openRolesModal(user)"
+              title="Gestionar Roles">
+              <img src="/boton-editar.png" alt="Roles" class="action-icon">
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <p>Cargando usuarios...</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && users.length === 0">
+    <p>No se encontraron usuarios</p>
+  </div>
+
+  <div class="pagination" *ngIf="!loading && users.length > 0">
+    <button 
+      class="pagination-btn"
+      (click)="previousPage()"
+      [disabled]="currentPage === 0">
+      ← Anterior
+    </button>
+    <span class="pagination-info">
+      Página {{ currentPage + 1 }} de {{ totalPages }} ({{ totalUsers }} usuarios)
+    </span>
+    <button 
+      class="pagination-btn"
+      (click)="nextPage()"
+      [disabled]="currentPage >= totalPages - 1">
+      Siguiente →
+    </button>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-icon">{{ modalIcon }}</div>
+      <h3 class="modal-title">{{ modalTitle }}</h3>
+      <p class="modal-message">{{ modalMessage }}</p>
+      <button class="modal-btn" (click)="closeModal()">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Modal de gestión de roles -->
+  <div class="modal-backdrop" *ngIf="showRolesModal" (click)="closeRolesModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">Gestionar Roles - {{ selectedUser?.username }}</h3>
+      
+      <div class="roles-section">
+        <h4 class="section-subtitle">Roles Asignados</h4>
+        <div class="roles-list" *ngIf="userRoles.length > 0">
+          <div class="role-item" *ngFor="let role of userRoles">
+            <span class="role-badge">{{ role.authority }}</span>
+            <button class="btn-remove" (click)="removeRoleFromUser(role.id)" title="Quitar rol">
+              ❌
+            </button>
+          </div>
+        </div>
+        <p class="empty-text" *ngIf="userRoles.length === 0">No tiene roles asignados</p>
+      </div>
+
+      <div class="roles-section">
+        <h4 class="section-subtitle">Asignar Nuevo Rol</h4>
+        <div class="assign-role-form">
+          <select [(ngModel)]="selectedRoleId" class="role-select">
+            <option [ngValue]="null">Seleccionar rol...</option>
+            <option *ngFor="let role of availableRoles" [ngValue]="role.id">
+              {{ role.authority }}
+            </option>
+          </select>
+          <button 
+            class="btn-assign" 
+            (click)="assignRoleToUser()"
+            [disabled]="!selectedRoleId || loadingRoles">
+            Asignar
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeRolesModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,6 +3,7 @@ package restaurante_carlos
 class UrlMappings {
 
     static mappings = {
+        
         group "/api",{
             group "/menu", {
                 group "/type", {
@@ -52,12 +53,56 @@ class UrlMappings {
             }
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
+                get "/view"(controller: "user", action: "paginateUsers")
+
+                patch "/enable/$username"(controller: "user", action: "setEnabled"){
+                    enable=true
+                }
+                patch "/disable/$username"(controller: "user", action: "setEnabled"){
+                    enable=false
+                }
+
+                patch "/lock/$username"(controller: "user", action: "setLocked"){
+                    lock=true
+                }
+                patch "/unlock/$username"(controller: "user", action: "setLocked"){
+                    lock=false
+                }
+
+                get "/me/photo"(controller: "user", action: "myPhoto") 
+                post "/me/photo"(controller: "user", action: "uploadPhoto") 
+
             }
 
+            group "/role", {
+
+                get "/"(controller: "role", action: "index")
+                get "/$id"(controller: "role", action: "show")
+
+                post "/"(controller: "role", action: "save")
+                put "/$id"(controller: "role", action: "update")
+                delete "/$id"(controller: "role", action: "delete")
+            }
+
+            group "/user-role", {
+
+                // Obtener todos los roles de un usuario
+                get "/user/$userId"(controller: "userRole", action: "getRolesByUser")
+
+                // Asignar un rol a un usuario
+                post "/"(controller: "userRole", action: "assignRole")
+
+                // Cambiar un rol por otro
+                put "/"(controller: "userRole", action: "updateRole")
+
+                // Eliminar un rol a un usuario
+                delete "/"(controller: "userRole", action: "removeRole")
+            }
             group "/sale", {
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
                 get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
+                post "/orders/pay-dish"(controller: "sale", action: "paySingleDish")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
@@ -71,7 +116,6 @@ class UrlMappings {
                 }
                 get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
             }
-
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
@@ -117,8 +161,26 @@ class UrlMappings {
                     }
                 }
             }
+            group "/review", {
+                get "/list"(controller: "review", action: "listReviews")
+                get "/stats/$dishId"(controller: "review", action: "reviewsWithStats")
+                post "/new"(controller: "review", action: "createReview")
+                group "/$uuid", {
+                    delete "/delete"(controller: "review", action: "deleteReview")
+                    patch "/edit"(controller: "review", action: "editReview")
+                }
+            }
+
+            group "/schedule", {
+                get "/"(controller: "schedule", action: "index")
+                post "/"(controller: "schedule", action: "save")
+                get "/is-open"(controller: "schedule", action: "isOpen")
+                delete "/$id"(controller: "schedule", action: "delete")
+                get "/$id"(controller: "schedule", action: "show")
+            }
         }
         "/"(controller: 'application', action:'index')
+        "401"(controller: "application", action: "unauthorized")
         "500"(view: '/error')
         "404"(view: '/notFound')
     }

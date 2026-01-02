@@ -1,1 +1,53 @@
-<p>chef-dashboard works!</p>
+<app-navbar-chef></app-navbar-chef>
+
+<div class="dashboard-wrapper">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>Hola, Chef</h1>
+    <p>Administra pedidos, menús y órdenes en proceso.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span>Pedidos del Día</span>
+      <strong>{{ stats.pedidosDia }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>En Preparación</span>
+      <strong>{{ stats.enPreparacion }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Listos para Entregar</span>
+      <strong>{{ stats.listos }}</strong>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="orders-section">
+    <h2>Órdenes de Hoy</h2>
+
+    <div class="order-item" *ngFor="let order of orders">
+      <div class="order-info">
+        <h4>Pedido #{{ order.id }}</h4>
+        <p>{{ order.items }}</p>
+        <span>{{ order.time }}</span>
+      </div>
+
+      <button class="btn-light" (click)="markAsReady(order.id)">
+        Marcar como listo
+      </button>
+    </div>
+  </div>
+
+  <!-- Action -->
+  <div class="dashboard-action">
+    <button class="btn-primary" (click)="goToMenus()">
+      Gestionar Menús
+    </button>
+  </div>
+
+</div>

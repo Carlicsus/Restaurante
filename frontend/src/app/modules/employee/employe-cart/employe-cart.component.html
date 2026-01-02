@@ -1,0 +1,66 @@
+<app-navbar-employee></app-navbar-employee>
+
+<div class="cart-page" *ngIf="!loading">
+
+  <h1 class="cart-title">Mi Carrito</h1>
+
+  <div class="cart-layout">
+
+    <div class="cart-items">
+
+      <div
+        class="cart-item"
+        *ngFor="let item of cartItems; let i = index">
+
+        <img class="imagenP" src="/img-dashEm.jpg" alt="producto" />
+
+        <div class="item-info">
+          <h4>{{ item.name }}</h4>
+          <span class="item-price">
+            {{ formatCurrency(item.price) }}
+          </span>
+        </div>
+
+        <div class="item-qty">
+          <button (click)="decreaseQuantity(i)">−</button>
+          <span>{{ item.quantity }}</span>
+          <button (click)="increaseQuantity(i)">+</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="cart-summary">
+
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>{{ formatCurrency(subtotal) }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Descuento de empleado</span>
+        <span>-{{ formatCurrency(5) }}</span>
+      </div>
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>{{ formatCurrency(total) }}</span>
+      </div>
+
+      <button class="btn-primary" (click)="proceedToCheckout()">
+        Confirmar Pedido
+      </button>
+
+      <button class="btn-secondary" (click)="goToMenu()">
+        Seguir explorando menú
+      </button>
+
+      <p class="cart-note">
+        Puedes editar tu pedido mientras no esté en proceso
+      </p>
+
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<app-navbar-employee></app-navbar-employee>
+<div class="product-detail-container">
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando producto...</p>
+  </div>
+
+  <div *ngIf="!loading && dish" class="product-detail">
+    <nav class="breadcrumb">
+      <a routerLink="/employee/complete-menu" class="breadcrumb-link">Menú Completo</a>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-current">{{ dish.name }}</span>
+    </nav>
+
+    <div class="product-content">
+      <div class="product-images">
+        <div class="main-image">
+          <!--<img [src]="dish.imageUrl || '/assets/img/placeholder-dish.jpg'" [alt]="dish.name"> -->
+        </div>
+      </div>
+
+      <div class="product-info">
+        <div class="product-header">
+          <h1 class="product-title">{{ dish.name }}</h1>
+          <div class="product-price">{{ formatPrice(dish.cost) }}</div>
+        </div>
+
+        <div class="product-description">
+          <p>{{ dish.description || 'No hay descripción disponible.' }}</p>
+        </div>
+
+        <div class="quantity-selector">
+          <button (click)="decreaseQuantity()" class="quantity-btn">-</button>
+          <span class="quantity">{{ quantity }}</span>
+          <button (click)="increaseQuantity()" class="quantity-btn">+</button>
+        </div>
+
+        <button (click)="addToCart()" class="add-to-cart-btn">
+          Añadir al carrito
+        </button>
+
+        <!-- Additional Info
+        <div class="additional-info">
+          <div class="info-item" *ngIf="dish.availableDishes !== undefined">
+            <span class="info-label">Disponibles:</span>
+            <span class="info-value" [class.out-of-stock]="dish.availableDishes === 0">
+              {{ dish.availableDishes === -1 ? 'Disponible' : dish.availableDishes }}
+            </span>
+          </div>
+          <div class="info-item" *ngIf="dish.availableDate">
+            <span class="info-label">Disponible hasta:</span>
+            <span class="info-value">{{ dish.availableDate | date:'mediumDate' }}</span>
+          </div>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && !dish" class="error-state">
+    <p>No se pudo cargar la información del platillo. Por favor, intente de nuevo más tarde.</p>
+    <button routerLink="/employee/complete-menu" class="back-btn">Volver al menú</button>
+  </div>
+</div>

@@ -25,6 +25,7 @@ class OrderModuleService {
                     uuid: item.uuid,
                     quantityDish: item.quantity,
                     unitPrice: item.unitPrice / 100,
+                    payed: item.payed,
                     dish: [
                         uuid: item.dish?.uuid,
                         name: item.dish?.name

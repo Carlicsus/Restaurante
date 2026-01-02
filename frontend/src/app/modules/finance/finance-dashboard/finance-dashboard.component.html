@@ -1,1 +1,65 @@
-<p>finance-dashboard works!</p>
+<app-navbar-finance></app-navbar-finance>
+<div class="page-wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Panel de Finanzas</h1>
+    <p>Gestiona adeudos, pagos y empleados.</p>
+  </div>
+
+  <!-- ERROR MESSAGE -->
+  <div *ngIf="hasError" class="error-banner">
+    <p>{{ errorMessage }}</p>
+    <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats" [class.loading]="stat.loading">
+      <span class="stat-title">{{ stat.title }}</span>
+      <strong class="stat-value" *ngIf="!stat.loading">{{ stat.value }}</strong>
+      <div class="loading-spinner" *ngIf="stat.loading"></div>
+      <span
+        class="stat-change"
+        [class.positive]="stat.positive"
+        [class.negative]="!stat.positive"
+      >
+        {{ stat.change }}
+      </span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-grid">
+
+    <!-- GRÁFICO DE BARRAS -->
+    <div class="chart-card">
+      <div id="debtorsBarChart" style="width: 100%; height: 400px;"></div>
+    </div>
+
+    <!-- GRÁFICO DE PASTEL -->
+    <div class="chart-card">
+      <div id="debtorsPieChart" style="width: 100%; height: 400px;"></div>
+    </div>
+
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions-section">
+    <div class="summary-card">
+      <h3>Resumen General</h3>
+      <p>Análisis de ingresos y gastos</p>
+      <span class="status">Actividad Financiera</span>
+
+      <div class="action-buttons">
+        <button class="primary-btn" (click)="goToDebtManagement()">
+          Ver Deudores
+        </button>
+
+        <button class="secondary-btn" (click)="goToPaymentManagement()">
+          Gestionar Pagos
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

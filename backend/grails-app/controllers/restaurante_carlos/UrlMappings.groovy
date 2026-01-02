@@ -30,6 +30,7 @@ class UrlMappings {
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
                 get "/view"(controller: "platillo", action: "paginateDishes")  
+                get "/chart-top-dishes"(controller: "platillo", action: "topDishesChart")
                 group "/$uuid", {
                     get "/info"(controller: "platillo", action: "dishInfo"){
                         status = 1
@@ -49,7 +50,15 @@ class UrlMappings {
                     delete "/delete"(controller: "platillo", action: "editDishStatus") {
                         status = 2
                     }
+                    // Imagen: subida y borrado (protegidos) 
+                    post "/upload-image"(controller: "platillo", action: "uploadDishImage")
+                    delete "/image"(controller: "platillo", action: "deleteDishImage")
                 }
+            }
+
+            // Imagen: descarga pública
+            group "/images", {
+                get "/$fileName"(controller: "platillo", action: "downloadDishImage")
             }
             group "/user", {  
                 post "/register"(controller: "user", action: "register")

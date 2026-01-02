@@ -9,6 +9,7 @@ import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.userdetails.GrailsUser
 
 import java.nio.file.Files
+import org.springframework.web.multipart.MultipartHttpServletRequest
 
 class UserController {
 	static responseFormats = ['json', 'xml']
@@ -88,7 +89,10 @@ class UserController {
     @Secured(['isAuthenticated()'])
     def uploadPhoto() {
 
-        def file = request.getFile('file')
+        def file = null
+        if (request instanceof MultipartHttpServletRequest) {
+            file = ((MultipartHttpServletRequest) request).getFile('file')
+        }
         GrailsUser principal =
                 springSecurityService.principal as GrailsUser
 

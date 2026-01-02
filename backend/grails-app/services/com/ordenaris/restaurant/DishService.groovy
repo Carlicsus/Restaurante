@@ -3,6 +3,11 @@ package com.ordenaris.restaurant
 import grails.gorm.transactions.Transactional
 import com.ordenaris.order.OrderItem
 import java.util.Calendar
+import org.springframework.web.multipart.MultipartFile
+import grails.util.Holders
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 @Transactional
 class DishService {
@@ -331,6 +336,83 @@ def listDishes() {
         }
 
 
+    }
+
+    // ================= MANEJO DE IMÁGENES =================
+    
+    private String basePath = Holders.config.app.upload.basePath as String
+    private static final List<String> ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+    private static final long MAX_SIZE = 2 * 1024 * 1024 // 2MB
+
+    void saveDishImage(Dish dish, MultipartFile file) {
+        validateFile(file)
+
+        Path dishDir = Paths.get(basePath, 'dish')
+        Files.createDirectories(dishDir)
+
+        String extension = extractExtension(file.originalFilename)
+        String filename = "dish_${dish.uuid}${extension}"
+
+        Path targetPath = dishDir.resolve(filename)
+
+        file.transferTo(targetPath.toFile())
+
+        dish.imageUrl = "dish/${filename}"
+        dish.save(flush: true)
+    }
+
+    File resolveDishImage(Dish dish) {
+        if (dish.imageUrl) {
+            Path p = Paths.get(basePath, dish.imageUrl)
+            if (Files.exists(p)) {
+                return p.toFile()
+            }
+        }
+
+        // Imagen por defecto
+        return Paths.get(basePath, 'dish', 'default.jpg').toFile()
+    }
+
+    File resolveDishImageByFileName(String fileName) {
+        Path imagePath = Paths.get(basePath, 'dish', fileName)
+        
+        if (Files.exists(imagePath)) {
+            return imagePath.toFile()
+        }
+
+        // Imagen por defecto
+        return Paths.get(basePath, 'dish', 'default.jpg').toFile()
+    }
+
+    void deleteDishImage(Dish dish) {
+        if (dish.imageUrl) {
+            Path imagePath = Paths.get(basePath, dish.imageUrl)
+            if (Files.exists(imagePath)) {
+                Files.delete(imagePath)
+            }
+            dish.imageUrl = null
+            dish.save(flush: true)
+        }
+    }
+
+    // ================= UTILIDADES =================
+
+    private void validateFile(MultipartFile file) {
+        if (!file || file.empty) {
+            throw new IllegalArgumentException("Archivo requerido")
+        }
+
+        if (!ALLOWED_TYPES.contains(file.contentType)) {
+            throw new IllegalArgumentException("Tipo de imagen no permitido")
+        }
+
+        if (file.size > MAX_SIZE) {
+            throw new IllegalArgumentException("La imagen excede 2MB")
+        }
+    }
+
+    private String extractExtension(String filename) {
+        return filename.substring(filename.lastIndexOf('.')).toLowerCase()
     }
 
 }

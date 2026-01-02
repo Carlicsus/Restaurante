@@ -32,14 +32,27 @@
 
     <div class="order-item" *ngFor="let order of orders">
       <div class="order-info">
-        <h4>Pedido #{{ order.id }}</h4>
+        <div class="order-header">
+          <h4>Pedido #{{ order.id }}</h4>
+          <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+            {{ getStatusLabel(order.status) }}
+          </span>
+        </div>
         <p>{{ order.items }}</p>
-        <span>{{ order.time }}</span>
+        <span class="order-time">{{ order.time }}</span>
       </div>
 
-      <button class="btn-light" (click)="markAsReady(order.id)">
-        Marcar como listo
-      </button>
+      <div class="order-actions">
+        <button class="btn-primary" (click)="markAsInProcess(order.id)" [disabled]="order.status === 'en_proceso'">
+          En Proceso
+        </button>
+        <button class="btn-success" (click)="markAsFinished(order.id)" [disabled]="order.status === 'finalizada'">
+          Finalizada
+        </button>
+        <button class="btn-danger" (click)="markAsCanceled(order.id)" [disabled]="order.status === 'cancelada'">
+          Cancelada
+        </button>
+      </div>
     </div>
   </div>
 

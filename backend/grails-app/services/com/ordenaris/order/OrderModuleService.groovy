@@ -28,6 +28,7 @@ class OrderModuleService {
                     payed: item.payed,
                     dish: [
                         uuid: item.dish?.uuid,
+                        id:item.dish?.id,
                         name: item.dish?.name
                     ]
                 ]
@@ -491,6 +492,17 @@ class OrderModuleService {
                 resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
+        }
+    }
+        def orderInfo(uuid) {
+        try {
+            def order = CustomerOrder.findByUuid(uuid)
+            if (!order) {
+                return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
+            }
+            return [resp: [success: true, order: mapOrder(order)], status: 200]
+        } catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
 }

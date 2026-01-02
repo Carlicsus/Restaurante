@@ -20,16 +20,20 @@ class OrdersModuleController {
     }
 
     def listOrdersByUser(){
-        def data = [
-            id: auth.id,
-            max: params.max,
-            offset: params.offset,
-            sort: params.sort,
-            order: params.order,
-            status: params.status,
-            query: params.query
-        ]
-        def serviceResponse = orderModuleService.listOrdersByUser(data)
+        def userId = params.userId
+        if (!userId) {
+            return respond([success: false, message: "Falta el ID del usuario"], status: 400)
+        }
+        def serviceResponse = orderModuleService.listOrdersByUser(userId)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    def getMyOrders(){
+        def auth = springSecurityService.principal
+        if (!auth || !auth.id) {
+            return respond([success: false, message: "Usuario no autenticado"], status: 401)
+        }
+        def serviceResponse = orderModuleService.listOrdersByUser(auth.id)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
@@ -183,6 +187,13 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.cancelRejection(rejectionUuid, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
-  
+  def orderInfo(){
+        def uuid = params.uuidOrder
+        if (!uuid) {
+            return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
+        }
+        def serviceResponse = orderModuleService.orderInfo(uuid)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
     
 }

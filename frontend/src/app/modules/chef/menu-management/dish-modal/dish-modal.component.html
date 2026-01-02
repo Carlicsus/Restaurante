@@ -1,0 +1,43 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ mode === 'create' ? 'Crear nuevo platillo' : 'Clonar platillo' }}</h2>
+            <button class="close-btn" (click)="closeModal()">×</button>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="modal-form">
+            <div class="form-group">
+                <label for="name">Nombre del platillo *</label>
+                <input id="name" type="text" [(ngModel)]="form.name" name="name" placeholder="Ej: Ensalada de quinoa"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" [(ngModel)]="form.description" name="description"
+                    placeholder="Descripción del platillo" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="cost">Costo (en centavos) *</label>
+                <input id="cost" type="number" [(ngModel)]="form.cost" name="cost" step="1" min="0"
+                    placeholder="1299 (= $12.99)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="menuType">Tipo de Menú *</label>
+                <select id="menuType" [(ngModel)]="form.menuType" name="menuType" required>
+                    <option value="">-- Selecciona un tipo de menú --</option>
+                    <option *ngFor="let menu of menuTypes" [value]="menu.uuid">
+                        {{ menu.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+                <button type="submit" class="btn-save">{{ mode === 'create' ? 'Crear' : 'Clonar' }}</button>
+            </div>
+        </form>
+    </div>
+</div>

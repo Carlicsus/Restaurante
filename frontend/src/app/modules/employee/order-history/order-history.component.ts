@@ -1,20 +1,30 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NavbarEmployeeComponent } from '../../../shared/navbar-employee/navbar-employee.component';
+import { OrderService } from '../../../core/services/order.service';
 
 type OrderStatus = 'pagado' | 'no-pagado' | 'en-proceso' | 'entregado';
 type HistoryFilter = 'todos' | OrderStatus;
 
+interface OrderItem {
+  uuid: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+}
+
 interface OrderSummary {
-  id: number;
-  code: string; // e.g. GR-12045
+  id: string;
+  uuid: string;
+  code: string;
   status: OrderStatus;
-  date: string; // ISO date string
+  date: string;
   amount: number;
-  rating: number; // 0-5
+  rating: number;
   imageUrl: string;
+  items: OrderItem[];
 }
 
 @Component({
@@ -24,51 +34,55 @@ interface OrderSummary {
   templateUrl: './order-history.component.html',
   styleUrl: './order-history.component.css'
 })
-export class OrderHistoryComponent {
+export class OrderHistoryComponent implements OnInit {
+  private router = inject(Router);
+  private orderService = inject(OrderService);
+
   activeFilter: HistoryFilter = 'todos';
-  startDate?: string; // yyyy-MM-dd
-  endDate?: string;   // yyyy-MM-dd
+  startDate?: string;
+  endDate?: string;
+  orders: OrderSummary[] = [];
+  loading = true;
 
-  orders: OrderSummary[] = [
-    {
-      id: 12045,
-      code: 'GR-12045',
-      status: 'pagado',
-      date: '2023-10-15',
-      amount: 14.5,
-      rating: 4,
-      imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=640&q=80&auto=format&fit=crop'
-    },
-    {
-      id: 12048,
-      code: 'GR-12048',
-      status: 'no-pagado',
-      date: '2023-10-16',
-      amount: 22.75,
-      rating: 3,
-      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=640&q=80&auto=format&fit=crop'
-    },
-    {
-      id: 12047,
-      code: 'GR-12047',
-      status: 'en-proceso',
-      date: '2023-10-17',
-      amount: 18.9,
-      rating: 4,
-      imageUrl: 'https://images.unsplash.com/photo-1545229224-1f34f2ecb1ea?w=640&q=80&auto=format&fit=crop'
-    },
-    {
-      id: 12049,
-      code: 'GR-12049',
-      status: 'entregado',
-      date: '2023-10-18',
-      amount: 11.2,
-      rating: 4,
-      imageUrl: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?w=640&q=80&auto=format&fit=crop'
-    }
-  ];
+  ngOnInit(): void {
+    this.loadOrders();
+  }
 
-  constructor(private router: Router) {}
+  private loadOrders(): void {
+    // Obtener las órdenes del usuario autenticado usando el token
+    this.orderService.getMyOrders().subscribe({
+      next: (res: any) => {
+        const orders = res?.resp?.orders || res?.orders || [];
+        this.orders = orders.map((o: any) => {
+          const items = o.orderItems || o.items || [];
+          const total = items.reduce((sum: number, item: any) => sum + ((item.unitPrice || 0) * (item.quantity || 1)), 0);
+
+          return {
+            id: o.uuid,
+            uuid: o.uuid,
+            code: o.uuid ? o.uuid.substring(0, 8).toUpperCase() : 'N/A',
+            status: mapStatus(o.status),
+            date: o.dateCreated || new Date().toISOString(),
+            amount: total,
+            rating: 0,
+            imageUrl: '',
+            items: items.map((item: any) => ({
+              uuid: item.uuid,
+              name: item.dish?.name || 'Platillo',
+              unitPrice: item.unitPrice || 0,
+              quantity: item.quantity || 1
+            }))
+          };
+        });
+        console.log('Órdenes cargadas:', this.orders);
+        this.loading = false;
+      },
+      error: (err: any) => {
+        console.error('Error loading orders:', err);
+        this.loading = false;
+      }
+    });
+  }
 
   setFilter(filter: HistoryFilter) {
     this.activeFilter = filter;
@@ -83,7 +97,7 @@ export class OrderHistoryComponent {
         const beforeEnd = this.endDate ? date <= new Date(this.endDate) : true;
         return matchesFilter && afterStart && beforeEnd;
       })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   statusLabel(status: OrderStatus): string {
@@ -92,28 +106,49 @@ export class OrderHistoryComponent {
       case 'no-pagado': return 'No Pagado';
       case 'en-proceso': return 'En Proceso';
       case 'entregado': return 'Entregado';
+      default: return 'Desconocido';
     }
   }
 
   statusClass(status: OrderStatus): string {
-    return {
+    const classMap: { [key in OrderStatus]: string } = {
       'pagado': 'status-badge paid',
       'no-pagado': 'status-badge unpaid',
       'en-proceso': 'status-badge processing',
       'entregado': 'status-badge delivered',
-    }[status];
+    };
+    return classMap[status] || 'status-badge';
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount / 100);
   }
 
   formatDate(iso: string): string {
-    const d = new Date(iso);
-    return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }).format(d);
+    try {
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }).format(d);
+    } catch {
+      return 'Fecha no disponible';
+    }
+  }
+
+  starString(rating?: number): string {
+    const r = Math.min(5, rating || 0);
+    return '★'.repeat(r) + '☆'.repeat(5 - r);
   }
 
   viewDetails(order: OrderSummary) {
-    this.router.navigate(['/employee/order-details', order.id]);
+    this.router.navigate(['/employee/order-details', order.uuid]);
+  }
+}
+
+function mapStatus(s: string): OrderStatus {
+  switch (s) {
+    case 'Queue': return 'en-proceso';
+    case 'Preparing': return 'en-proceso';
+    case 'Finished': return 'entregado';
+    case 'Cancelled': return 'no-pagado';
+    default: return 'no-pagado';
   }
 }

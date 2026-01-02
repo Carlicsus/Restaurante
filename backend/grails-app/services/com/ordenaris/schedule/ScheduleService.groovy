@@ -44,10 +44,10 @@ class ScheduleService {
 
     boolean isAnyChefAvailable() {
         
-        LocalTime nowLocal = LocalTime.now()
-        
+        LocalTime nowLocal = LocalTime.now(java.time.ZoneId.of("America/Mexico_City"))
         Time nowSql = Time.valueOf(nowLocal)
-
+        println "1. Hora detectada por Java (LocalTime): ${nowLocal}"
+        println "2. Hora convertida para SQL (Time):     ${nowSql}"
         def count = Schedule.createCriteria().count {
             eq("isWorking", true)
             le("entryTime", nowSql) 

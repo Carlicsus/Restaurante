@@ -113,6 +113,54 @@
     box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.08);
 }
 
+.separator {
+    position: relative;
+    text-align: center;
+    margin: 0.5rem 0;
+}
+
+.separator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+}
+
+.separator-text {
+    position: relative;
+    display: inline-block;
+    padding: 0 1rem;
+    background: var(--white);
+    color: #9aa7c3;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.btn--google {
+    background: var(--white);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+}
+
+.btn--google:hover {
+    background: var(--bg);
+    border-color: var(--accent);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
 .forgot {
     display: block;
     text-align: center;

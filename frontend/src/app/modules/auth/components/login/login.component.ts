@@ -31,4 +31,8 @@ export class LoginComponent {
       }
     });
   }
+
+  loginWithGoogle() {
+    window.location.href = 'http://localhost:3050/backend/oauth/authenticate/google';
+  }
 }

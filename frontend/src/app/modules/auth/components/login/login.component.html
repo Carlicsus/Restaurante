@@ -19,7 +19,30 @@
 
             <button class="btn btn--primary" type="submit">Iniciar sesión</button>
 
+            <div class="separator">
+                <span class="separator-text">o</span>
+            </div>
+
+            <button class="btn btn--google" type="button" (click)="loginWithGoogle()">
+                <img src="/google.png" alt="Google" class="google-icon" />
+                Continuar con Google
+            </button>
+
             <a class="forgot" href="#">Olvidaste tu contraseña?</a>
         </form>
+    </div>
+</div>
+
+<!-- Modal de error -->
+<div class="modal-backdrop" *ngIf="showErrorModal" (click)="closeErrorModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div class="warning-icon">⚠️</div>
+            <h3>{{ errorTitle }}</h3>
+        </div>
+        <p class="modal-description">{{ errorMessage }}</p>
+        <div class="modal-actions">
+            <button class="btn btn--primary" (click)="closeErrorModal()">Entendido</button>
+        </div>
     </div>
 </div>

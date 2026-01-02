@@ -33,11 +33,23 @@ class ShoppingCartService {
             ]
         }
     ]
-}
+    }
+    def scheduleService
 
     def listOrderShoppingCart() {
         try{
             def shoppingCarts = ShoppingCart.list()
+            def formattedCarts = shoppingCarts.collect { cart -> mapShoppingCart(cart) }
+            return [resp: [success: true, shoppingCarts: formattedCarts], status: 200]    
+        }
+        catch (e) {
+            return [resp: [success:false, message: e.getMessage()], status: 500]
+        }
+    }
+    def listOrderShoppingCartByUser(data) {
+        try{
+            def user = User.get(data.id)
+            def shoppingCarts = ShoppingCart.findAllByUser(user)
             def formattedCarts = shoppingCarts.collect { cart -> mapShoppingCart(cart) }
             return [resp: [success: true, shoppingCarts: formattedCarts], status: 200]    
         }
@@ -74,7 +86,7 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }       
     }
-def editStatusShoppingCart(data){
+    def editStatusShoppingCart(data){
         try {
             def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
             println shoppingCart
@@ -89,6 +101,15 @@ def editStatusShoppingCart(data){
             }
             
             if (data.status == "Finished") {
+                if (!scheduleService.isAnyChefAvailable()) {
+                    return [
+                        resp: [
+                            success: false, 
+                            message: "No se puede finalizar el pedido: La cocina está cerrada."
+                        ], 
+                        status: 409
+                    ]
+                }
                 def user = User.findById(shoppingCart.user.id) 
                 println "Hola"
 
@@ -106,7 +127,7 @@ def editStatusShoppingCart(data){
                 
                 for (item in shoppingCartItems) {
                     def orderItemEntry = new OrderItem ([
-                        customerOrder: newOrder, // Antes tenías newOrder.id (eso causaba el error)
+                        customerOrder: newOrder, 
                         dish: item.dish,
                         quantity: item.quantity,
                         unitPrice: item.unitPrice

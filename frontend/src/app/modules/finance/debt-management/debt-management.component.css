@@ -6,7 +6,7 @@
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 80px 80px;
+  padding: 100px 80px;
   font-family: 'Inter', sans-serif;
 }
 
@@ -170,7 +170,7 @@
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr 1fr;
+  grid-template-columns: 2fr 1fr 1.5fr 2fr;
   align-items: center;
   padding: 16px 20px;
   gap: 12px;
@@ -231,6 +231,46 @@
   color: #dc2626;
 }
 
+/* ACTIONS GROUP */
+.actions-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lock-btn {
+  background: #f97316;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lock-btn:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+.lock-btn.locked {
+  background: #22c55e;
+}
+
+.lock-btn.locked:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.lock-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .action-btn {
   background: #2563eb;
   color: white;
@@ -272,14 +312,42 @@
 }
 
 /* RESPONSIVE */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    padding: 80px 40px;
+  }
+}
+
 @media (max-width: 768px) {
+  .content-wrapper {
+    padding: 80px 20px 40px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+
   .summary-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+
+  .summary-value {
+    font-size: 20px;
   }
 
   .toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .search-box input {
@@ -289,12 +357,25 @@
   .sort-buttons {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .sort-btn {
+    flex: 1;
+    min-width: calc(33.333% - 4px);
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .table-card {
+    overflow-x: auto;
   }
 
   .table-header,
   .table-row {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 12px;
   }
 
   .table-header {
@@ -302,6 +383,70 @@
   }
 
   .table-row {
-    padding: 20px;
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .user-info {
+    margin-bottom: 8px;
+  }
+
+  .actions-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .lock-btn,
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 70px 16px 32px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .summary-card {
+    padding: 14px;
+  }
+
+  .summary-label {
+    font-size: 12px;
+  }
+
+  .summary-value {
+    font-size: 18px;
+  }
+
+  .search-box input {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .sort-btn {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .username {
+    font-size: 13px;
+  }
+
+  .lock-btn,
+  .action-btn {
+    padding: 10px 16px;
+    font-size: 12px;
   }
 }

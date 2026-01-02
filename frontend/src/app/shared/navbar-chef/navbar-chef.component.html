@@ -1,19 +1,22 @@
 <nav>
   <div class="nav-container">
 
-    <div class="imagen">
+    <div class="imagen" (click)="toggleMobileMenu()">
       <img class="brand-logo" src="/logo.png" alt="Restaurante logo" />
     </div>
 
-    <div class="options">
+    <div class="options" [class.show-mobile]="showMobileMenu">
       <ul>
         <li><button routerLink="/chef/dashboard">Inicio</button></li>
         <li><button routerLink="/chef/menu-management">Menú</button></li>
       </ul>
     </div>
 
-    <div class="perfil">
+    <div class="perfil" (click)="toggleProfileMenu()">
       <img src="/fperfil.jpg" alt="Perfil">
+      <div class="profile-dropdown" *ngIf="showProfileMenu">
+        <button (click)="logout()">Cerrar Sesión</button>
+      </div>
     </div>
 
   </div>

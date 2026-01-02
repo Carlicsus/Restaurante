@@ -20,15 +20,21 @@ import { CloneSaucerComponent } from './modules/chef/clone-saucer/clone-saucer.c
 //finance
 import { FinanceDashboardComponent } from './modules/finance/finance-dashboard/finance-dashboard.component';
 import { DebtManagementComponent } from './modules/finance/debt-management/debt-management.component';
-import { PaymentManagementComponent } from './modules/finance/payment-management/payment-management.component';
 import { PaymentEmployeeComponent } from './modules/finance/payment-employee/payment-employee.component';
 
+//admin
+import { AdminDashboardComponent } from './modules/admin/admin-dashboard/admin-dashboard.component';
+import { UserManagementComponent } from './modules/admin/user-management/user-management.component';
+import { RoleManagementComponent } from './modules/admin/role-management/role-management.component';
+
 import { LandingComponent } from './modules/home/pages/landing/landing.component';
+import { AuthSuccesComponent } from './modules/auth-succes/auth-succes.component';
 
 export const routes: Routes = [
   { path:'', component: LandingComponent },
   { path:'login', component: LoginComponent },
   { path:'signup', component: SignUpComponent },
+  { path:'auth-success', component: AuthSuccesComponent },
   { path:'employee/dashboard', component: EmployeeDashboardComponent },
   { path:'employee/details/:id', component: OrderDetailsComponent},
   { path:'employee/history', component: OrderHistoryComponent},
@@ -37,7 +43,6 @@ export const routes: Routes = [
   { path:'employee/dish/:id', component: DetailProductComponent},
   { path:'finance/dashboard', component: FinanceDashboardComponent },
   { path:'finance/debt', component: DebtManagementComponent },
-  { path:'finance/payment', component: PaymentManagementComponent },
   { path:'finance/payment-employee', component: PaymentEmployeeComponent },
   { path:'chef/dashboard', component: ChefDashboardComponent },
   { path:'chef/menu-management', component: MenuManagementComponent },
@@ -45,5 +50,8 @@ export const routes: Routes = [
   { path:'chef/order-management', component: ChefOrderManagementComponent },
   { path:'chef/order-details', component: ChefOrderDetailsComponent },
   { path:'chef/clone-saucer', component: CloneSaucerComponent },
+  { path:'admin/dashboard', component: AdminDashboardComponent },
+  { path:'admin/users', component: UserManagementComponent },
+  { path:'admin/roles', component: RoleManagementComponent },
   { path:'**', redirectTo: '', pathMatch: 'full' }
 ];

@@ -6,6 +6,7 @@ import com.ordenaris.finance.Sale
 class CustomerOrder {
     String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
     String status = "Queue" // Queue, Preparing, Finished
+    String comment
     Date dateCreated
     Date lastUpdated
 
@@ -20,6 +21,7 @@ class CustomerOrder {
     static constraints = {
         uuid size: 32..32, unique: true
         user nullable: false
+        comment nullable: true, maxSize: 500
         status inList: ["Queue", "Preparing", "Finished", "Cancelled"], blank: false
         sale nullable: true
         lastUpdated nullable: true

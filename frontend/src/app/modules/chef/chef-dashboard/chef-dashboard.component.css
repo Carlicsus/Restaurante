@@ -117,3 +117,74 @@
 .btn-primary:hover {
   background: #1e40af;
 }
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .dashboard-wrapper {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    padding: 30px 20px;
+    margin-top: 8dvh;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .dashboard-header p {
+    font-size: 13px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-card strong {
+    font-size: 20px;
+  }
+
+  .orders-section h2 {
+    font-size: 16px;
+  }
+
+  .order-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-wrapper {
+    padding: 20px 16px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-card span {
+    font-size: 12px;
+  }
+
+  .stat-card strong {
+    font-size: 18px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+  }
+}

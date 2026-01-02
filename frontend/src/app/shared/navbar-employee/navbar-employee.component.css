@@ -11,21 +11,23 @@ nav {
     border-bottom: 1px solid var(--border);
 }
 
-
-
-/* CONTENEDOR CENTRAL (MISMO ANCHO QUE EL CONTENIDO) */
+/* CONTENEDOR CENTRAL */
 .nav-container {
-    max-width: 1200px;
+    width: 100%;
     height: 100%;
-    margin: 0 auto;
 
     display: flex;
     align-items: center;
 
-    padding: 0 30px;
+    padding: 0 40px;
 }
 
 /* LOGO */
+.imagen {
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
 .brand-logo {
     width: 64px;
     height: 64px;
@@ -34,7 +36,9 @@ nav {
 
 /* OPCIONES */
 .options {
-    margin-left: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .options ul {
@@ -59,7 +63,9 @@ nav {
 
 /* PERFIL */
 .perfil {
-    margin-left: 24px;
+    margin-left: auto;
+    position: relative;
+    cursor: pointer;
 }
 
 .perfil img {
@@ -67,8 +73,135 @@ nav {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid var(--border);
+    transition: border-color 0.2s;
 }
 
-.imagen {
-    flex-shrink: 0;
+.perfil img:hover {
+    border-color: var(--primary);
+}
+
+/* DROPDOWN DE PERFIL */
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    min-width: 160px;
+    padding: 8px 0;
+    
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-dropdown button {
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    
+    text-align: left;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    
+    transition: background-color 0.2s;
+}
+
+.profile-dropdown button:hover {
+    background-color: #f3f4f6;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 20px;
+    }
+
+    .brand-logo {
+        width: 48px;
+        height: 48px;
+    }
+
+    .options {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        transform: none;
+        
+        background: white;
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        
+        display: none;
+    }
+
+    .options.show-mobile {
+        display: block;
+    }
+
+    .options ul {
+        flex-direction: column;
+        gap: 0;
+        padding: 8px 0;
+    }
+
+    .options li {
+        width: 100%;
+    }
+
+    .options button {
+        width: 100%;
+        padding: 12px 20px;
+        text-align: left;
+    }
+
+    .options button:hover {
+        background-color: #f3f4f6;
+    }
+
+    .perfil img {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-container {
+        padding: 0 16px;
+    }
+
+    nav {
+        height: 60px;
+    }
+
+    .brand-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .perfil img {
+        width: 36px;
+        height: 36px;
+    }
+
+    .options {
+        top: 60px;
+    }
 }

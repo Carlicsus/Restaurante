@@ -142,3 +142,65 @@
   display: flex;
   justify-content: space-between;
 }
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 30px 20px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+
+  .orders-list {
+    gap: 16px;
+  }
+
+  .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+  }
+
+  .order-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .order-actions button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 20px 16px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .order-info h4 {
+    font-size: 13px;
+  }
+
+  .order-info .items {
+    font-size: 12px;
+  }
+}

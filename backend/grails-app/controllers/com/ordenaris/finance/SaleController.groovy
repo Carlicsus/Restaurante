@@ -98,4 +98,22 @@ class SaleController {
         def response = saleService.getSalesByUser(auth.id, params.typeSale)
         return respond(response.resp, status: response.status)
     }
+
+    def getUserSpendingChart() {
+        def auth = springSecurityService.principal
+        def data = request.JSON
+        
+        if (!auth.id) {
+            return respond([success: false, mensaje: "Se requiere un identificador de usuario valido"], status: 400)
+        }
+        if (!data.startDate) {
+            return respond([success: false, mensaje: "La fecha de inicio es obligatoria"], status: 400)
+        }
+        if (!data.endDate) {
+            return respond([success: false, mensaje: "La fecha de fin es obligatoria"], status: 400)
+        }
+
+        def response = saleService.getUserSpendingChart(data.startDate, data.endDate, auth.id)
+        return respond(response.resp, status: response.status)
+    }
 }

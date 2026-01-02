@@ -29,7 +29,9 @@ class UrlMappings {
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
-                get "/view"(controller: "platillo", action: "paginateDishes")  
+                get "/view"(controller: "platillo", action: "paginateDishes")
+                get "/ranking/rating"(controller: "platillo", action: "dishRankingByRating")
+                get "/ranking/topselling"(controller: "platillo", action: "topSellingDishes")
                 get "/chart-top-dishes"(controller: "platillo", action: "topDishesChart")
                 group "/$uuid", {
                     get "/info"(controller: "platillo", action: "dishInfo"){
@@ -130,10 +132,12 @@ class UrlMappings {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
                 get "/listOrdersByUser/$id"(controller: "ordersModule", action: "listOrdersByUser")
+                get "/rejections"(controller: "ordersModule", action: "listRejections")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
                     group "/edit/$uuidDish",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
+                        patch "/reject"(controller: "ordersModule", action: "rejectDish")
                     }
                     patch "/edit"(controller: "ordersModule", action: "editOrder")
                     //patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
@@ -149,10 +153,11 @@ class UrlMappings {
                     patch "/queue"(controller: "ordersModule", action: "editOrderStatus") {
                         status = "Queue"
                     }
-                    /*patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
-                        status = "Pending"
+                    group "/rejection/$rejectionUuid", {
+                        get "/info"(controller: "ordersModule", action: "rejectionInfo")
+                        patch "/approve"(controller: "ordersModule", action: "approveRejection")
+                        patch "/cancel"(controller: "ordersModule", action: "cancelRejection")
                     }
-                    */
                 }
             }
             group "/shoppingCart", {

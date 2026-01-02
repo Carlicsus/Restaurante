@@ -336,8 +336,77 @@ def listDishes() {
                 status: 500
             ]
         }
+    }
 
+    def getDishRankingByRating(int limit = 10) {
+        try {
+            def ranking = Review.executeQuery('''
+                SELECT d.uuid, d.name, d.description, d.cost, AVG(r.rating) as avgRating, COUNT(r.id) as reviewCount
+                FROM Review r
+                JOIN r.dish d
+                WHERE d.status != 2
+                GROUP BY d.id, d.uuid, d.name, d.description, d.cost
+                ORDER BY avgRating DESC, reviewCount DESC
+            ''').collect { row ->
+                [
+                    uuid: row[0],
+                    name: row[1],
+                    description: row[2],
+                    cost: row[3] / 100,
+                    averageRating: row[4]?.round(2) ?: 0.0,
+                    reviewCount: row[5]?.toInteger() ?: 0
+                ]
+            }.take(limit)
 
+            return [
+                resp: [
+                    success: true,
+                    data: ranking,
+                    total: ranking.size()
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+
+    def getTopSellingDishes(int limit = 10) {
+        try {
+            def topDishes = OrderItem.executeQuery('''
+                SELECT d.uuid, d.name, d.description, d.cost, SUM(oi.quantity) as totalSold
+                FROM OrderItem oi
+                JOIN oi.dish d
+                WHERE d.status != 2 AND oi.status = true
+                GROUP BY d.id, d.uuid, d.name, d.description, d.cost
+                ORDER BY totalSold DESC
+            ''').collect { row ->
+                [
+                    uuid: row[0],
+                    name: row[1],
+                    description: row[2],
+                    cost: row[3] / 100,
+                    totalSold: row[4]?.toInteger() ?: 0
+                ]
+            }.take(limit)
+
+            return [
+                resp: [
+                    success: true,
+                    data: topDishes,
+                    total: topDishes.size()
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
     }
 
     // ================= MANEJO DE IMÁGENES =================

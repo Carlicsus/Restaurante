@@ -297,5 +297,15 @@
         }
     }
 
-
+    def dishRankingByRating() {
+        def limit = params.limit ? params.limit.toInteger() : 10
+        def response = DishService.getDishRankingByRating(limit)
+        return respond(response.resp, status: response.status)
     }
+
+    def topSellingDishes() {
+        def limit = params.limit ? params.limit.toInteger() : 10
+        def response = DishService.getTopSellingDishes(limit)
+        return respond(response.resp, status: response.status)
+    }
+}

@@ -103,7 +103,7 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.editOrderStatus(data)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
-
+  
     def cancelOrder(){
         def comment = request.JSON
         def data = params
@@ -119,4 +119,70 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.cancelOrder(data, comment)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
+
+    @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
+    def rejectDish() {
+        def uuidOrder = params.uuidOrder
+        def uuidDish = params.uuidDish
+        def data = request.JSON
+
+        if (!uuidOrder || uuidOrder.size() != 32) {
+            return respond([success: false, message: "UUID de orden inválido"], status: 400)
+        }
+
+        if (!uuidDish || uuidDish.size() != 32) {
+            return respond([success: false, message: "UUID de platillo inválido"], status: 400)
+        }
+
+        if (!data.reason || !data.reason.trim()) {
+            return respond([success: false, message: "Debe proporcionar una razón del rechazo"], status: 400)
+        }
+
+        def serviceResponse = orderModuleService.rejectDish(uuidOrder, uuidDish, data.reason, auth)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    @Secured(['permitAll'])
+    def listRejections() {
+        def serviceResponse = orderModuleService.listRejections(auth)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    @Secured(['permitAll'])
+    def rejectionInfo() {
+        def rejectionUuid = params.rejectionUuid
+
+        if (!rejectionUuid || rejectionUuid.size() != 32) {
+            return respond([success: false, message: "UUID de rechazo inválido"], status: 400)
+        }
+
+        def serviceResponse = orderModuleService.rejectionInfo(rejectionUuid)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    @Secured(['permitAll'])
+    def approveRejection() {
+        def rejectionUuid = params.rejectionUuid
+
+        if (!rejectionUuid || rejectionUuid.size() != 32) {
+            return respond([success: false, message: "UUID de rechazo inválido"], status: 400)
+        }
+
+        def serviceResponse = orderModuleService.approveRejection(rejectionUuid, auth)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+
+    @Secured(['permitAll'])
+    def cancelRejection() {
+        def rejectionUuid = params.rejectionUuid
+
+        if (!rejectionUuid || rejectionUuid.size() != 32) {
+            return respond([success: false, message: "UUID de rechazo inválido"], status: 400)
+        }
+
+        def serviceResponse = orderModuleService.cancelRejection(rejectionUuid, auth)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+  
+    
 }

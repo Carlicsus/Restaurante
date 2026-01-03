@@ -18,83 +18,90 @@
         }
 
         def newDish() { 
-            def data = request.JSON
-            def availableDate = null  
-            def availableDishes = null  
+    def data = request.JSON
+    Date availableDate = null
+    Integer availableDishes = null
 
-            if (!data.name) {
-                return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
-            }
-            if (data.name.soloNumeros()) { 
-                return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
-            }
-            if (data.name.size() > 80) { 
-                return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
-            }
-            if (!data.menuType) {  
-                return respond([success: false, mensaje: "El campo menuType es obligatorio"], status: 400)
-            }
-            if (data.menuType.size() != 32) {
-                return respond([success: false, mensaje: "El uuid del tipo menu es invalido"], status: 400)
-            }
-            if (!data.cost) {  
-                return respond([success: false, mensaje: "El costo es obligatorio"], status: 400)
-            }
-            
-            if (data.cost instanceof String && !data.cost.soloNumeros()) {
-                return respond([success: false, mensaje: "El costo debe contener solo numeros"], status: 400)
-            }
-            if (!data.description) {  
-                return respond([success: false, mensaje: "La descripcion es obligatorio"], status: 400)
-            }
-            if (data.description.soloNumeros()) {
-                return respond([success: false, mensaje: "La descripcion debe contener letras y no solo numeros"], status: 400)
-            }
-            if (data.description.size() > 80) {
-                return respond([success: false, mensaje: "La descripcion no puede ser tan largo"], status: 400)
-            }
-            if (data.availableDate && data.availableDate.soloNumeros()) {  
-                try {
-                    availableDate = new Date(data.availableDate as Long)
-                    def fechaActual = new Date()
-                    if (availableDate < fechaActual) {
-                        return respond([success: false, mensaje: "La fecha disponible no puede ser una fecha pasada"], status: 400)
-                    }
-                    println(availableDate)
-                } catch (e) {
-                    println("Si entre")
-                    return respond([success: false, mensaje: "Formato de fecha invalido"], status: 400)
-                }
-            }
-            if (data.availableDishes != null) {  
-                println("Estoy")
+    if (!data.name) {
+        return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
+    }
+    if (data.name.soloNumeros()) { 
+        return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
+    }
+    if (data.name.size() > 80) { 
+        return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+    }
 
-                if (data.availableDishes instanceof String) {
-                    if (data.availableDishes.trim() == '') {
-                        return respond([success: false, mensaje: "Los platillos disponibles no pueden estar vacios"], status: 400)
-                    }
-                    if (!data.availableDishes.soloNumeros()) {
-                        return respond([success: false, mensaje: "Los platillos disponibles deben de ser numeros"], status: 400)
-                    }
-                }
-                availableDishes = data.availableDishes
-            }
+    if (!data.cost) {  
+        return respond([success: false, mensaje: "El costo es obligatorio"], status: 400)
+    }
 
-         if (data.imageUrl && data.imageUrl.size() > 500) {
-            return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
+    if (data.cost instanceof String && !data.cost.soloNumeros()) {
+        return respond([success: false, mensaje: "El costo debe contener solo numeros"], status: 400)
+    }
+
+    Integer cost = data.cost.toInteger()
+
+    if (cost > 500) {
+        return respond([success:false, mensaje:"El platillo no puede ser exageradamente caro"], status: 400)
+    }
+
+    if (data.availableDishes != null) {
+
+        if (data.availableDishes instanceof String && !data.availableDishes.soloNumeros()) {
+            return respond([success: false, mensaje: "Los platillos disponibles deben ser numeros"], status: 400)
         }
 
-        def response = DishService.newDish(
-            data.name,  
-            data.menuType,  
-            availableDate,  
-            data.cost.toInteger(),  
-            data.description,  
-            availableDishes?.toInteger() ?: -1,
-            data.imageUrl
-        )
-        return respond(response.resp, status: response.status)
+        availableDishes = data.availableDishes.toInteger()
+
+        if (availableDishes > 50) {
+            return respond([success: false, mensaje: "Los platillos no pueden exceder el limite"], status: 400)
+        }
     }
+
+    if (!data.menuType) {  
+        return respond([success: false, mensaje: "El campo menuType es obligatorio"], status: 400)
+    }
+    if (data.menuType.size() != 32) {
+        return respond([success: false, mensaje: "El uuid del tipo menu es invalido"], status: 400)
+    }
+
+    if (!data.description) {  
+        return respond([success: false, mensaje: "La descripcion es obligatoria"], status: 400)
+    }
+    if (data.description.soloNumeros()) {
+        return respond([success: false, mensaje: "La descripcion debe contener letras y no solo numeros"], status: 400)
+    }
+    if (data.description.size() > 80) {
+        return respond([success: false, mensaje: "La descripcion no puede ser tan larga"], status: 400)
+    }
+
+    if (data.availableDate) {
+        try {
+            availableDate = new Date(data.availableDate as Long)
+            if (availableDate < new Date()) {
+                return respond([success: false, mensaje: "La fecha disponible no puede ser una fecha pasada"], status: 400)
+            }
+        } catch (Exception e) {
+            return respond([success: false, mensaje: "Formato de fecha invalido"], status: 400)
+        }
+    }
+
+    if (data.imageUrl && data.imageUrl.size() > 500) {
+        return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
+    }
+    def response = DishService.newDish(
+        data.name,  
+        data.menuType,  
+        availableDate,  
+        cost,  
+        data.description,  
+        availableDishes ?: -1,
+        data.imageUrl
+    )
+
+    return respond(response.resp, status: response.status)
+}
 
         def dishInfo() {  
             if (params.uuid.size() != 32) {
@@ -108,59 +115,70 @@
             return respond(response.resp, status: response.status)
         }
 
-        def editDish() { 
-            def data = request.JSON
-            def dish = dishService.dishInfo(params.uuid) 
-            def availableDate = dish.resp.data.availableDate
-            def availableDishes = dish.resp.data.availableDishes
+        def editDish() {
+        def data = request.JSON
+
+        if (params.uuid?.size() != 32) {
+            return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
+        }
+
+        if (data.containsKey('name')) {
+            data.name = data.name?.trim()
 
             if (!data.name) {
-                return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
+                return respond([success: false, mensaje: "El nombre no puede estar vacío"], status: 400)
             }
             if (data.name.soloNumeros()) {
-                return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
+                return respond([success: false, mensaje: "El nombre debe contener letras"], status: 400)
             }
             if (data.name.size() > 80) {
                 return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
             }
-            if (!data.menuType) {  
-                return respond([success: false, mensaje: "El campo menuType es obligatorio"], status: 400)
+        }
+
+        if (data.containsKey('menuType')) {
+            if (!data.menuType) {
+                return respond([success: false, mensaje: "El menuType no puede estar vacío"], status: 400)
             }
             if (data.menuType.size() != 32) {
-                return respond([success: false, mensaje: "El uuid del tipo menu es invalido"], status: 400)
+                return respond([success: false, mensaje: "El uuid del tipo menú es inválido"], status: 400)
             }
-            if (!data.cost) {  
-                return respond([success: false, mensaje: "El costo es obligatorio"], status: 400)
-            }
-            // CORREGIR: Solo validar si viene como String
+        }
+
+        if (data.containsKey('cost')) {
             if (data.cost instanceof String && !data.cost.soloNumeros()) {
-                return respond([success: false, mensaje: "El costo debe contener solo numeros"], status: 400)
+                return respond([success: false, mensaje: "El costo debe contener solo números"], status: 400)
             }
-            if (!data.description) { 
-                return respond([success: false, mensaje: "La descripcion es obligatorio"], status: 400)
+        }
+
+        if (data.containsKey('description')) {
+            if (!data.description) {
+                return respond([success: false, mensaje: "La descripción no puede estar vacía"], status: 400)
             }
-            if (data.description.soloNumeros()) { 
-                return respond([success: false, mensaje: "La descripcion debe contener letras y no solo numeros"], status: 400)
+            if (data.description.soloNumeros()) {
+                return respond([success: false, mensaje: "La descripción debe contener letras"], status: 400)
             }
             if (data.description.size() > 100) {
-                return respond([success: false, mensaje: "La descripcion no puede ser tan largo"], status: 400)
+                return respond([success: false, mensaje: "La descripción no puede ser tan larga"], status: 400)
             }
-            if (data.availableDate) { 
-                try {
-                    availableDate = new Date(data.availableDate as Long)  
-                } catch (e) {
-                    return respond([success: false, mensaje: "Formato de fecha invalido"], status: 400)
-                }
-            }
-            if (data.availableDishes) {  
-                // CORREGIR: Solo validar soloNumeros() si es String
-                if (data.availableDishes instanceof String && !data.availableDishes.soloNumeros()) {
-                    return respond([success: false, mensaje: "Los platillos disponibles deben de ser numeros"], status: 400)
-                }
-                availableDishes = data.availableDishes
-            }
+        }
 
-            if (data.imageUrl && data.imageUrl.size() > 500) {
+        def availableDate = null
+        if (data.containsKey('availableDate')) {
+            try {
+                availableDate = new Date(data.availableDate as Long)
+            } catch (e) {
+                return respond([success: false, mensaje: "Formato de fecha inválido"], status: 400)
+            }
+        }
+
+        if (data.containsKey('availableDishes')) {
+            if (data.availableDishes instanceof String && !data.availableDishes.soloNumeros()) {
+                return respond([success: false, mensaje: "Los platillos disponibles deben ser números"], status: 400)
+            }
+        }
+
+        if (data.containsKey('imageUrl') && data.imageUrl?.size() > 500) {
             return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
         }
 
@@ -168,19 +186,16 @@
             data.name,
             data.menuType,
             availableDate,
-            data.cost.toInteger(),
+            data.cost ? data.cost.toInteger() : null,
             data.description,
-            availableDishes?.toInteger() ?: -1,  // Usar ?: para manejar null
+            data.availableDishes ? data.availableDishes.toInteger() : null,
             data.imageUrl,
             params.uuid
         )
-        return respond(response.resp, status: response.status)
-    }
 
-        def editDishStatus() {
-            def response = DishService.editDishStatus(params.status, params.uuid)
-            return respond(response.resp, status: response.status)
-        }
+    return respond(response.resp, status: response.status)
+}
+
 
         def paginateDishes() {  
             if (!params.page) {  
@@ -232,7 +247,6 @@
             }
         }
 
-    // =================== SUBIR IMAGEN ===================
     @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
     def uploadDishImage() {
 
@@ -260,7 +274,6 @@
         }
     }
 
-    // =================== DESCARGAR IMAGEN ===================
     def downloadDishImage() {
         if (!params.fileName) {
             return respond([success: false, mensaje: "Falta el nombre del archivo"], status: 400)
@@ -277,7 +290,6 @@
         }
     }
 
-    // =================== ELIMINAR IMAGEN ===================
     @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
     def deleteDishImage() {
         if (!params.uuid || params.uuid.size() != 32) {

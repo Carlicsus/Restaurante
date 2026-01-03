@@ -34,11 +34,13 @@ class MenuController {
 
     def newType() {
         def data = request.JSON
+        data.name = data.name?.trim()
+    
         if (!data.name) {
             return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
         }
-        if (data.name.soloNumeros()) {
-            return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
+        if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)){
+            return respond([success: false, mensaje: "El nombre no debe contener números"], status: 400)
         }
         if (data.name.size() > 80) {
             return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
@@ -46,29 +48,47 @@ class MenuController {
         if (data.parentType && data.parentType.size() != 32) {
             return respond([success: false, mensaje: "El parentType es invalido"], status: 400)
         }
+
+        def count = MenuType.createCriteria().count{
+            ilike("name", data.name)
+            eq("status", 1)
+        }
+        if  (count > 0){
+            return respond([success: false, mensaje: "El nombre ya existe"], status: 409)
+        }
         def response = MenuService.newType(data.name, data.parentType)
         return respond(response.resp, status: response.status)
     }
 
     def editType() {
-        def data = request.JSON
+    def response = MenuService.editType(data.name, params.uuid)
+    def data = request.JSON
+    data.name = data.name?.trim()
 
-        if (!data.name) {
-            return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
-        }
-        if (data.name.soloNumeros()) {
-            return respond([success: false, mensaje: "El nombre debe contener letras y no solo numeros"], status: 400)
-        }
-        if (data.name.size() > 80) {
-            return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
-        }
-        if (params.uuid.size() != 32) {
-            return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
-        }
-
-        def response = MenuService.editType(data.name, params.uuid)
-        return respond(response.resp, status: response.status)
+    if (params.uuid?.size() != 32) {
+        return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
     }
+
+    def type = MenuType.findByUuid(params.uuid)
+
+    if (!type) {
+        return respond([success: false, mensaje: "El tipo no existe"], status: 404)
+    }
+
+    if (!data.name) {
+        return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
+    }
+
+    if (data.name.size() > 80) {
+        return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+    }
+
+    if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)) {
+        return respond([success: false, mensaje: "El nombre solo debe contener letras"], status: 400)
+    }
+    return respond(response.resp, status: response.status)
+}
+
 
     def typeInfo() {
         if (params.uuid.size() != 32) {
@@ -79,9 +99,28 @@ class MenuController {
     }
 
     def editTypeStatus() {
-        def response = MenuService.editTypeStatus(params.status, params.uuid)
-        return respond(response.resp, status: response.status)
+
+    if (params.uuid?.size() != 32) {
+        return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
     }
+
+    def type = MenuType.findByUuid(params.uuid)
+
+    if (!type) {
+        return respond([success: false, mensaje: "El tipo no existe"], status: 404)
+    }
+
+    if (type.status == 2) {
+        return respond(
+            [success: false, mensaje: "El tipo está eliminado y no puede cambiar de estado"],
+            status: 409
+        )
+    }
+
+    def response = MenuService.editTypeStatus(params.status, params.uuid)
+    return respond(response.resp, status: response.status)
+}
+
 
     def paginateTypes() {
         if (!params.page) {

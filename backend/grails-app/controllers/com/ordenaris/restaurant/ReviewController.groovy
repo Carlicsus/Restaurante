@@ -37,8 +37,16 @@ class ReviewController {
         if (!auth.id) {
             return respond([success: false, mensaje: "Se requiere un identificador de usuario valido"], status: 400)
         }
-        if (data.dishId == null || data.rating == null) {
+        if (data.dishId == null || data.rating == null || data.rating.toString() == "") {
             return respond([success: false, mensaje: "Los campos dishId y rating son obligatorios"], status: 400)
+        }
+        if (!(data.rating.toInteger() in [1, 2, 3, 4, 5])){
+            return respond([success: false, mensaje: "EL rating solo puede ir de 1 a 5"], status: 400)
+        }
+        if (data.comment != ""){
+            if (data.comment.soloNumeros()){
+                return respond([success: false, mensaje: "EL comentario no puede tener solo numeros"], status: 400)
+            }
         }
         def response = reviewService.createReview(data, auth)
         return respond(response.resp, status: response.status)
@@ -55,13 +63,23 @@ class ReviewController {
     def editReview() {
         def auth = springSecurityService.principal
         def data = request.JSON
-        if (!data.uuid || data.uuid.size() != 32) {
+        def reviewUuid = params.uuid
+        println data
+        if (!reviewUuid || reviewUuid.size() != 32) {
             return respond([success: false, mensaje: "Se requiere un UUID de reseña valido"], status: 400)
         }
-        if (data.rating == null) {
+        if (data.rating == null || data.rating.toString() == "") {
             return respond([success: false, mensaje: "El campo rating es obligatorio"], status: 400)
         }
-        def response = reviewService.editReview(data.uuid, data, auth)
+        if (!(data.rating.toInteger() in [1, 2, 3, 4, 5])){
+            return respond([success: false, mensaje: "EL rating solo puede ir de 1 a 5"], status: 400)
+        }
+        if (data.comment != ""){
+            if (data.comment.soloNumeros()){
+                return respond([success: false, mensaje: "EL comentario no puede tener solo numeros"], status: 400)
+            }
+        }
+        def response = reviewService.editReview(reviewUuid, data, auth)
         return respond(response.resp, status: response.status)
     }
 }

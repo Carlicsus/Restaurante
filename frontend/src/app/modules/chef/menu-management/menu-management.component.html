@@ -72,7 +72,7 @@
       <!-- Grid -->
       <div class="menu-grid">
         <div class="menu-card" *ngFor="let dish of getFilteredDishes()">
-          <img [src]="dish.image || 'https://via.placeholder.com/250x200?text=Sin+imagen'" [alt]="dish.name"
+          <img [src]="dish.imageUrl || 'https://via.placeholder.com/250x200?text=Sin+imagen'" [alt]="dish.name"
             class="dish-image">
 
           <div class="card-body">
@@ -120,9 +120,4 @@
 <!-- Modal para crear/clonar platillos -->
 <app-dish-modal [isOpen]="isDishModalOpen" [mode]="dishModalMode" [menuTypes]="menuTypes" (close)="closeDishModal()"
   (save)="saveDish($event)">
-</app-dish-modal>
-
-<!-- Modal para crear/clonar platillos -->
-<app-dish-modal [isOpen]="isDishModalOpen" [mode]="dishModalMode" [categories]="availableCategories"
-  (close)="closeDishModal()" (save)="saveDish($event)">
 </app-dish-modal>

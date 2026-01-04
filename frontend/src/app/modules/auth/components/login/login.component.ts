@@ -21,11 +21,13 @@ export class LoginComponent {
   showErrorModal = false;
   errorTitle = '';
   errorMessage = '';
+  isLoading = false;
 
   constructor(private auth: AuthService, private router: Router) { }
 
   onSubmit() {
     console.log('Attempting login with:', this.credentials);
+    this.isLoading = true;
     this.auth.login(this.credentials).subscribe({
       next: (response: any) => {
         sessionStorage.setItem('token', response.access_token);
@@ -36,6 +38,7 @@ export class LoginComponent {
       },
       error: (error) => {
         console.error('Login failed', error);
+        this.isLoading = false;
         // Mostrar modal con el error
         this.errorTitle = error?.error?.error || 'Error de autenticación';
         this.errorMessage = error?.error?.message || 'No se pudo iniciar sesión. Por favor, verifica tus credenciales.';
@@ -55,14 +58,14 @@ export class LoginComponent {
     // Convertir roles a minúsculas para comparación
     const userRoles = roles.map(role => role.toLowerCase());
 
-    // Prioridad de redirección: ROLE_ADMIN > ROLE_FINANCE > ROLE_CHEF > ROLE_EMPLOYEE
+    // Prioridad de redirección: ROLE_ADMIN > ROLE_FINANCE > ROLE_CHEF > ROLE_USER
     if (userRoles.includes('role_admin') || userRoles.includes('admin')) {
       this.router.navigateByUrl('/admin/dashboard');
     } else if (userRoles.includes('role_finance') || userRoles.includes('finance')) {
       this.router.navigateByUrl('/finance/dashboard');
     } else if (userRoles.includes('role_chef') || userRoles.includes('chef')) {
       this.router.navigateByUrl('/chef/dashboard');
-    } else if (userRoles.includes('role_employee') || userRoles.includes('employee')) {
+    } else if (userRoles.includes('role_user') || userRoles.includes('user')) {
       this.router.navigateByUrl('/employee/dashboard');
     } else {
       this.errorTitle = 'Acceso denegado';

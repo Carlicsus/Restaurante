@@ -42,8 +42,6 @@ class AuthManagerService implements GrailsUserDetailsService{
             throw new NoStackUsernameNotFoundException()
         }
 
-        // ========= REGLAS DE NEGOCIO =========
-
         if (!user.enabled) {
             throw new DisabledException(
                 "Tu cuenta debe ser activada por un administrador"
@@ -78,12 +76,10 @@ class AuthManagerService implements GrailsUserDetailsService{
 
         if (!identifier) return null
 
-        // Si parece email → buscar por email
         if (identifier.contains('@')) {
             return User.findByEmail(identifier)
         }
 
-        // Si no → username
         return User.findByUsername(identifier)
     }
 }

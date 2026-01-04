@@ -31,13 +31,12 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
         UserDetails user =
                 authManagerService.loadUserByUsername(username)
 
-        // SOLO validar password aquí
         if (!passwordEncoder.matches(password, user.password)) {
             throw new BadCredentialsException("Credenciales inválidas")
         }
 
         return new UsernamePasswordAuthenticationToken(
-            user,       // UserDetails
+            user,       
             null,
             user.authorities
         )

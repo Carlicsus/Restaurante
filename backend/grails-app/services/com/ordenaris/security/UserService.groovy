@@ -166,7 +166,6 @@ class UserService {
         return Paths.get(basePath, 'profile', 'default.jpg').toFile()
     }
 
-    // ================= UTILIDADES =================
 
     private void validateFile(MultipartFile file) {
 

@@ -21,11 +21,13 @@ export class LoginComponent {
   showErrorModal = false;
   errorTitle = '';
   errorMessage = '';
+  isLoading = false;
 
   constructor(private auth: AuthService, private router: Router) { }
 
   onSubmit() {
     console.log('Attempting login with:', this.credentials);
+    this.isLoading = true;
     this.auth.login(this.credentials).subscribe({
       next: (response: any) => {
         sessionStorage.setItem('token', response.access_token);
@@ -36,6 +38,7 @@ export class LoginComponent {
       },
       error: (error) => {
         console.error('Login failed', error);
+        this.isLoading = false;
         // Mostrar modal con el error
         this.errorTitle = error?.error?.error || 'Error de autenticación';
         this.errorMessage = error?.error?.message || 'No se pudo iniciar sesión. Por favor, verifica tus credenciales.';

@@ -30,8 +30,7 @@ export class NavbarAdminComponent {
   }
 
   logout(): void {
-    this.authService.logout();
     this.showProfileMenu = false;
-    this.router.navigate(['']);
+    this.authService.logout();
   }
 }

@@ -30,6 +30,5 @@ export class NavbarEmployeeComponent {
 
   logout() {
     this.authService.logout();
-   // this.router.navigate(['/login']);
   }
 }

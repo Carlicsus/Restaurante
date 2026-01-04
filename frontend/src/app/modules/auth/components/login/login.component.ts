@@ -55,14 +55,14 @@ export class LoginComponent {
     // Convertir roles a minúsculas para comparación
     const userRoles = roles.map(role => role.toLowerCase());
 
-    // Prioridad de redirección: ROLE_ADMIN > ROLE_FINANCE > ROLE_CHEF > ROLE_EMPLOYEE
+    // Prioridad de redirección: ROLE_ADMIN > ROLE_FINANCE > ROLE_CHEF > ROLE_USER
     if (userRoles.includes('role_admin') || userRoles.includes('admin')) {
       this.router.navigateByUrl('/admin/dashboard');
     } else if (userRoles.includes('role_finance') || userRoles.includes('finance')) {
       this.router.navigateByUrl('/finance/dashboard');
     } else if (userRoles.includes('role_chef') || userRoles.includes('chef')) {
       this.router.navigateByUrl('/chef/dashboard');
-    } else if (userRoles.includes('role_employee') || userRoles.includes('employee')) {
+    } else if (userRoles.includes('role_user') || userRoles.includes('user')) {
       this.router.navigateByUrl('/employee/dashboard');
     } else {
       this.errorTitle = 'Acceso denegado';

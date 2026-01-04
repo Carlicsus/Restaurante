@@ -178,4 +178,4 @@ export class ChefDashboardComponent implements OnInit {
     console.log('Ir a gestionar menús');
   }
 }
-}
+

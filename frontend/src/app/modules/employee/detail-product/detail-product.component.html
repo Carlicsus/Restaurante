@@ -15,7 +15,6 @@
     <div class="product-content">
       <div class="product-images">
         <div class="main-image">
-          <!--<img [src]="dish.imageUrl || '/assets/img/placeholder-dish.jpg'" [alt]="dish.name"> -->
         </div>
       </div>
 
@@ -38,27 +37,101 @@
         <button (click)="addToCart()" class="add-to-cart-btn">
           Añadir al carrito
         </button>
-
-        <!-- Additional Info
-        <div class="additional-info">
-          <div class="info-item" *ngIf="dish.availableDishes !== undefined">
-            <span class="info-label">Disponibles:</span>
-            <span class="info-value" [class.out-of-stock]="dish.availableDishes === 0">
-              {{ dish.availableDishes === -1 ? 'Disponible' : dish.availableDishes }}
-            </span>
-          </div>
-          <div class="info-item" *ngIf="dish.availableDate">
-            <span class="info-label">Disponible hasta:</span>
-            <span class="info-value">{{ dish.availableDate | date:'mediumDate' }}</span>
-          </div>
-        </div> -->
       </div>
     </div>
   </div>
 
-  <!-- Error State -->
   <div *ngIf="!loading && !dish" class="error-state">
     <p>No se pudo cargar la información del platillo. Por favor, intente de nuevo más tarde.</p>
     <button routerLink="/employee/complete-menu" class="back-btn">Volver al menú</button>
+  </div>
+
+  <div *ngIf="!loading && dish" class="reviews-section">
+    <div class="reviews-header">
+      <h2 class="reviews-title">Reseñas y Valoraciones</h2>
+      <button (click)="toggleReviewForm()" class="write-review-btn">
+        {{ showReviewForm ? 'Cancelar' : 'Escribir Reseña' }}
+      </button>
+    </div>
+
+    <div *ngIf="reviewStats" class="review-stats">
+      <div class="stats-content">
+        <div class="average-rating">
+          <div class="average-score">{{ reviewStats.averageRating }}</div>
+          <div class="average-stars">
+            <span *ngFor="let star of getStarsArray(reviewStats.averageRating)" class="star"
+              [class.filled]="star.filled">★</span>
+          </div>
+          <div class="total-reviews">{{ reviewStats.totalReviews }} reseñas</div>
+        </div>
+        <div class="rating-breakdown">
+          <div *ngFor="let rating of [5,4,3,2,1]" class="rating-row">
+            <div class="rating-label">
+              {{ rating }} <span class="star filled">★</span>
+            </div>
+            <div class="rating-bar">
+              <div class="rating-fill"
+                [style.width.%]="getPercentage(reviewStats.ratings[rating], reviewStats.totalReviews)">
+              </div>
+            </div>
+            <span class="rating-count">{{ reviewStats.ratings[rating] }}</span>
+            <span class="rating-percentage">
+              {{ getPercentage(reviewStats.ratings[rating], reviewStats.totalReviews) }}%
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showReviewForm" class="review-form">
+      <form (ngSubmit)="submitReview()">
+        <div class="form-group">
+          <label class="form-label">Valoración</label>
+          <div class="rating-selector">
+            <span *ngFor="let rating of [1,2,3,4,5]; let i = index" class="star interactive"
+              [class.filled]="rating <= newReview.rating" (click)="setRating(rating)">★</span>
+          </div>
+          <div class="rating-help">Haga clic en las estrellas para valorar</div>
+        </div>
+
+        <div class="form-group">
+          <label for="comment" class="form-label">Comentario (opcional)</label>
+          <textarea id="comment" [(ngModel)]="newReview.comment" name="comment" class="form-textarea"
+            placeholder="Comparte tu opinión sobre este platillo...">
+          </textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" (click)="toggleReviewForm()" class="cancel-btn">Cancelar</button>
+          <button type="submit" class="submit-btn" [disabled]="submittingReview">
+            {{ submittingReview ? 'Enviando...' : 'Enviar Reseña' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="reviews-list">
+      <div *ngIf="loadingReviews" class="loading-reviews">
+        <p>Cargando reseñas...</p>
+      </div>
+
+      <div *ngIf="!loadingReviews && reviews.length === 0" class="no-reviews">
+        <p>Aún no hay reseñas para este platillo.</p>
+        <p>¡Sé el primero en escribir una!</p>
+      </div>
+
+      <div *ngFor="let review of reviews" class="review-card">
+        <div class="review-header">
+          <div class="review-author">
+            <h4 class="author-name">{{ review.user.username }}</h4>
+            <span class="review-date">{{ formatDate(review.dateCreated) }}</span>
+          </div>
+          <div class="review-rating">
+            <span *ngFor="let star of getStarsArray(review.rating)" class="star" [class.filled]="star.filled">★</span>
+          </div>
+        </div>
+        <p *ngIf="review.comment" class="review-comment">{{ review.comment }}</p>
+      </div>
+    </div>
   </div>
 </div>

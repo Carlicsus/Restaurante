@@ -78,7 +78,7 @@ grails.plugin.springsecurity.rest.login.failureStatusCode = 401
 String serverUrl = System.getenv('SERVER_URL') ?: System.getProperty('SERVER_URL') ?: 'http://localhost:3050/backend'
 grails.serverURL = serverUrl
 grails.plugin.springsecurity.rest.oauth.frontendCallbackUrl = { String token ->
-    "${frontendHost}auth-success?token=${token}"
+    "http://localhost:3050/auth-success?token=${token}"
 }
 
 grails.plugin.springsecurity.rest.oauth.google.client = org.pac4j.oauth.client.Google2Client

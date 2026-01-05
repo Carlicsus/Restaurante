@@ -6,11 +6,10 @@
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 80px 80px;
+  padding: 100px 80px;
   font-family: 'Inter', sans-serif;
 }
 
-/* Breadcrumb */
 .breadcrumb {
   font-size: 14px;
   color: #64748b;
@@ -30,7 +29,6 @@
   text-decoration: underline;
 }
 
-/* LOADING STATE */
 .loading-container {
   text-align: center;
   padding: 60px 20px;
@@ -52,7 +50,6 @@
   font-size: 14px;
 }
 
-/* ERROR BANNER */
 .error-banner {
   background: #fee2e2;
   border: 1px solid #ef4444;
@@ -86,7 +83,6 @@
   background: #b91c1c;
 }
 
-/* Header empleado */
 .employee-header {
   display: flex;
   justify-content: space-between;
@@ -102,6 +98,13 @@
   display: flex;
   gap: 20px;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
 }
 
 .avatar-circle {
@@ -187,7 +190,41 @@
   cursor: not-allowed;
 }
 
-/* Tabla */
+.lock-user-btn {
+  padding: 10px 20px;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.lock-user-btn:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+.lock-user-btn.locked {
+  background: #22c55e;
+}
+
+.lock-user-btn.locked:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.lock-user-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .table-card {
   background: #fff;
   border-radius: 16px;
@@ -284,7 +321,6 @@
   cursor: not-allowed;
 }
 
-/* EMPTY STATE */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -419,4 +455,187 @@ details[open] summary::after {
 .btn-secondary:hover {
   background: #e2e8f0;
   transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    padding: 80px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 80px 20px 40px;
+  }
+
+  .breadcrumb {
+    font-size: 13px;
+  }
+
+  .employee-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .employee-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .avatar-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .employee-header h2 {
+    font-size: 20px;
+  }
+
+  .header-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .pay-all-btn,
+  .lock-user-btn {
+    width: 100%;
+  }
+
+  .table-card {
+    overflow-x: auto;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: repeat(7, minmax(100px, 1fr));
+    font-size: 13px;
+  }
+
+  .order-id,
+  .date,
+  .days-pending,
+  .items-count,
+  .amount {
+    white-space: nowrap;
+  }
+
+  .items-details h3 {
+    font-size: 16px;
+  }
+
+  .item-row {
+    grid-template-columns: 2fr 0.5fr 1fr 1fr;
+    font-size: 13px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 70px 16px 32px;
+  }
+
+  .avatar-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .employee-header h2 {
+    font-size: 18px;
+  }
+
+  .debt {
+    font-size: 14px;
+  }
+
+  .badge {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .oldest-order {
+    font-size: 12px;
+  }
+
+  .pay-all-btn,
+  .lock-user-btn {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    font-size: 12px;
+  }
+
+  .table-row {
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .table-header {
+    display: none;
+  }
+
+  .order-id::before {
+    content: 'Orden: ';
+    font-weight: 600;
+  }
+
+  .date::before {
+    content: 'Fecha: ';
+    font-weight: 600;
+  }
+
+  .order-status::before {
+    content: 'Estado: ';
+    font-weight: 600;
+  }
+
+  .days-pending::before {
+    content: 'Días: ';
+    font-weight: 600;
+  }
+
+  .items-count::before {
+    content: 'Items: ';
+    font-weight: 600;
+  }
+
+  .amount::before {
+    content: 'Total: ';
+    font-weight: 600;
+  }
+
+  .pay-btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .items-details h3 {
+    font-size: 14px;
+  }
+
+  .item-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .dish-name {
+    font-weight: 600;
+  }
 }

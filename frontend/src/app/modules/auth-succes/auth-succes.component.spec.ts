@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DailyMenuComponent } from './daily-menu.component';
+import { AuthSuccesComponent } from './auth-succes.component';
 
-describe('DailyMenuComponent', () => {
-  let component: DailyMenuComponent;
-  let fixture: ComponentFixture<DailyMenuComponent>;
+describe('AuthSuccesComponent', () => {
+  let component: AuthSuccesComponent;
+  let fixture: ComponentFixture<AuthSuccesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DailyMenuComponent]
+      imports: [AuthSuccesComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DailyMenuComponent);
+    fixture = TestBed.createComponent(AuthSuccesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

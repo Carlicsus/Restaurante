@@ -1,0 +1,70 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ mode === 'create' ? 'Crear nuevo platillo' : 'Clonar platillo' }}</h2>
+            <button class="close-btn" (click)="closeModal()">×</button>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="modal-form">
+            <div class="form-group">
+                <label for="name">Nombre del platillo *</label>
+                <input id="name" type="text" [(ngModel)]="form.name" name="name" placeholder="Ej: Ensalada de quinoa"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" [(ngModel)]="form.description" name="description"
+                    placeholder="Descripción del platillo" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="cost">Costo *</label>
+                <input id="cost" type="number" [(ngModel)]="form.cost" name="cost" step="1" min="0" placeholder="$"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="menuType">Tipo de Menú *</label>
+                <select id="menuType" [(ngModel)]="form.menuType" name="menuType" required>
+                    <option value="">-- Selecciona un tipo de menú --</option>
+                    <option *ngFor="let menu of menuTypes" [value]="menu.uuid">
+                        {{ menu.name }}
+                    </option>
+                </select>
+            </div>
+
+            <!--
+            <div class="form-group">
+                <label for="image">Imagen del platillo</label>
+                <input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    (change)="onImageSelected($event)"
+                    #fileInput
+                    style="display: none"
+                >
+
+            <div class="image-upload-area">
+            <div *ngIf="!imagePreview" class="upload-placeholder" (click)="fileInput.click()">
+                <p>Haz clic para seleccionar una imagen</p>
+                <small>JPG, PNG o GIF (máx. 5MB)</small>
+            </div>
+
+            <div *ngIf="imagePreview" class="image-preview">
+                <img [src]="imagePreview" alt="Preview">
+                <button type="button" class="btn-remove-image" (click)="removeImage()">✕</button>
+            </div>
+         </div>
+        </div>
+        -->
+
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+                <button type="submit" class="btn-save">{{ mode === 'create' ? 'Crear' : 'Clonar' }}</button>
+            </div>
+        </form>
+    </div>
+</div>

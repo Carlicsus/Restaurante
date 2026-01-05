@@ -1,6 +1,13 @@
 package com.ordenaris.restaurant
 
 import grails.gorm.transactions.Transactional
+import com.ordenaris.order.OrderItem
+import java.util.Calendar
+import org.springframework.web.multipart.MultipartFile
+import grails.util.Holders
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 @Transactional
 class DishService {
@@ -20,7 +27,8 @@ def listDishes() {
                     cost: dish.cost / 100, 
                     status: dish.status,
                     availableDishes: dish.availableDishes,
-                    availableDate: dish.availableDate
+                    availableDate: dish.availableDate,
+                    imageUrl: dish.imageUrl
                 ]
             }
             
@@ -43,7 +51,8 @@ def listDishes() {
                         cost: dish.cost / 100,
                         status: dish.status,
                         availableDishes: dish.availableDishes,
-                        availableDate: dish.availableDate
+                        availableDate: dish.availableDate,
+                        imageUrl: dish.imageUrl
                     ]
                 }
                 
@@ -79,6 +88,39 @@ def listDishes() {
         ]
     }
 }
+    // Datos para gráfico: top N platillos más vendidos
+    def getTopDishesChart(Integer days = 7, Integer limit = 10) {
+        try {
+            if (days == null || days < 1) days = 7
+            if (limit == null || limit < 1) limit = 10
+
+            def calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_MONTH, -days)
+            def startDate = calendar.time
+
+            def orderItems = OrderItem.createCriteria().list {
+                between('dateCreated', startDate, new Date())
+                eq('status', true)
+            }
+
+            def chartData = orderItems.groupBy { it.dish }.collect { dish, items ->
+                def totalQuantity = items.sum { it.quantity } ?: 0
+                def totalRevenue = items.sum { (it.unitPrice ?: 0) * (it.quantity ?: 0) } ?: 0
+                [
+                    uuid: dish?.uuid,
+                    name: dish?.name,
+                    quantity: totalQuantity,
+                    revenue: totalRevenue,
+                    orders: items.size()
+                ]
+            }.sort { -it.quantity }
+
+            return [resp: [success: true, message: "Top ${limit} platillos en últimos ${days} días", data: chartData.take(limit)], status: 200]
+        } catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
+        }
+    }
+
 
     def mapMenuType = { type, list ->
         def obj = [
@@ -95,7 +137,7 @@ def listDishes() {
         return obj
     }
 
-    def newDish(name, menuType, availableDate, cost, description, availableDishes) {
+    def newDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl) {
         try {
             def menuTypeObj = MenuType.findByUuid(menuType)
 
@@ -108,6 +150,7 @@ def listDishes() {
                 cost: (cost * 100),
                 description: description,
                 availableDishes: availableDishes,
+                imageUrl: imageUrl,
                 status: status
             ]).save(flush: true, failOnError: true)
 
@@ -140,12 +183,14 @@ def listDishes() {
 
         def response = [
             uuid: dish.uuid,
+            id:dish.id,
             name: dish.name,
             description: dish.description,
             cost: dish.cost,
             status: dish.status,
             availableDishes: dish.availableDishes,
             availableDate: dish.availableDate,
+            imageUrl: dish.imageUrl
         ]
         if(requestedStatus != null && requestedStatus == 1 ){
             def subMenu = MenuType.findById(dish.menuType.id)
@@ -157,7 +202,7 @@ def listDishes() {
         ]
     }
 
-    def editDish(name, menuType, availableDate, cost, description, availableDishes, uuid) {
+    def editDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl, uuid) {
         try {
             def dish = Dish.findByUuid(uuid)
 
@@ -183,6 +228,7 @@ def listDishes() {
             dish.cost = (cost * 100)
             dish.description = description
             dish.availableDishes = availableDishes
+            dish.imageUrl = imageUrl
 
             if (availableDishes == 0) {
                 dish.status = 0
@@ -276,6 +322,7 @@ def listDishes() {
                     status: dish.status,
                     availableDishes: dish.availableDishes,
                     availableDate: dish.availableDate,
+                    imageUrl: dish.imageUrl,
                     subMenu: mapMenuType(subMenu, [])
                 ]
             }
@@ -290,8 +337,154 @@ def listDishes() {
                 status: 500
             ]
         }
+    }
 
+    def getDishRankingByRating(int limit = 10) {
+        try {
+            def ranking = Review.executeQuery('''
+                SELECT d.uuid, d.name, d.description, d.cost, AVG(r.rating) as avgRating, COUNT(r.id) as reviewCount
+                FROM Review r
+                JOIN r.dish d
+                WHERE d.status != 2
+                GROUP BY d.id, d.uuid, d.name, d.description, d.cost
+                ORDER BY avgRating DESC, reviewCount DESC
+            ''').collect { row ->
+                [
+                    uuid: row[0],
+                    name: row[1],
+                    description: row[2],
+                    cost: row[3] / 100,
+                    averageRating: row[4]?.round(2) ?: 0.0,
+                    reviewCount: row[5]?.toInteger() ?: 0
+                ]
+            }.take(limit)
 
+            return [
+                resp: [
+                    success: true,
+                    data: ranking,
+                    total: ranking.size()
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+
+    def getTopSellingDishes(int limit = 10) {
+        try {
+            def topDishes = OrderItem.executeQuery('''
+                SELECT d.uuid, d.name, d.description, d.cost, SUM(oi.quantity) as totalSold
+                FROM OrderItem oi
+                JOIN oi.dish d
+                WHERE d.status != 2 AND oi.status = true
+                GROUP BY d.id, d.uuid, d.name, d.description, d.cost
+                ORDER BY totalSold DESC
+            ''').collect { row ->
+                [
+                    uuid: row[0],
+                    name: row[1],
+                    description: row[2],
+                    cost: row[3] / 100,
+                    totalSold: row[4]?.toInteger() ?: 0
+                ]
+            }.take(limit)
+
+            return [
+                resp: [
+                    success: true,
+                    data: topDishes,
+                    total: topDishes.size()
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+
+    // ================= MANEJO DE IMÁGENES =================
+    
+    private String basePath = Holders.config.app.upload.basePath as String
+    private static final List<String> ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+    private static final long MAX_SIZE = 2 * 1024 * 1024 // 2MB
+
+    void saveDishImage(Dish dish, MultipartFile file) {
+        validateFile(file)
+
+        Path dishDir = Paths.get(basePath, 'dish')
+        Files.createDirectories(dishDir)
+
+        String extension = extractExtension(file.originalFilename)
+        String filename = "dish_${dish.uuid}${extension}"
+
+        Path targetPath = dishDir.resolve(filename)
+
+        file.transferTo(targetPath.toFile())
+
+        dish.imageUrl = "dish/${filename}"
+        dish.save(flush: true)
+    }
+
+    File resolveDishImage(Dish dish) {
+        if (dish.imageUrl) {
+            Path p = Paths.get(basePath, dish.imageUrl)
+            if (Files.exists(p)) {
+                return p.toFile()
+            }
+        }
+
+        // Imagen por defecto
+        return Paths.get(basePath, 'dish', 'default.jpg').toFile()
+    }
+
+    File resolveDishImageByFileName(String fileName) {
+        Path imagePath = Paths.get(basePath, 'dish', fileName)
+        
+        if (Files.exists(imagePath)) {
+            return imagePath.toFile()
+        }
+
+        // Imagen por defecto
+        return Paths.get(basePath, 'dish', 'default.jpg').toFile()
+    }
+
+    void deleteDishImage(Dish dish) {
+        if (dish.imageUrl) {
+            Path imagePath = Paths.get(basePath, dish.imageUrl)
+            if (Files.exists(imagePath)) {
+                Files.delete(imagePath)
+            }
+            dish.imageUrl = null
+            dish.save(flush: true)
+        }
+    }
+
+    // ================= UTILIDADES =================
+
+    private void validateFile(MultipartFile file) {
+        if (!file || file.empty) {
+            throw new IllegalArgumentException("Archivo requerido")
+        }
+
+        if (!ALLOWED_TYPES.contains(file.contentType)) {
+            throw new IllegalArgumentException("Tipo de imagen no permitido")
+        }
+
+        if (file.size > MAX_SIZE) {
+            throw new IllegalArgumentException("La imagen excede 2MB")
+        }
+    }
+
+    private String extractExtension(String filename) {
+        return filename.substring(filename.lastIndexOf('.')).toLowerCase()
     }
 
 }

@@ -1,0 +1,107 @@
+<app-navbar-admin></app-navbar-admin>
+
+<div class="role-management-container">
+  <div class="header">
+    <h1 class="title">Gestión de Roles</h1>
+    <p class="subtitle">Administra los roles y permisos del sistema</p>
+  </div>
+
+  <div class="actions-bar">
+    <button class="btn-primary" (click)="openCreateModal()">
+      <img src="/agregar.png" alt="Agregar" class="btn-icon-img">
+      Crear Nuevo Rol
+    </button>
+  </div>
+
+  <div class="roles-grid" *ngIf="!loading && roles.length > 0">
+    <div class="role-card" *ngFor="let role of roles">
+      <div class="role-header">
+        <div class="role-icon">
+          <img src="/usuario.png" alt="Role" class="role-icon-img">
+        </div>
+        <div class="role-info">
+          <h3 class="role-name">{{ role.authority }}</h3>
+          <span class="role-id">ID: {{ role.id }}</span>
+        </div>
+      </div>
+      <div class="role-actions">
+        <button class="btn-edit" (click)="openEditModal(role)" title="Editar">
+          <img src="/boton-editar.png" alt="Editar" class="action-icon">
+        </button>
+        <button class="btn-delete" (click)="confirmDelete(role)" title="Eliminar">
+          <img src="/eliminar.png" alt="Eliminar" class="action-icon">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <p>Cargando roles...</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && roles.length === 0">
+    <p>No hay roles configurados</p>
+    <button class="btn-primary" (click)="openCreateModal()">
+      Crear Primer Rol
+    </button>
+  </div>
+
+  <!-- Modal para crear/editar rol -->
+  <div class="modal-backdrop" *ngIf="showFormModal" (click)="closeFormModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">{{ isEditMode ? 'Editar Rol' : 'Crear Nuevo Rol' }}</h3>
+      <form (ngSubmit)="saveRole()">
+        <div class="form-group">
+          <label for="authority">Nombre del Rol</label>
+          <input 
+            type="text" 
+            id="authority"
+            class="form-input"
+            [(ngModel)]="roleForm.authority"
+            name="authority"
+            placeholder="Ej: ROLE_MANAGER"
+            required>
+          <small class="form-help">Use el formato ROLE_NOMBRE en mayúsculas</small>
+        </div>
+        <div class="form-buttons">
+          <button type="button" class="btn-secondary" (click)="closeFormModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="!roleForm.authority">
+            {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de eliminación -->
+  <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">¿Eliminar Rol?</h3>
+      <p class="modal-message">
+        ¿Estás seguro de que deseas eliminar el rol <strong>{{ roleToDelete?.authority }}</strong>?
+        <br><br>
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="form-buttons">
+        <button type="button" class="btn-secondary" (click)="closeDeleteModal()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-danger" (click)="deleteRole()">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de resultado -->
+  <div class="modal-backdrop" *ngIf="showResultModal" (click)="closeResultModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-icon">{{ resultIcon }}</div>
+      <h3 class="modal-title">{{ resultTitle }}</h3>
+      <p class="modal-message">{{ resultMessage }}</p>
+      <button class="btn-primary" (click)="closeResultModal()">Entendido</button>
+    </div>
+  </div>
+</div>

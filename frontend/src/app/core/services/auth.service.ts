@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 export class AuthService {
   URL_BASE = 'http://localhost:3050/backend/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   //login
   login(credentials: any) {
@@ -16,8 +16,7 @@ export class AuthService {
   }
 
   logout() {
-    const router = inject(Router);
     sessionStorage.clear();
-    router.navigateByUrl('/login');
+    this.router.navigate(['/login']);
   }
 }

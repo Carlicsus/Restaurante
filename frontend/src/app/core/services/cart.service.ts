@@ -10,23 +10,35 @@ export class CartService {
 
   constructor(private http: HttpClient) { }
 
-  getCart(){
-    return this.http.get(`${this.URL_BASE}/shoppingCart/listByUser`);
+  getCart() {
+    return this.http.get(`${this.URL_BASE}/shoppingCart/list`);
+  }
+
+  getCartByUser() {
+    return this.http.get(`${this.URL_BASE}/shoppingCart/byUser`);
   }
 
   create(cart: any) {
     return this.http.post(`${this.URL_BASE}/shoppingCart/new`, cart)
   }
 
-  addDish(dish: any, uuid:string) {
-    return this.http.post(`${this.URL_BASE}/api/shoppingCart/${uuid}/addItem`, dish);
-  }
-  
-  deleteDish(dish: any, uuid:string) {
-    return this.http.delete(`${this.URL_BASE}/api/shoppingCart/${uuid}/deleteItem/${dish.id}`);
+  getCartInfo(uuid: string) {
+    return this.http.get(`${this.URL_BASE}/shoppingCart/${uuid}/info`);
   }
 
-  finishCart(uuid:string){
-    return this.http.post(`${this.URL_BASE}/api/shoppingCart/${uuid}/finish`, {});
+  addDish(dish: any, uuid: string) {
+    return this.http.post(`${this.URL_BASE}/shoppingCart/${uuid}/addItem`, dish);
+  }
+
+  deleteDish(uuid: string, dishId: string) {
+    return this.http.delete(`${this.URL_BASE}/shoppingCart/${uuid}/deleteItem/${dishId}`);
+  }
+
+  finishCart(uuid: string) {
+    return this.http.patch(`${this.URL_BASE}/shoppingCart/${uuid}/finish`, {});
+  }
+
+  deleteCart(uuid: string) {
+    return this.http.delete(`${this.URL_BASE}/shoppingCart/${uuid}/delete`);
   }
 }

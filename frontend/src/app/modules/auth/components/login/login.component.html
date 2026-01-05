@@ -9,17 +9,46 @@
         <form class="login-form" (ngSubmit)="onSubmit()" autocomplete="off">
             <div class="form-group">
                 <label class="label">Username</label>
-                <input class="input" type="text" placeholder="Username" [(ngModel)]="credentials.username" name="username" />
+                <input class="input" type="text" placeholder="Username" [(ngModel)]="credentials.username" name="username" [disabled]="isLoading" />
             </div>
 
             <div class="form-group">
                 <label class="label">Contraseña</label>
-                <input class="input" type="password" placeholder="Contraseña" [(ngModel)]="credentials.password" name="password" />
+                <input class="input" type="password" placeholder="Contraseña" [(ngModel)]="credentials.password" name="password" [disabled]="isLoading" />
             </div>
 
-            <button class="btn btn--primary" type="submit">Iniciar sesión</button>
+            <button class="btn btn--primary" type="submit" [disabled]="isLoading">
+                <span *ngIf="!isLoading">Iniciar sesión</span>
+                <span *ngIf="isLoading" class="loading-content">
+                    <span class="spinner"></span>
+                    <span>Iniciando sesión...</span>
+                </span>
+            </button>
+
+            <div class="separator">
+                <span class="separator-text">o</span>
+            </div>
+
+            <button class="btn btn--google" type="button" (click)="loginWithGoogle()" [disabled]="isLoading">
+                <img src="/google.png" alt="Google" class="google-icon" />
+                Continuar con Google
+            </button>
 
             <a class="forgot" href="#">Olvidaste tu contraseña?</a>
         </form>
+    </div>
+</div>
+
+<!-- Modal de error -->
+<div class="modal-backdrop" *ngIf="showErrorModal" (click)="closeErrorModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div class="warning-icon">⚠️</div>
+            <h3>{{ errorTitle }}</h3>
+        </div>
+        <p class="modal-description">{{ errorMessage }}</p>
+        <div class="modal-actions">
+            <button class="btn btn--primary" (click)="closeErrorModal()">Entendido</button>
+        </div>
     </div>
 </div>

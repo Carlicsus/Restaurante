@@ -28,13 +28,21 @@ class OrderModuleService {
                     payed: item.payed,
                     dish: [
                         uuid: item.dish?.uuid,
+                        id:item.dish?.id,
                         name: item.dish?.name
                     ]
                 ]
             }]
     }
     def listOrders() {
-        def orders = CustomerOrder.findAllByStatus("Queue")
+        // Obtener todas las órdenes del día actual (no solo Queue)
+        def today = new Date().clearTime()
+        def tomorrow = today + 1
+        
+        def orders = CustomerOrder.findAll {
+            dateCreated >= today && dateCreated < tomorrow
+        }
+        
         def formattedOrders = orders.collect { order ->
             mapOrder(order) 
         }
@@ -42,6 +50,55 @@ class OrderModuleService {
                 resp: [success: true, message: 'Ordenes listadas', orders: formattedOrders],
                 status: 200
             ]
+    }
+    def listOrdersByUser(data) {
+        try {
+            def userId = data instanceof Long ? data : data.id
+            def user = User.get(userId)
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+            }
+
+            def max = data instanceof Long ? 10 : (data.max ? data.max.toInteger() : 10)
+            def offset = data instanceof Long ? 0 : (data.offset ? data.offset.toInteger() : 0)
+            def sortCol = data instanceof Long ? "dateCreated" : (data.sort ?: "dateCreated")
+            def orderDir = data instanceof Long ? "desc" : (data.order ?: "desc")
+
+            def criteria = CustomerOrder.createCriteria()
+            def resultList = criteria.list(max: max, offset: offset) {
+                eq("user", user)
+                
+                if (!(data instanceof Long) && data.status) {
+                    eq("status", data.status)
+                }
+                
+                if (!(data instanceof Long) && data.query) {
+                    ilike("uuid", "%${data.query}%")
+                }
+
+                order(sortCol, orderDir)
+            }
+
+            def formattedOrders = resultList.collect { order -> 
+                mapOrder(order) 
+            }
+
+            return [
+                resp: [
+                    success: true, 
+                    message: 'Ordenes listadas', 
+                    orders: formattedOrders,
+                    total: resultList.totalCount
+                ],
+                status: 200
+            ]
+        }
+        catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
     }
     def newOrder(data, auth) {
         println data
@@ -83,6 +140,13 @@ class OrderModuleService {
                 if (!newDishId) {
                     return [resp: [success: false, message: 'Falta el ID del nuevo platillo'], status: 400]
                 }
+                if (!order) {
+                return respond([success: false, message: "Orden no encontrada o no existe"], status: 404)
+                }
+                if (order.status in ["Finished", "Cancelled", "Preparing"]) {
+                return [resp: [success: false, message: "No se puede editar en estado ${order.status}"], status: 400]
+                }
+
                 def newDishObject = Dish.get(newDishId)
                 //println newDishObject
                 orderItem.dish = newDishObject
@@ -101,7 +165,6 @@ class OrderModuleService {
                 customerOrder: order.id
             ]).save(flush: true, failOnError: true)
             }
-            //order.save(flush: true, failOnError: true
             return [
                 resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
                 status: 200
@@ -116,25 +179,359 @@ class OrderModuleService {
     def editOrderStatus(data) {
         try {
             def order = CustomerOrder.findByUuid(data.uuidOrder)
-            if (!order) {
-                return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
+            if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
+                if (!order) {
+                    return [
+                        resp: [success: false, message: "Orden no encontrada"],
+                        status: 404
+                    ]
+                }
+                if (order.status == "Finished") {
+                    return [
+                        resp: [success: false, message: "No se puede editar una orden que ya ha sido finalizada"],
+                        status: 400
+                    ]
+                }
+                if (order.status == "Cancelled") {
+                    return [
+                        resp: [success: false, message: "No se puede editar una orden que ya ha sido cancelada"],
+                        status: 400
+                    ]
+                }
+                // Permitir cambiar de Preparing a Finished o Cancelled
+                if (order.status == "Preparing" && data.status != "Finished" && data.status != "Cancelled") {
+                    return [
+                        resp: [success: false, message: "Una orden en preparación solo puede ser finalizada o cancelada"],
+                        status: 400
+                    ]
+                }
             }
-
             if (data.status == "Finished") {
-            saleService.createAutoSale(order.id)
+                saleService.createAutoSale(order.id)
             }
-            if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
+            if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 order.status = data.status
                 order.save(flush: true, failOnError: true)
-            return [
-                resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, order:mapOrder(order)],status: 200
-            ]
+                return [
+                    resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, order:mapOrder(order)],
+                    status: 200
+                ]
             }
         } catch (e) {
             return [
                 resp: [success: false, message: e.getMessage()],
                 status: 500
             ]
+        }
+    }
+
+    def rejectDish(String uuidOrder, String uuidDish, String reason, chef) {
+        try {
+            def order = CustomerOrder.findByUuid(uuidOrder)
+            if (!order) {
+                return [
+                    resp: [success: false, message: "Orden no encontrada"],
+                    status: 404
+                ]
+            }
+
+            def orderItem = OrderItem.findByUuidAndCustomerOrder(uuidDish, order)
+            if (!orderItem) {
+                return [
+                    resp: [success: false, message: "Platillo no encontrado en la orden"],
+                    status: 404
+                ]
+            }
+
+            def chefUser = User.get(chef.id)
+            if (!chefUser) {
+                return [
+                    resp: [success: false, message: "Chef no encontrado"],
+                    status: 404
+                ]
+            }
+
+            // Crear rechazo del platillo
+            def rejection = new DishRejection(
+                reason: reason,
+                order: order,
+                orderItem: orderItem,
+                chef: chefUser,
+                approvalStatus: "Pending"
+            )
+            rejection.save(flush: true, failOnError: true)
+
+            return [
+                resp: [
+                    success: true,
+                    message: "Platillo rechazado. Se ha notificado al usuario.",
+                    rejection: [
+                        uuid: rejection.uuid,
+                        reason: rejection.reason,
+                        approvalStatus: rejection.approvalStatus,
+                        dish: [
+                            uuid: orderItem.dish?.uuid,
+                            name: orderItem.dish?.name
+                        ]
+                    ]
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error al rechazar platillo: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
+
+    def listRejections(auth) {
+        try {
+            def user = User.get(auth.id)
+            if (!user) {
+                return [
+                    resp: [success: false, message: "Usuario no encontrado"],
+                    status: 404
+                ]
+            }
+
+            // Obtener rechazos pendientes del usuario
+            def rejections = DishRejection.createCriteria().list {
+                eq("approvalStatus", "Pending")
+                order {
+                    eq("user", user)
+                }
+                order('dateCreated', 'desc')
+            }
+
+            def formattedRejections = rejections.collect { rejection ->
+                [
+                    uuid: rejection.uuid,
+                    reason: rejection.reason,
+                    approvalStatus: rejection.approvalStatus,
+                    dateCreated: rejection.dateCreated,
+                    chef: [
+                        username: rejection.chef?.username
+                    ],
+                    order: [
+                        uuid: rejection.order?.uuid,
+                        status: rejection.order?.status
+                    ],
+                    dish: [
+                        uuid: rejection.orderItem?.dish?.uuid,
+                        name: rejection.orderItem?.dish?.name,
+                        quantity: rejection.orderItem?.quantity
+                    ]
+                ]
+            }
+
+            return [
+                resp: [success: true, rejections: formattedRejections],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
+
+    def rejectionInfo(String rejectionUuid) {
+        try {
+            def rejection = DishRejection.findByUuid(rejectionUuid)
+            if (!rejection) {
+                return [
+                    resp: [success: false, message: "Rechazo no encontrado"],
+                    status: 404
+                ]
+            }
+
+            return [
+                resp: [
+                    success: true,
+                    rejection: [
+                        uuid: rejection.uuid,
+                        reason: rejection.reason,
+                        approvalStatus: rejection.approvalStatus,
+                        dateCreated: rejection.dateCreated,
+                        dateApproved: rejection.dateApproved,
+                        chef: [
+                            username: rejection.chef?.username
+                        ],
+                        order: [
+                            uuid: rejection.order?.uuid,
+                            status: rejection.order?.status
+                        ],
+                        dish: [
+                            uuid: rejection.orderItem?.dish?.uuid,
+                            name: rejection.orderItem?.dish?.name,
+                            quantity: rejection.orderItem?.quantity,
+                            unitPrice: rejection.orderItem?.unitPrice / 100
+                        ]
+                    ]
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
+
+    def approveRejection(String rejectionUuid, auth) {
+        try {
+            def rejection = DishRejection.findByUuid(rejectionUuid)
+            if (!rejection) {
+                return [
+                    resp: [success: false, message: "Rechazo no encontrado"],
+                    status: 404
+                ]
+            }
+
+            def user = User.get(auth.id)
+            if (rejection.order.user.id != user.id) {
+                return [
+                    resp: [success: false, message: "No tiene permiso para aprobar este rechazo"],
+                    status: 403
+                ]
+            }
+
+            if (rejection.approvalStatus != "Pending") {
+                return [
+                    resp: [success: false, message: "Este rechazo ya fue procesado"],
+                    status: 400
+                ]
+            }
+
+            rejection.approvalStatus = "Approved"
+            rejection.dateApproved = new Date()
+            rejection.save(flush: true, failOnError: true)
+
+            // Remover el item de la orden
+            def orderItem = rejection.orderItem
+            def order = rejection.order
+            order.removeFromOrderItems(orderItem)
+            orderItem.delete(flush: true)
+
+            // Si la orden no tiene más items, cancelarla
+            if (order.orderItems.size() == 0) {
+                order.status = "Cancelled"
+                order.save(flush: true)
+            }
+
+            return [
+                resp: [
+                    success: true,
+                    message: "Rechazo aprobado. El platillo ha sido removido de la orden."
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
+
+    def cancelRejection(String rejectionUuid, auth) {
+        try {
+            def rejection = DishRejection.findByUuid(rejectionUuid)
+            if (!rejection) {
+                return [
+                    resp: [success: false, message: "Rechazo no encontrado"],
+                    status: 404
+                ]
+            }
+
+            def user = User.get(auth.id)
+            if (rejection.order.user.id != user.id) {
+                return [
+                    resp: [success: false, message: "No tiene permiso para cancelar este rechazo"],
+                    status: 403
+                ]
+            }
+
+            if (rejection.approvalStatus != "Pending") {
+                return [
+                    resp: [success: false, message: "Este rechazo ya fue procesado"],
+                    status: 400
+                ]
+            }
+
+            rejection.approvalStatus = "Cancelled"
+            rejection.dateApproved = new Date()
+            rejection.save(flush: true, failOnError: true)
+
+            return [
+                resp: [
+                    success: true,
+                    message: "Rechazo cancelado. El platillo permanecerá en la orden."
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
+  
+    def cancelOrder(data, comment) {
+        try{
+            def order = CustomerOrder.findByUuid(data.uuidOrder)
+            
+            if (data.status in ["Cancelled", "Preparing", "Finished"]) {
+                if (!order) {
+                    return [
+                        resp: [success: false, message: "Orden no encontrada"],
+                        status: 404
+                    ]
+                }
+                if (order.status == "Finished") {
+                    return [
+                        resp: [success: false, message: "No se puede cancelar una orden que ya ha sido finalizada"],
+                        status: 400
+                    ]
+                }
+                if (order.status == "Cancelled") {
+                    return [
+                        resp: [success: false, message: "No se puede cancelar una orden que ya ha sido cancelada"],
+                        status: 400
+                    ]
+                }
+                // Permitir cancelar órdenes en preparación con un motivo
+            }
+            
+            order.comment = comment.comment
+            order.status = data.status
+            order.save(flush: true, failOnError: true)
+
+            return [
+                resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status],
+                status: 200
+            ]
+        }
+        catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+        def orderInfo(uuid) {
+        try {
+            def order = CustomerOrder.findByUuid(uuid)
+            if (!order) {
+                return [resp: [success: false, message: 'Orden no encontrada'], status: 404]
+            }
+            return [resp: [success: true, order: mapOrder(order)], status: 200]
+        } catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
 }

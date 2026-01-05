@@ -8,7 +8,6 @@
       Consulta empleados con deudas pendientes y gestiona sus pagos.
     </p>
 
-    <!-- SUMMARY CARDS -->
     <div class="summary-grid" *ngIf="!loading">
       <div class="summary-card">
         <span class="summary-label">Total Deudores</span>
@@ -24,13 +23,11 @@
       </div>
     </div>
 
-    <!-- ERROR MESSAGE -->
     <div *ngIf="errorMessage" class="error-banner">
       <p>⚠️ {{ errorMessage }}</p>
       <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
     </div>
 
-    <!-- BUSCADOR Y FILTROS -->
     <div class="toolbar">
       <div class="search-box">
         <input 
@@ -66,13 +63,11 @@
       </div>
     </div>
 
-    <!-- LOADING STATE -->
     <div *ngIf="loading" class="loading-container">
       <div class="spinner"></div>
       <p>Cargando deudores...</p>
     </div>
 
-    <!-- TABLA -->
     <div class="table-card" *ngIf="!loading && filteredDebtors.length > 0">
       <div class="table-header">
         <span>Usuario</span>
@@ -95,16 +90,35 @@
         <span class="order-count">{{ debtor.pendingOrdersCount }}</span>
         <span class="debt-amount" [class.high-debt]="debtor.totalPendingAmount > 50000">{{ formatCurrency(debtor.totalPendingAmount) }}</span>
 
-        <button
-          class="action-btn"
-          (click)="viewDebtorDetails(debtor.username)"
-        >
-          Ver Detalles →
-        </button>
+        <div class="actions-group">
+          <button
+            class="lock-btn"
+            [class.locked]="isUserLocked(debtor.username)"
+            [disabled]="isLockingInProgress(debtor.username)"
+            (click)="toggleLockUser(debtor.username, $event)"
+            [title]="isUserLocked(debtor.username) ? 'Desbloquear usuario' : 'Bloquear usuario'"
+          >
+            <ng-container *ngIf="!isLockingInProgress(debtor.username)">
+              <img 
+                [src]="isUserLocked(debtor.username) ? 'candado-abierto.png' : 'candado.png'" 
+                alt="Lock icon"
+                style="width: 16px; height: 16px;"
+              />
+            </ng-container>
+            <span *ngIf="isLockingInProgress(debtor.username)">⏳</span>
+            {{ isUserLocked(debtor.username) ? 'Desbloquear' : 'Bloquear' }}
+          </button>
+          
+          <button
+            class="action-btn"
+            (click)="viewDebtorDetails(debtor.username)"
+          >
+            Ver Detalles →
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- EMPTY STATE -->
     <div *ngIf="!loading && filteredDebtors.length === 0" class="empty-state">
       <h3>{{ searchTerm ? 'No se encontraron resultados' : '¡Excelente!' }}</h3>
       <p>{{ searchTerm ? 'Intenta con otro término de búsqueda' : 'No hay deudores pendientes en este momento' }}</p>

@@ -1,0 +1,27 @@
+<nav>
+  <div class="nav-container">
+
+    <div class="imagen" (click)="toggleMobileMenu()">
+      <img class="brand-logo" routerLink="/admin/dashboard" src="/logo.png" alt="Restaurante logo" />
+    </div>
+
+    <div class="options" [class.show-mobile]="showMobileMenu">
+      <ul>
+        <li><button routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</button></li>
+        <li><button routerLink="/admin/users" routerLinkActive="active">Usuarios</button></li>
+        <li><button routerLink="/admin/roles" routerLinkActive="active">Roles</button></li>
+      </ul>
+    </div>
+
+    <div class="perfil" (click)="toggleProfileMenu()">
+      <img [src]="userAvatar" alt="Perfil">
+      <div class="profile-dropdown" *ngIf="showProfileMenu">
+        <button class="dropdown-item" (click)="logout()">
+          <img src="/cerrar-sesion.png" alt="Cerrar Sesión" style="width: 20px; height: 20px; margin-right: 8px; flex-shrink: 0; border-radius: 0;">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+
+  </div>
+</nav>

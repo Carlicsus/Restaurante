@@ -29,7 +29,10 @@ class UrlMappings {
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
-                get "/view"(controller: "platillo", action: "paginateDishes")  
+                get "/view"(controller: "platillo", action: "paginateDishes")
+                get "/ranking/rating"(controller: "platillo", action: "dishRankingByRating")
+                get "/ranking/topselling"(controller: "platillo", action: "topSellingDishes")
+                get "/chart-top-dishes"(controller: "platillo", action: "topDishesChart")
                 group "/$uuid", {
                     get "/info"(controller: "platillo", action: "dishInfo"){
                         status = 1
@@ -49,7 +52,15 @@ class UrlMappings {
                     delete "/delete"(controller: "platillo", action: "editDishStatus") {
                         status = 2
                     }
+                    // Imagen: subida y borrado (protegidos) 
+                    post "/upload-image"(controller: "platillo", action: "uploadDishImage")
+                    delete "/image"(controller: "platillo", action: "deleteDishImage")
                 }
+            }
+
+            // Imagen: descarga pública
+            group "/images", {
+                get "/$fileName"(controller: "platillo", action: "downloadDishImage")
             }
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
@@ -101,6 +112,7 @@ class UrlMappings {
                 post "/orders/pay-dish"(controller: "sale", action: "paySingleDish")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
                 get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
+                post "/user-expenses-chart"(controller: "sale", action: "getUserSpendingChart")
                 get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 1
                 }
@@ -115,15 +127,20 @@ class UrlMappings {
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
+                get "/listOrdersByUser/$userId"(controller: "ordersModule", action: "listOrdersByUser")
+                get "/myOrders"(controller: "ordersModule", action: "getMyOrders")
+                get "/rejections"(controller: "ordersModule", action: "listRejections")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
                     group "/edit/$uuidDish",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
+                        patch "/reject"(controller: "ordersModule", action: "rejectDish")
                     }
                     patch "/edit"(controller: "ordersModule", action: "editOrder")
-                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
+                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
+                    /*patch "'/cancel/comment'"(controller: "ordersModule", action: "cancelOrder") {
                         status = "Cancelled"
-                    }
+                    }*/
                     patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
                         status = "Preparing"
                     }
@@ -133,14 +150,16 @@ class UrlMappings {
                     patch "/queue"(controller: "ordersModule", action: "editOrderStatus") {
                         status = "Queue"
                     }
-                    /*patch "/pend"(controller: "ordersModule", action: "editOrderStatus") {
-                        status = "Pending"
+                    group "/rejection/$rejectionUuid", {
+                        get "/info"(controller: "ordersModule", action: "rejectionInfo")
+                        patch "/approve"(controller: "ordersModule", action: "approveRejection")
+                        patch "/cancel"(controller: "ordersModule", action: "cancelRejection")
                     }
-                    */
                 }
             }
             group "/shoppingCart", {
                 get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+                get "/byUser" (controller: "shoppingCart", action: "getCartByUser")
                 post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
                 group "/$uuidSC", {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")

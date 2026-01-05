@@ -9,6 +9,7 @@ import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.userdetails.GrailsUser
 
 import java.nio.file.Files
+import org.springframework.web.multipart.MultipartHttpServletRequest
 
 class UserController {
 	static responseFormats = ['json', 'xml']

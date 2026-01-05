@@ -10,6 +10,7 @@ class ShoppingCartService {
     def mapShoppingCart = { ShoppingCart cart ->
     def obj = [
         id: cart.id,
+        uuid: cart.uuid,
         status: cart.status,
         dateCreated: cart.dateCreated,
         lastUpdated: cart.lastUpdated,
@@ -23,18 +24,32 @@ class ShoppingCartService {
                 uuid: item.uuid,
                 quantityDish: item.quantity,
                 unitPrice: item.unitPrice / 100,
+                dishId: item.dish?.id,
                 dish: [
                     uuid: item.dish?.uuid,
+                    id: item.dish?.id,
                     name: item.dish?.name
                 ]
             ]
         }
     ]
-}
+    }
+    def scheduleService
 
     def listOrderShoppingCart() {
         try{
             def shoppingCarts = ShoppingCart.list()
+            def formattedCarts = shoppingCarts.collect { cart -> mapShoppingCart(cart) }
+            return [resp: [success: true, shoppingCarts: formattedCarts], status: 200]    
+        }
+        catch (e) {
+            return [resp: [success:false, message: e.getMessage()], status: 500]
+        }
+    }
+    def listOrderShoppingCartByUser(data) {
+        try{
+            def user = User.get(data.id)
+            def shoppingCarts = ShoppingCart.findAllByUser(user)
             def formattedCarts = shoppingCarts.collect { cart -> mapShoppingCart(cart) }
             return [resp: [success: true, shoppingCarts: formattedCarts], status: 200]    
         }
@@ -71,7 +86,7 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }       
     }
-def editStatusShoppingCart(data){
+    def editStatusShoppingCart(data){
         try {
             def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
             println shoppingCart
@@ -86,6 +101,15 @@ def editStatusShoppingCart(data){
             }
             
             if (data.status == "Finished") {
+                if (!scheduleService.isAnyChefAvailable()) {
+                    return [
+                        resp: [
+                            success: false, 
+                            message: "No se puede finalizar el pedido: La cocina está cerrada."
+                        ], 
+                        status: 409
+                    ]
+                }
                 def user = User.findById(shoppingCart.user.id) 
                 println "Hola"
 
@@ -103,7 +127,7 @@ def editStatusShoppingCart(data){
                 
                 for (item in shoppingCartItems) {
                     def orderItemEntry = new OrderItem ([
-                        customerOrder: newOrder, // Antes tenías newOrder.id (eso causaba el error)
+                        customerOrder: newOrder, 
                         dish: item.dish,
                         quantity: item.quantity,
                         unitPrice: item.unitPrice
@@ -178,6 +202,38 @@ def editStatusShoppingCart(data){
         }
         catch (e) {
             return [resp: [success:false, message: e.getMessage()], status: 500]
+        }
+    }
+
+    def getCartByUser(userId) {
+        try {
+            def user = User.get(userId)
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+            }
+            def shoppingCart = ShoppingCart.findByUser(user)
+            if (!shoppingCart) {
+                return [resp: [success: false, message: "El usuario no tiene un carrito de compras activo"], status: 404]
+            }
+            def formattedCart = mapShoppingCart(shoppingCart)
+            return [resp: [success: true, shoppingCart: formattedCart], status: 200]
+        }
+        catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
+        }
+    }
+
+    def shoppingCartInfo(uuid) {
+        try {
+            def shoppingCart = ShoppingCart.findByUuid(uuid)
+            if (!shoppingCart) {
+                return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
+            }
+            def formattedCart = mapShoppingCart(shoppingCart)
+            return [resp: [success: true, shoppingCart: formattedCart], status: 200]
+        }
+        catch (e) {
+            return [resp: [success: false, message: e.getMessage()], status: 500]
         }
     }
 }

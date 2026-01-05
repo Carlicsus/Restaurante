@@ -19,13 +19,18 @@ export class MenuService {
   }
 
   editMenu(menu: any) {
-    return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/edit`, menu.name);
+    return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/edit`, { name: menu.name });
   }
 
   activateMenu(menu: any) {
-    return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/activate`, menu.status);
+    return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/activate`, {});
   }
+  
   deactivateMenu(menu: any) {
-    return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/deactivate`, menu.status)
+    return this.http.patch(`${this.URL_BASE}/menu/type/${menu.uuid}/deactivate`, {});
+  }
+  
+  deleteMenu(menu: any) {
+    return this.http.delete(`${this.URL_BASE}/menu/type/${menu.uuid}/delete`);
   }
 }

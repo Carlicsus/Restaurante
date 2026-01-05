@@ -8,29 +8,38 @@ export class OrderService {
 
   URL_BASE = 'http://localhost:3050/backend/api';
 
-  constructor(private http:HttpClient) {  }
+  constructor(private http: HttpClient) { }
 
   getOrders() {
     return this.http.get(`${this.URL_BASE}/order/listOrders`)
   }
 
-  getOrdersUsuario(id:string){
+  getOrdersUsuario(id: string) {
     return this.http.get(`${this.URL_BASE}/order/listOrdersByUser/${id}`)
   }
 
-  createOrder(order:any){
+  getMyOrders() {
+    return this.http.get(`${this.URL_BASE}/order/myOrders`)
+  }
+
+  createOrder(order: any) {
     return this.http.post(`${this.URL_BASE}/order/newOrder`, order)
   }
 
-  prepareOrder(uuid:string){
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/prepare`, uuid)
+  prepareOrder(uuid: string) {
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/prepare`, {});
   }
 
-  finishOrder(uuid:string){
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/finish`, uuid)
+  finishOrder(uuid: string) {
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/finish`, {});
   }
 
-  cancelOrder(uuid:string){
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel`, uuid)
+  cancelOrder(uuid: string, reason?: string) {
+    const body = reason ? { comment: reason } : {};
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel/comment`, body);
+  }
+
+  getOrder(uuid: string) {
+    return this.http.get(`${this.URL_BASE}/order/${uuid}/info`)
   }
 }

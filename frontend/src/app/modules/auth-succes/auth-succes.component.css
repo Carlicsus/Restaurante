@@ -1,0 +1,171 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  background: var(--bg);
+}
+
+.auth-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.brand-logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  margin: 0 auto 0.75rem;
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--foreground);
+  font-weight: bold;
+}
+
+.auth-card {
+  width: 420px;
+  max-width: calc(100% - 32px);
+  background: var(--white);
+  border-radius: 16px;
+  padding: 2.25rem;
+  box-shadow: 0 6px 18px rgba(13, 18, 28, 0.08);
+  border: 1px solid rgba(13, 18, 28, 0.04);
+  text-align: center;
+}
+
+/* Spinner */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error icon */
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 0.75rem 0;
+}
+
+.title.error-title {
+  color: var(--danger);
+}
+
+.message {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  opacity: 0.8;
+  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+}
+
+.message.error-message {
+  color: var(--danger);
+  opacity: 0.9;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.08);
+  transition: opacity 0.2s;
+}
+
+.btn--primary:hover {
+  opacity: 0.9;
+}
+
+.btn--primary:active {
+  transform: translateY(1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 2rem;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .message {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 2rem 1rem;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  .brand-logo {
+    width: 72px;
+    height: 72px;
+  }
+
+  .brand-title {
+    font-size: 1.1rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .message {
+    font-size: 0.8rem;
+  }
+
+  .error-icon {
+    font-size: 40px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+}

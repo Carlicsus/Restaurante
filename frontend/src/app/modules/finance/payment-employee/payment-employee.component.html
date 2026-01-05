@@ -3,27 +3,22 @@
 <div class="page-wrapper">
   <div class="content-wrapper">
 
-    <!-- Breadcrumb -->
     <p class="breadcrumb">
       <span class="link" (click)="goBack()">← Finanzas / Cobranza</span> / <strong>{{ username }}</strong>
     </p>
 
-    <!-- LOADING STATE -->
     <div *ngIf="loading" class="loading-container">
       <div class="spinner">⏳</div>
       <p>Cargando detalles del empleado...</p>
     </div>
 
-    <!-- ERROR MESSAGE -->
     <div *ngIf="errorMessage && !loading" class="error-banner">
       <p>⚠️ {{ errorMessage }}</p>
       <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
     </div>
 
-    <!-- CONTENT -->
     <div *ngIf="!loading && !errorMessage">
 
-      <!-- Header -->
       <div class="employee-header">
         <div class="employee-info">
           <div class="avatar-circle" [style.background-color]="'#3b82f6'">
@@ -45,25 +40,42 @@
           </div>
         </div>
 
-        <button 
-          *ngIf="totalOrders > 0" 
-          class="pay-all-btn"
-          (click)="payAllOrders()"
-          [disabled]="processingPayment"
-        >
-          {{ processingPayment ? '⏳ Procesando...' : '💳 Pagar Todo' }}
-        </button>
+        <div class="header-actions">
+          <button 
+            *ngIf="totalOrders > 0" 
+            class="pay-all-btn"
+            (click)="payAllOrders()"
+            [disabled]="processingPayment"
+          >
+            {{ processingPayment ? '⏳ Procesando...' : 'Pagar Todo' }}
+          </button>
+
+          <button 
+            class="lock-user-btn"
+            [class.locked]="isUserLocked"
+            [disabled]="lockingInProgress"
+            (click)="toggleLockUser()"
+            [title]="isUserLocked ? 'Desbloquear usuario' : 'Bloquear usuario'"
+          >
+            <ng-container *ngIf="!lockingInProgress">
+              <img 
+                [src]="isUserLocked ? 'candado-abierto.png' : 'candado.png'" 
+                alt="Lock icon"
+                style="width: 16px; height: 16px;"
+              />
+            </ng-container>
+            <span *ngIf="lockingInProgress">⏳</span>
+            {{ isUserLocked ? 'Desbloquear' : 'Bloquear' }}
+          </button>
+        </div>
       </div>
 
-      <!-- NO ORDERS STATE -->
       <div *ngIf="orders.length === 0" class="empty-state">
-        <div class="empty-icon">✅</div>
         <h3>¡Sin deudas pendientes!</h3>
         <p>Este empleado no tiene órdenes pendientes de pago</p>
         <button class="btn-secondary" (click)="goBack()">Volver a Cobranza</button>
       </div>
 
-      <!-- Tabla -->
       <div class="table-card" *ngIf="orders.length > 0">
         <div class="table-header">
           <span>Orden</span>
@@ -97,12 +109,11 @@
             (click)="markAsPaid(order)"
             [disabled]="processingPayment"
           >
-            {{ selectedOrderUuid === order.saleUuid ? '⏳' : '✓ Pagar' }}
+            {{ selectedOrderUuid === order.saleUuid ? '⏳ Procesando...' : '✓ Pagar' }}
           </button>
         </div>
       </div>
 
-      <!-- Order Items Details (Expandable) -->
       <div class="items-details" *ngIf="orders.length > 0">
         <h3>Detalles de Platillos</h3>
         <div class="order-details" *ngFor="let order of orders">
@@ -122,7 +133,6 @@
         </div>
       </div>
 
-      <!-- Acciones -->
       <div class="actions">
         <button class="btn-secondary" (click)="goBack()">
           ← Volver a Cobranza

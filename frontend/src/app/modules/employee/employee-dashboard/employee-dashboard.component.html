@@ -1,29 +1,97 @@
 <app-navbar-employee></app-navbar-employee>
 
-<div class="container">
+<div class="page-wrapper">
+  <div class="content-wrapper">
 
-<div class="daily-menu">
-  <div class="info">
-    <h2>OFERTAS ESPECIALES</h2>
-    <p>Descubre las opciones especiales de hoy, preparadas para ti</p>
-    <button class="btn-primary" routerLink="/employee/complete-menu" >Ver Menú</button>
-  </div>
+    <div class="dashboard-header">
+      <div class="welcome-section">
+        <h1 class="welcome-title">{{ getGreeting() }}, {{ userName }}</h1>
+        <p class="welcome-subtitle">Aquí tienes un resumen de tu actividad reciente</p>
+      </div>
+      <div class="time-info">
+        <span class="current-time">{{ currentTime | date:'short':'es-MX' }}</span>
+      </div>
+    </div>
 
-  <div class="image"></div>
-</div>
+    <div *ngIf="loading" class="loading">
+      <p>Cargando información...</p>
+    </div>
 
-  <div class="summary">
-    <h3>Resumen de Pedidos</h3>
-    
-    <div class="order-list">
-      <div class="order">
-        <div class="icon">📦</div>
-        <div class="meta">
-          <div class="title">Tu Último Pedido</div>
-          <span class="id">#12345</span>
-          <span class="date">Fecha: 24 de Octubre</span>
+    <div *ngIf="!loading" class="dashboard-content">
+
+      <div class="main-section">
+
+        <div class="last-order-card">
+          <div class="card-header">
+            <h3>Tu Último Pedido</h3>
+          </div>
+
+          <div *ngIf="lastOrder; else noOrders" class="order-content">
+            <div class="order-header">
+              <div class="order-info">
+                <h4>Pedido #{{ lastOrder.code }}</h4>
+                <span class="order-date">{{ formatDate(lastOrder.date) }}</span>
+              </div>
+              <div class="order-status">
+                <span class="status-badge" [ngClass]="getStatusClass(lastOrder.status)">
+                  {{ lastOrder.status }}
+                </span>
+              </div>
+            </div>
+
+            <div class="order-details">
+              <div class="order-summary">
+                <span class="summary-text">
+                  {{ lastOrder.totalItems }} artículo(s) • {{ formatCurrency(lastOrder.amount) }}
+                </span>
+              </div>
+
+              <div class="order-items">
+                <div class="item-preview" *ngFor="let item of lastOrder.items | slice:0:3">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-quantity">x{{ item.quantity }}</span>
+                </div>
+                <div class="more-items" *ngIf="lastOrder.items.length > 3">
+                  <span>+{{ lastOrder.items.length - 3 }} más</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noOrders>
+            <div class="no-orders">
+              <p>Aún no tienes pedidos</p>
+              <button class="btn-primary" routerLink="/employee/complete-menu">Hacer Primer Pedido</button>
+            </div>
+          </ng-template>
         </div>
-        <div class="status-dot"></div>
+
+        <div class="quick-actions">
+          <h3>Acciones Rápidas</h3>
+          <div class="actions-grid">
+            <button class="action-card" routerLink="/employee/complete-menu">
+              <div class="action-text">
+                <span class="action-title">Ver Menú</span>
+                <span class="action-desc">Explora nuestros platillos</span>
+              </div>
+            </button>
+
+            <button class="action-card" routerLink="/employee/cart">
+              <div class="action-text">
+                <span class="action-title">Mi Carrito</span>
+                <span class="action-desc">Revisar pedidos actuales</span>
+              </div>
+            </button>
+
+            <button class="action-card" routerLink="/employee/history">
+              <div class="action-text">
+                <span class="action-title">Historial</span>
+                <span class="action-desc">Ver pedidos anteriores</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

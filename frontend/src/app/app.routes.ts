@@ -6,11 +6,8 @@ import { SignUpComponent } from './modules/auth/components/sign-up/sign-up.compo
 import { EmployeeDashboardComponent } from './modules/employee/employee-dashboard/employee-dashboard.component';
 import { OrderDetailsComponent } from './modules/employee/order-details/order-details.component';
 import { OrderHistoryComponent } from './modules/employee/order-history/order-history.component';
-import { OrderConfirmationComponent } from './modules/employee/order-confirmation/order-confirmation.component';
-import { DailyMenuComponent } from './modules/employee/menu-day/daily-menu.component';
 import { EmployeCartComponent } from './modules/employee/employe-cart/employe-cart.component';
 import { CompleteMenuComponent } from './modules/employee/complete-menu/complete-menu.component';
-import { RateDishComponent } from './modules/employee/rate-dish/rate-dish.component';
 import { DetailProductComponent } from './modules/employee/detail-product/detail-product.component';
 //chef
 import { ChefDashboardComponent } from './modules/chef/chef-dashboard/chef-dashboard.component';
@@ -23,33 +20,141 @@ import { CloneSaucerComponent } from './modules/chef/clone-saucer/clone-saucer.c
 //finance
 import { FinanceDashboardComponent } from './modules/finance/finance-dashboard/finance-dashboard.component';
 import { DebtManagementComponent } from './modules/finance/debt-management/debt-management.component';
-import { PaymentManagementComponent } from './modules/finance/payment-management/payment-management.component';
 import { PaymentEmployeeComponent } from './modules/finance/payment-employee/payment-employee.component';
 
+//admin
+import { AdminDashboardComponent } from './modules/admin/admin-dashboard/admin-dashboard.component';
+import { UserManagementComponent } from './modules/admin/user-management/user-management.component';
+import { RoleManagementComponent } from './modules/admin/role-management/role-management.component';
+
 import { LandingComponent } from './modules/home/pages/landing/landing.component';
+import { AuthSuccesComponent } from './modules/auth-succes/auth-succes.component';
+
+// Guards
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   { path:'', component: LandingComponent },
   { path:'login', component: LoginComponent },
   { path:'signup', component: SignUpComponent },
-  { path:'employee/dashboard', component: EmployeeDashboardComponent },
-  { path:'employee/details/:id', component: OrderDetailsComponent},
-  { path:'employee/history', component: OrderHistoryComponent},
-  { path:'employee/order-confirmation', component:OrderConfirmationComponent},
-  { path:'employee/menu-day', component: DailyMenuComponent},
-  { path:'employee/cart', component: EmployeCartComponent},
-  { path:'employee/complete-menu', component: CompleteMenuComponent},
-  { path:'employee/dish/:id', component: DetailProductComponent},
-  { path:'employee/rate-dish', component: RateDishComponent},
-  { path:'finance/dashboard', component: FinanceDashboardComponent },
-  { path:'finance/debt', component: DebtManagementComponent },
-  { path:'finance/payment', component: PaymentManagementComponent },
-  { path:'finance/payment-employee', component: PaymentEmployeeComponent },
-  { path:'chef/dashboard', component: ChefDashboardComponent },
-  { path:'chef/menu-management', component: MenuManagementComponent },
-  { path:'chef/statistics', component: ChefStatisticsComponent },
-  { path:'chef/order-management', component: ChefOrderManagementComponent },
-  { path:'chef/order-details', component: ChefOrderDetailsComponent },
-  { path:'chef/clone-saucer', component: CloneSaucerComponent },
+  { path:'auth-success', component: AuthSuccesComponent },
+  
+  // Rutas de Employee (ROLE_USER)
+  { 
+    path:'employee/dashboard', 
+    component: EmployeeDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'employee/details/:id', 
+    component: OrderDetailsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'employee/history', 
+    component: OrderHistoryComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'employee/cart', 
+    component: EmployeCartComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'employee/complete-menu', 
+    component: CompleteMenuComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'employee/dish/:id', 
+    component: DetailProductComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+  },
+  
+  // Rutas de Finance (ROLE_FINANCE)
+  { 
+    path:'finance/dashboard', 
+    component: FinanceDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_FINANCE', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'finance/debt', 
+    component: DebtManagementComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_FINANCE', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'finance/payment-employee', 
+    component: PaymentEmployeeComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_FINANCE', 'ROLE_ADMIN'] }
+  },
+  
+  // Rutas de Chef (ROLE_CHEF)
+  { 
+    path:'chef/dashboard', 
+    component: ChefDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'chef/menu-management', 
+    component: MenuManagementComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'chef/statistics', 
+    component: ChefStatisticsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'chef/order-management', 
+    component: ChefOrderManagementComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'chef/order-details/:orderId', 
+    component: ChefOrderDetailsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+  },
+  { 
+    path:'chef/clone-saucer', 
+    component: CloneSaucerComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+  },
+  
+  // Rutas de Admin (ROLE_ADMIN)
+  { 
+    path:'admin/dashboard', 
+    component: AdminDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_ADMIN'] }
+  },
+  { 
+    path:'admin/users', 
+    component: UserManagementComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_ADMIN'] }
+  },
+  { 
+    path:'admin/roles', 
+    component: RoleManagementComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ROLE_ADMIN'] }
+  },
+  
   { path:'**', redirectTo: '', pathMatch: 'full' }
 ];

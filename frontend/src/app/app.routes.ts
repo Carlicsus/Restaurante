@@ -124,7 +124,7 @@ export const routes: Routes = [
     data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
   },
   { 
-    path:'chef/order-details', 
+    path:'chef/order-details/:orderId', 
     component: ChefOrderDetailsComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }

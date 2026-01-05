@@ -27,12 +27,16 @@ export class DishService {
     return this.http.patch(`${this.URL_BASE}/dish/${dish.uuid}/edit`, dish)
   }
 
-  activateDish(dish:any){
-    return this.http.patch(`${this.URL_BASE}/dish/${dish.uuid}/activate`, dish)
+  activateDish(uuid: string){
+    return this.http.patch(`${this.URL_BASE}/dish/${uuid}/activate`, {})
   }
 
-  desactivateDish(dish:any){
-    return this.http.patch(`${this.URL_BASE}/dish/${dish.uuid}/desactivate`, dish)
+  desactivateDish(uuid: string){
+    return this.http.patch(`${this.URL_BASE}/dish/${uuid}/deactivate`, {})
+  }
+  
+  deleteDish(uuid: string){
+    return this.http.delete(`${this.URL_BASE}/dish/${uuid}/delete`)
   }
 
   cloneDish(uuid:string){

@@ -1,11 +1,16 @@
 <app-navbar-chef></app-navbar-chef>
 
 <div class="page-wrapper">
-  <div class="content-wrapper">
+  <div class="content-wrapper" *ngIf="!isLoading">
 
-    <h1 class="page-title">
-      Detalles del Pedido <span>#GR-12045</span>
-    </h1>
+    <div class="header-section">
+      <button class="btn-back" (click)="goBack()">
+        ← Volver al Dashboard
+      </button>
+      <h1 class="page-title">
+        Detalles del Pedido <span>#{{ orderId }}</span>
+      </h1>
+    </div>
 
     <!-- Tabla de platillos -->
     <div class="table-card">
@@ -46,25 +51,30 @@
 
     <!-- Acciones -->
     <div class="actions">
-      <button class="btn secondary" (click)="markInProgress()">
+      <button class="btn secondary" (click)="markInProgress()" [disabled]="orderStatus >= 2">
         Marcar como en proceso
       </button>
 
-      <button class="btn primary" (click)="markReady()">
+      <button class="btn primary" (click)="markReady()" [disabled]="orderStatus >= 3">
         Marcar como listo
       </button>
 
-      <button class="btn danger" (click)="openCancelModal()">
+      <button class="btn danger" (click)="openCancelModal()" [disabled]="orderStatus >= 3">
         Cancelar pedido
       </button>
     </div>
 
   </div>
+
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Cargando detalles de la orden...</p>
+  </div>
 </div>
 
 <!-- MODAL CANCELAR PEDIDO -->
 <div class="modal-backdrop" *ngIf="showCancelModal">
-  <div class="modal-container">
+  <div class="modal-container" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
       <div class="warning-icon">⚠️</div>
@@ -74,6 +84,17 @@
     <p class="modal-description">
       Describe el motivo de la cancelación. Esta acción no se puede deshacer.
     </p>
+
+    <div class="reason-buttons">
+      <button 
+        *ngFor="let reason of predefinedReasons" 
+        class="reason-btn"
+        [class.selected]="cancelReason === reason"
+        (click)="selectReason(reason)"
+        type="button">
+        {{ reason }}
+      </button>
+    </div>
 
     <label class="modal-label">Motivo</label>
     <textarea
@@ -88,7 +109,7 @@
       </button>
 
       <button class="btn danger" (click)="confirmCancelOrder()">
-        Cancelar pedido
+        Cancelar ahora
       </button>
     </div>
 

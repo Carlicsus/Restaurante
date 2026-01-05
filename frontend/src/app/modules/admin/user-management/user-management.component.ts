@@ -159,14 +159,14 @@ export class UserManagementComponent implements OnInit {
   }
 
   showSuccessModal(title: string, message: string): void {
-    this.modalIcon = '✅';
+    this.modalIcon = '';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
   }
 
   showErrorModal(title: string, message: string): void {
-    this.modalIcon = '⚠️';
+    this.modalIcon = '';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;

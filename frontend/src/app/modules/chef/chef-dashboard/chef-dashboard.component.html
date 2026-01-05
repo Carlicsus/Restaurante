@@ -3,13 +3,11 @@
 
 <div class="dashboard-wrapper">
 
-  <!-- Header -->
   <div class="dashboard-header">
     <h1>Hola, Chef</h1>
     <p>Administra pedidos, menús y órdenes en proceso.</p>
   </div>
 
-  <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
       <span>Pedidos del Día</span>
@@ -27,7 +25,6 @@
     </div>
   </div>
 
-  <!-- Orders -->
   <div class="orders-section">
     <h2>Órdenes de Hoy</h2>
 
@@ -57,16 +54,14 @@
     </div>
   </div>
 
-  <!-- Action -->
   <div class="dashboard-action">
     <button class="btn-primary" (click)="goToMenus()">
-      Gestionar Menús
+      Gestionar Platillos
     </button>
   </div>
 
 </div>
 
-<!-- Modal de Cancelación -->
 <div class="modal-overlay" *ngIf="showCancelModal" (click)="closeCancelModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">

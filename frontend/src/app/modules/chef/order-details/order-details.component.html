@@ -13,7 +13,6 @@
       </h1>
     </div>
 
-    <!-- Tabla de platillos -->
     <div class="table-card">
       <div class="table-header">
         <span>Platillo</span>
@@ -28,7 +27,6 @@
       </div>
     </div>
 
-    <!-- Estado del pedido -->
     <div class="status-section">
       <h3>Estado del pedido</h3>
 
@@ -50,7 +48,6 @@
       </div>
     </div>
 
-    <!-- Acciones -->
     <div class="actions">
       <button class="btn secondary" (click)="markInProgress()" [disabled]="orderStatus >= 2">
         Marcar como en proceso
@@ -73,7 +70,6 @@
   </div>
 </div>
 
-<!-- MODAL CANCELAR PEDIDO -->
 <div class="modal-backdrop" *ngIf="showCancelModal">
   <div class="modal-container" (click)="$event.stopPropagation()">
 

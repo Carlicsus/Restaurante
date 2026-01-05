@@ -27,6 +27,8 @@ export class DishModalComponent {
         menuType: ''
     };
 
+    selectedImage: File | null = null;
+    imagePreview: string | null = null;
     selectedDish: Dish | null = null;
 
     openModal(dishToClone?: Dish) {
@@ -37,7 +39,7 @@ export class DishModalComponent {
             this.form = {
                 name: dishToClone.name + ' (Clonado)',
                 description: dishToClone.description,
-                cost: dishToClone.cost,
+                cost: dishToClone.cost / 100,
                 menuType: typeof dishToClone.menuType === 'string'
                     ? dishToClone.menuType
                     : (dishToClone.menuType as any)?.uuid || ''
@@ -55,20 +57,53 @@ export class DishModalComponent {
             cost: 0,
             menuType: ''
         };
+        this.selectedImage = null;
+        this.imagePreview = null;
+    }
+
+    onImageSelected(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                this.notificationService.error('Por favor selecciona un archivo de imagen válido');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                this.notificationService.error('La imagen no debe superar los 5MB');
+                return;
+            }
+            
+            this.selectedImage = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                this.imagePreview = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    removeImage() {
+        this.selectedImage = null;
+        this.imagePreview = null;
     }
 
     onSubmit() {
         if (this.form.name.trim() && this.form.cost > 0 && this.form.menuType) {
+            const dataToEmit: any = {
+                name: this.form.name,
+                description: this.form.description,
+                cost: this.form.cost,
+                menuType: this.form.menuType,
+                image: this.selectedImage
+            };
+            
             if (this.mode === 'clone' && this.selectedDish) {
-                this.save.emit(this.selectedDish);
-            } else {
-                this.save.emit({
-                    name: this.form.name,
-                    description: this.form.description,
-                    cost: this.form.cost,
-                    menuType: this.form.menuType
-                });
+                dataToEmit.uuid = this.selectedDish.uuid;
             }
+            
+            this.save.emit(dataToEmit);
             this.closeModal();
         } else {
             this.notificationService.error('Por favor completa todos los campos requeridos');

@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class MenuService {
 
-  URL_BASE = 'http://localhost:3050/api';
+  URL_BASE = 'http://localhost:3050/backend/api';
 
   constructor(private http: HttpClient) { }
 

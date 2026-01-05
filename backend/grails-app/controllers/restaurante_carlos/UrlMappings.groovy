@@ -141,10 +141,10 @@ class UrlMappings {
                         patch "/reject"(controller: "ordersModule", action: "rejectDish")
                     }
                     patch "/edit"(controller: "ordersModule", action: "editOrder")
-                    //patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
-                    patch "/cancel/comment"(controller: "ordersModule", action: "cancelOrder") {
+                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
+                    /*patch "'/cancel/comment'"(controller: "ordersModule", action: "cancelOrder") {
                         status = "Cancelled"
-                    }
+                    }*/
                     patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
                         status = "Preparing"
                     }
@@ -163,6 +163,7 @@ class UrlMappings {
             }
             group "/shoppingCart", {
                 get "/list"(controller: "shoppingCart", action: "listOrderShoppingCart")
+                get "/byUser" (controller: "shoppingCart", action: "getCartByUser")
                 post "/new"(controller: "shoppingCart", action: "newOrderShoppingCart")
                 group "/$uuidSC", {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")

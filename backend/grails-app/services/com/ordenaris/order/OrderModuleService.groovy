@@ -46,25 +46,26 @@ class OrderModuleService {
     }
     def listOrdersByUser(data) {
         try {
-            def user = User.get(data.id)
+            def userId = data instanceof Long ? data : data.id
+            def user = User.get(userId)
             if (!user) {
                 return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
             }
 
-            def max = data.max ? data.max.toInteger() : 10
-            def offset = data.offset ? data.offset.toInteger() : 0
-            def sortCol = data.sort ?: "dateCreated"
-            def orderDir = data.order ?: "desc"
+            def max = data instanceof Long ? 10 : (data.max ? data.max.toInteger() : 10)
+            def offset = data instanceof Long ? 0 : (data.offset ? data.offset.toInteger() : 0)
+            def sortCol = data instanceof Long ? "dateCreated" : (data.sort ?: "dateCreated")
+            def orderDir = data instanceof Long ? "desc" : (data.order ?: "desc")
 
             def criteria = CustomerOrder.createCriteria()
             def resultList = criteria.list(max: max, offset: offset) {
                 eq("user", user)
                 
-                if (data.status) {
+                if (!(data instanceof Long) && data.status) {
                     eq("status", data.status)
                 }
                 
-                if (data.query) {
+                if (!(data instanceof Long) && data.query) {
                     ilike("uuid", "%${data.query}%")
                 }
 

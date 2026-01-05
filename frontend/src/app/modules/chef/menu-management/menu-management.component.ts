@@ -5,13 +5,15 @@ import { DishModalComponent } from './dish-modal/dish-modal.component';
 import { Dish, Menu } from '../../../core/models/dish';
 import { DishService } from '../../../core/services/dish.service';
 import { MenuService } from '../../../core/services/menu.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { NotificationComponent } from '../../../shared/notification/notification.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-menu-management',
   standalone: true,
-  imports: [CommonModule, NavbarChefComponent, DishModalComponent],
+  imports: [CommonModule, NavbarChefComponent, DishModalComponent, NotificationComponent],
   templateUrl: './menu-management.component.html',
   styleUrls: ['./menu-management.component.css']
 })
@@ -45,7 +47,8 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
 
   constructor(
     private dishService: DishService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit() {
@@ -65,8 +68,10 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          console.log('Respuesta de getMenus:', response);
           if (response.success) {
             this.menuTypes = response.data || [];
+            console.log('menuTypes cargados:', this.menuTypes);
           }
           this.loadingMenus = false;
         },
@@ -110,14 +115,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadMenus();
-              alert('Tipo de menú creado exitosamente');
+              this.notificationService.success('Tipo de menú creado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al crear menú:', error);
-            alert('Error al crear el tipo de menú');
+            this.notificationService.error('Error al crear el tipo de menú');
           }
         });
     }
@@ -133,14 +138,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadMenus();
-              alert('Tipo de menú actualizado exitosamente');
+              this.notificationService.success('Tipo de menú actualizado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al editar menú:', error);
-            alert('Error al editar el tipo de menú');
+            this.notificationService.error('Error al editar el tipo de menú');
           }
         });
     }
@@ -155,14 +160,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadMenus();
-              alert('Tipo de menú eliminado exitosamente');
+              this.notificationService.success('Tipo de menú eliminado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al eliminar menú:', error);
-            alert('Error al eliminar el tipo de menú');
+            this.notificationService.error('Error al eliminar el tipo de menú');
           }
         });
     }
@@ -201,14 +206,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadDishes();
-              alert('Platillo creado exitosamente');
+              this.notificationService.success('Platillo creado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al crear platillo:', error);
-            alert('Error al crear el platillo');
+            this.notificationService.error('Error al crear el platillo');
           }
         });
     } else {
@@ -220,14 +225,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadDishes();
-              alert('Platillo clonado exitosamente');
+              this.notificationService.success('Platillo clonado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al clonar platillo:', error);
-            alert('Error al clonar el platillo');
+            this.notificationService.error('Error al clonar el platillo');
           }
         });
     }
@@ -249,14 +254,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
             next: (response: any) => {
               if (response.success) {
                 this.loadDishes();
-                alert('Platillo actualizado exitosamente');
+                this.notificationService.success('Platillo actualizado exitosamente');
               } else {
-                alert('Error: ' + response.mensaje);
+                this.notificationService.error('Error: ' + response.mensaje);
               }
             },
             error: (error) => {
               console.error('Error al editar platillo:', error);
-              alert('Error al editar el platillo');
+              this.notificationService.error('Error al editar el platillo');
             }
           });
       }
@@ -272,14 +277,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadDishes();
-              alert('Platillo eliminado exitosamente');
+              this.notificationService.success('Platillo eliminado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al eliminar platillo:', error);
-            alert('Error al eliminar el platillo');
+            this.notificationService.error('Error al eliminar el platillo');
           }
         });
     }
@@ -328,5 +333,12 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       return this.dishes.filter(d => d.status === 0);
     }
     return this.dishes.filter(d => d.status !== 2); // Excluir eliminados (status 2)
+  }
+
+  getCategoryNames(menuTypes: any[]): string {
+    if (!menuTypes || menuTypes.length === 0) {
+      return 'Sin categoría';
+    }
+    return menuTypes.map(mt => mt.name).join(' / ');
   }
 }

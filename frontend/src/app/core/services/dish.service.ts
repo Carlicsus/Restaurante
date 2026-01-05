@@ -7,7 +7,7 @@ import { Dish } from '../models/dish';
 })
 export class DishService {
 
-  URL_BASE = 'http://localhost:3050/backend/api';
+  URL_BASE = 'http://localhost:3050/api';
 
   constructor(private http:HttpClient) { }
 
@@ -40,6 +40,6 @@ export class DishService {
   }
 
   cloneDish(uuid:string){
-    return this.http.get(`${this.URL_BASE}/dish/${uuid}/clone`)
+    return this.http.post(`${this.URL_BASE}/dish/${uuid}/clone`, {})
   }
 }

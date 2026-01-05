@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarChefComponent } from '../../../shared/navbar-chef/navbar-chef.component';
 import { OrderService } from '../../../core/services/order.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { NotificationComponent } from '../../../shared/notification/notification.component';
 
 @Component({
   selector: 'app-chef-dashboard',
@@ -11,7 +13,8 @@ import { OrderService } from '../../../core/services/order.service';
   imports: [
     CommonModule,
     FormsModule,
-    NavbarChefComponent
+    NavbarChefComponent,
+    NotificationComponent
   ],
   templateUrl: './chef-dashboard.component.html',
   styleUrls: ['./chef-dashboard.component.css']
@@ -20,7 +23,8 @@ export class ChefDashboardComponent implements OnInit {
 
   constructor(
     private orderService: OrderService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) { }
 
   stats = {
@@ -153,7 +157,7 @@ export class ChefDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
-        alert('Error al marcar como en proceso');
+        this.notificationService.error('Error al marcar como en proceso');
       }
     });
   }
@@ -167,7 +171,7 @@ export class ChefDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
-        alert('Error al finalizar el pedido');
+        this.notificationService.error('Error al finalizar el pedido');
       }
     });
   }
@@ -190,7 +194,7 @@ export class ChefDashboardComponent implements OnInit {
 
   confirmCancel() {
     if (!this.cancelReason.trim()) {
-      alert('Por favor, selecciona o escribe un motivo de cancelación');
+      this.notificationService.error('Por favor, selecciona o escribe un motivo de cancelación');
       return;
     }
 
@@ -203,7 +207,7 @@ export class ChefDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cancelar pedido:', err);
-        alert('Error al cancelar el pedido');
+        this.notificationService.error('Error al cancelar el pedido');
       }
     });
   }
@@ -223,7 +227,7 @@ export class ChefDashboardComponent implements OnInit {
   }
 
   goToMenus() {
-    console.log('Ir a gestionar menús');
+    this.router.navigate(['/chef/menu-management']);
   }
 
   viewOrderDetails(orderId: string) {

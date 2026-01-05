@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarChefComponent } from '../../../shared/navbar-chef/navbar-chef.component';
 import { OrderService } from '../../../core/services/order.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { NotificationComponent } from '../../../shared/notification/notification.component';
 
 interface OrderItem {
   name: string;
@@ -17,7 +19,8 @@ interface OrderItem {
   imports: [
     CommonModule,
     FormsModule,
-    NavbarChefComponent
+    NavbarChefComponent,
+    NotificationComponent
   ],
   templateUrl: './order-details.component.html',
   styleUrls: ['./order-details.component.css']
@@ -43,7 +46,8 @@ export class ChefOrderDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -75,7 +79,7 @@ export class ChefOrderDetailsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar detalles de la orden:', err);
-        alert('Error al cargar los detalles de la orden');
+        this.notificationService.error('Error al cargar los detalles de la orden');
         this.isLoading = false;
         this.router.navigate(['/chef/dashboard']);
       }
@@ -100,7 +104,7 @@ export class ChefOrderDetailsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
-        alert('Error al marcar como en proceso');
+        this.notificationService.error('Error al marcar como en proceso');
       }
     });
   }
@@ -109,12 +113,12 @@ export class ChefOrderDetailsComponent implements OnInit {
     this.orderService.finishOrder(this.orderId).subscribe({
       next: () => {
         this.orderStatus = 3;
-        alert('Pedido marcado como listo');
+        this.notificationService.success('Pedido marcado como listo');
         this.router.navigate(['/chef/dashboard']);
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
-        alert('Error al marcar como listo');
+        this.notificationService.error('Error al marcar como listo');
       }
     });
   }
@@ -134,20 +138,20 @@ export class ChefOrderDetailsComponent implements OnInit {
 
   confirmCancelOrder(): void {
     if (!this.cancelReason.trim()) {
-      alert('Por favor, selecciona o escribe un motivo de cancelación.');
+      this.notificationService.error('Por favor, selecciona o escribe un motivo de cancelación');
       return;
     }
 
     this.orderService.cancelOrder(this.orderId, this.cancelReason).subscribe({
       next: () => {
         console.log('Pedido cancelado por:', this.cancelReason);
-        alert('Pedido cancelado');
+        this.notificationService.success('Pedido cancelado');
         this.closeCancelModal();
         this.router.navigate(['/chef/dashboard']);
       },
       error: (err) => {
         console.error('Error al cancelar:', err);
-        alert('Error al cancelar el pedido');
+        this.notificationService.error('Error al cancelar el pedido');
       }
     });
   }

@@ -1,44 +1,48 @@
 .page-wrapper {
   min-height: 100vh;
   background-color: var(--bg);
-  font-family: 'Inter', sans-serif;
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.5;
 }
 
 .content-wrapper {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 40px 0;
+  padding: 40px 20px;
   margin-top: 10dvh;
 }
 
 /* ==================== TABS ==================== */
 .tabs-container {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-  border-bottom: 2px solid #e0e0e0;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
 }
 
 .tab-btn {
-  padding: 12px 24px;
-  background: none;
+  padding: 0.75rem 1.5rem;
+  background: var(--muted);
   border: none;
-  font-size: 16px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #666;
+  color: var(--foreground);
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
-  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
-  color: #333;
+  background-color: var(--border);
 }
 
 .tab-btn.active {
-  color: #4CAF50;
-  border-bottom-color: #4CAF50;
+  background-color: var(--primary);
+  color: var(--white);
 }
 
 .tab-content {
@@ -69,32 +73,36 @@
 
 .header-row div h1 {
   margin: 0 0 4px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #111827;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.02em;
 }
 
 .header-row div p {
   margin: 8px 0 0 0;
-  color: #6b7280;
-  font-size: 14px;
+  color: var(--accent);
+  font-size: 1.1rem;
 }
 
 .create-btn {
   padding: 12px 20px;
-  background-color: #2575fc;
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, #0a4a8f 100%);
+  color: var(--white);
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(16, 86, 138, 0.2);
+  letter-spacing: -0.02em;
 }
 
 .create-btn:hover {
-  background-color: #bdbdbd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 86, 138, 0.3);
 }
 
 /* ==================== FILTERS ==================== */
@@ -106,25 +114,25 @@
 }
 
 .filters button {
-  padding: 10px 20px;
-  background-color: #f3f4f6;
+  padding: 0.5rem 1rem;
+  background-color: var(--muted);
   border: none;
-  border-radius: 12px;
-  font-size: 13px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .filters button:hover {
-  background-color: #e5e7eb;
-  color: #111827;
+  background-color: var(--border);
 }
 
 .filters button.active {
-  background-color: #9ca3af;
-  color: white;
+  background-color: var(--primary);
+  color: var(--white);
 }
 
 /* ==================== MENUS CONTAINER ==================== */
@@ -135,31 +143,36 @@
 }
 
 .menu-item {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  border-left: 4px solid #4CAF50;
+  background: var(--white);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
 }
 
 .menu-item:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
 }
 
 .menu-info h3 {
   margin: 0 0 8px 0;
-  font-size: 18px;
-  color: #333;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--primary);
 }
 
 .menu-description {
   margin: 0;
-  color: #999;
-  font-size: 13px;
+  color: var(--foreground);
+  opacity: 0.9;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .menu-actions {
@@ -171,29 +184,33 @@
 .btn-delete {
   padding: 8px 16px;
   border: none;
-  border-radius: 4px;
-  font-size: 13px;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  transition: all 0.2s ease;
+  font-weight: 600;
 }
 
 .btn-edit {
-  background-color: #2196F3;
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, #0a4a8f 100%);
+  color: var(--white);
+  box-shadow: 0 2px 4px rgba(16, 86, 138, 0.2);
 }
 
 .btn-edit:hover {
-  background-color: #0b7dda;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 86, 138, 0.3);
 }
 
 .btn-delete {
-  background-color: #f44336;
-  color: white;
+  background: transparent;
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
 }
 
 .btn-delete:hover {
-  background-color: #da190b;
+  background: #fee;
+  transform: translateY(-1px);
 }
 
 .menu-grid {
@@ -204,18 +221,20 @@
 }
 
 .menu-card {
-  background: white;
-  border-radius: 8px;
+  background: var(--white);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .menu-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
 }
 
 .dish-image {
@@ -233,57 +252,68 @@
 
 .card-body h4 {
   margin: 0 0 8px 0;
-  font-size: 16px;
-  color: #333;
+  font-size: 1.125rem;
+  color: var(--primary);
   font-weight: 600;
 }
 
 .categories {
   display: block;
-  font-size: 12px;
-  color: #999;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  opacity: 0.75;
   margin-bottom: 8px;
 }
 
 .price {
-  color: #9ca3af;
-  font-size: 16px;
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 700;
   margin-top: auto;
+  letter-spacing: -0.3px;
 }
 
 .card-actions {
   display: flex;
   gap: 8px;
   padding: 12px 16px;
-  border-top: 1px solid #f0f0f0;
-  background-color: #fafafa;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--muted) 0%, rgba(0, 0, 0, 0.03) 100%);
   justify-content: flex-end;
 }
 
 .card-actions button {
   padding: 8px;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .btn-status {
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: bold;
-  color: #999;
-  background-color: transparent;
-  border: 2px solid #e0e0e0;
+  color: var(--foreground);
+  opacity: 0.6;
+  background-color: var(--white);
+  border: 2px solid var(--border);
   transition: all 0.2s ease;
 }
 
 .btn-status.active {
-  color: #4CAF50;
-  border-color: #4CAF50;
+  color: var(--success);
+  border-color: var(--success);
   background-color: rgba(76, 175, 80, 0.1);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
 }
 
 .btn-clone {

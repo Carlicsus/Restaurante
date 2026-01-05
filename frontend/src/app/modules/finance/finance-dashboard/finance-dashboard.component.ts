@@ -5,7 +5,6 @@ import { SaleService } from '../../../core/services/sale.service';
 import { Router } from '@angular/router';
 import { Debtor } from '../../../core/models/payment';
 
-// amCharts imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import * as am5percent from '@amcharts/amcharts5/percent';
@@ -181,7 +180,7 @@ export class FinanceDashboardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   goToPaymentManagement(): void {
-    this.router.navigate(['/finance/payment']);
+    this.router.navigate(['/finance/payment-employee']);
   }
 
   retryLoad(): void {

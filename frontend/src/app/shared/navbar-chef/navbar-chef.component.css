@@ -11,7 +11,6 @@ nav {
     border-bottom: 1px solid var(--border);
 }
 
-/* CONTENEDOR CENTRAL */
 .nav-container {
     width: 100%;
     height: 100%;
@@ -22,7 +21,6 @@ nav {
     padding: 0 40px;
 }
 
-/* LOGO */
 .imagen {
     flex-shrink: 0;
     cursor: pointer;
@@ -34,7 +32,6 @@ nav {
     object-fit: contain;
 }
 
-/* OPCIONES */
 .options {
     position: absolute;
     left: 50%;
@@ -61,7 +58,6 @@ nav {
     font-family: 'Inter', sans-serif;
 }
 
-/* PERFIL */
 .perfil {
     margin-left: auto;
     position: relative;
@@ -81,7 +77,6 @@ nav {
     border-color: var(--primary);
 }
 
-/* DROPDOWN DE PERFIL */
 .profile-dropdown {
     position: absolute;
     top: calc(100% + 8px);
@@ -114,7 +109,8 @@ nav {
     padding: 10px 16px;
     background: none;
     border: none;
-    
+    display: flex;
+    align-items: center;
     text-align: left;
     font-size: 14px;
     color: #374151;
@@ -127,7 +123,6 @@ nav {
     background-color: #f3f4f6;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
     .nav-container {
         padding: 0 20px;

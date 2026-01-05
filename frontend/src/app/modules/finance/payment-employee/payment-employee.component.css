@@ -10,7 +10,6 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Breadcrumb */
 .breadcrumb {
   font-size: 14px;
   color: #64748b;
@@ -30,7 +29,6 @@
   text-decoration: underline;
 }
 
-/* LOADING STATE */
 .loading-container {
   text-align: center;
   padding: 60px 20px;
@@ -52,7 +50,6 @@
   font-size: 14px;
 }
 
-/* ERROR BANNER */
 .error-banner {
   background: #fee2e2;
   border: 1px solid #ef4444;
@@ -86,7 +83,6 @@
   background: #b91c1c;
 }
 
-/* Header empleado */
 .employee-header {
   display: flex;
   justify-content: space-between;
@@ -229,7 +225,6 @@
   cursor: not-allowed;
 }
 
-/* Tabla */
 .table-card {
   background: #fff;
   border-radius: 16px;
@@ -326,7 +321,6 @@
   cursor: not-allowed;
 }
 
-/* EMPTY STATE */
 .empty-state {
   text-align: center;
   padding: 60px 20px;

@@ -136,14 +136,14 @@ export class RoleManagementComponent implements OnInit {
   }
 
   showSuccess(title: string, message: string): void {
-    this.resultIcon = '✅';
+    this.resultIcon = '';
     this.resultTitle = title;
     this.resultMessage = message;
     this.showResultModal = true;
   }
 
   showError(title: string, message: string): void {
-    this.resultIcon = '⚠️';
+    this.resultIcon = '';
     this.resultTitle = title;
     this.resultMessage = message;
     this.showResultModal = true;

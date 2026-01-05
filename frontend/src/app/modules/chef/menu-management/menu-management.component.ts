@@ -149,8 +149,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   deleteMenuType(index: number) {
     const menuType = this.menuTypes[index];
     if (confirm(`¿Eliminar el tipo de menú "${menuType.name}"?`)) {
-      // Usar status 2 para marcar como eliminado (soft delete)
-      this.menuService.deactivateMenu({ ...menuType, status: 2 })
+      this.menuService.deleteMenu(menuType)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
@@ -267,8 +266,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   deleteDish(uuid: string) {
     const dish = this.dishes.find(d => d.uuid === uuid);
     if (dish && confirm(`¿Eliminar el platillo "${dish.name}"?`)) {
-      // Usar status 2 para marcar como eliminado (soft delete)
-      this.dishService.activateDish({ ...dish, status: 2 })
+      this.dishService.deleteDish(uuid)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
@@ -294,7 +292,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       const newStatus = dish.status === 1 ? 0 : 1;
 
       if (newStatus === 1) {
-        this.dishService.activateDish({ ...dish, status: newStatus })
+        this.dishService.activateDish(uuid)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response: any) => {
@@ -305,7 +303,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
             error: (error) => console.error('Error:', error)
           });
       } else {
-        this.dishService.desactivateDish({ ...dish, status: newStatus })
+        this.dishService.desactivateDish(uuid)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response: any) => {

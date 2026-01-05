@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { NavbarChefComponent } from '../../../shared/navbar-chef/navbar-chef.component';
 import { OrderService } from '../../../core/services/order.service';
 
@@ -8,6 +10,7 @@ import { OrderService } from '../../../core/services/order.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     NavbarChefComponent
   ],
   templateUrl: './chef-dashboard.component.html',
@@ -15,7 +18,10 @@ import { OrderService } from '../../../core/services/order.service';
 })
 export class ChefDashboardComponent implements OnInit {
 
-  constructor(private orderService: OrderService) { }
+  constructor(
+    private orderService: OrderService,
+    private router: Router
+  ) { }
 
   stats = {
     pedidosDia: 0,
@@ -23,7 +29,19 @@ export class ChefDashboardComponent implements OnInit {
     listos: 0
   };
 
-  orders: any[] = [];
+  orders: any[] = []; // Órdenes activas para mostrar en la vista
+  allOrders: any[] = []; // Todas las órdenes para calcular estadísticas
+  
+  // Modal de cancelación
+  showCancelModal = false;
+  selectedOrderId = '';
+  cancelReason = '';
+  predefinedReasons = [
+    'Falta de ingredientes',
+    'Saturación de órdenes',
+    'Error en el pedido',
+    'Solicitud del cliente'
+  ];
 
   ngOnInit() {
     this.loadOrders();
@@ -35,15 +53,27 @@ export class ChefDashboardComponent implements OnInit {
         console.log('Respuesta completa de la API:', data);
         // Extraer el array de órdenes
         const ordersData = data?.orders || [];
-        // Mapear la estructura de la API a la que espera el componente
-        this.orders = ordersData.map((order: any) => ({
-          id: order.uuid,
-          items: order.items.map((item: any) => `${item.quantityDish}x ${item.dish.name}`).join(', '),
-          time: new Date(order.dateCreated).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-          status: this.mapStatus(order.status),
-          uuid: order.uuid
-        }));
-        console.log('Órdenes procesadas:', this.orders);
+        // Mapear la estructura de la API
+        this.allOrders = ordersData.map((order: any) => {
+          const mappedStatus = this.mapStatus(order.status);
+          console.log(`Orden ${order.uuid}: Backend status="${order.status}" -> Mapped="${mappedStatus}"`);
+          return {
+            id: order.uuid,
+            items: order.items.map((item: any) => `${item.quantityDish}x ${item.dish.name}`).join(', '),
+            time: new Date(order.dateCreated).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            status: mappedStatus,
+            uuid: order.uuid
+          };
+        });
+        
+        // Filtrar solo órdenes pendientes y en proceso para mostrar en la vista
+        this.orders = this.allOrders.filter(
+          (order: any) => order.status === 'pendiente' || order.status === 'en_proceso'
+        );
+        
+        console.log('Todas las órdenes:', this.allOrders);
+        console.log('Órdenes activas (filtradas):', this.orders);
+        console.log('Estados de órdenes activas:', this.orders.map((o: any) => o.status));
         this.updateStats();
       },
       error: (err) => {
@@ -56,21 +86,23 @@ export class ChefDashboardComponent implements OnInit {
     const statusMap: { [key: string]: string } = {
       'Queue': 'pendiente',
       'Preparing': 'en_proceso',
-      'Ready': 'finalizada',
-      'Canceled': 'cancelada',
-      'Delivered': 'finalizada'
+      'Finished': 'finalizada',
+      'Cancelled': 'cancelada'
     };
     return statusMap[apiStatus] || 'pendiente';
   }
 
   private updateStats() {
-    if (!Array.isArray(this.orders)) {
-      this.orders = [];
+    if (!Array.isArray(this.allOrders)) {
+      this.allOrders = [];
       return;
     }
-    this.stats.pedidosDia = this.orders.length;
-    this.stats.enPreparacion = this.orders.filter(o => o.status === 'en_proceso').length;
-    this.stats.listos = this.orders.filter(o => o.status === 'finalizada').length;
+    // Calcular estadísticas basadas en TODAS las órdenes del día
+    this.stats.pedidosDia = this.allOrders.length;
+    this.stats.enPreparacion = this.allOrders.filter(o => o.status === 'en_proceso').length;
+    this.stats.listos = this.allOrders.filter(o => o.status === 'finalizada').length;
+    
+    console.log('Estadísticas actualizadas:', this.stats);
   }
 
   orders_old = [
@@ -115,15 +147,13 @@ export class ChefDashboardComponent implements OnInit {
   markAsInProcess(orderId: string) {
     this.orderService.prepareOrder(orderId).subscribe({
       next: () => {
-        const order = this.orders.find(o => o.id === orderId);
-        if (order) {
-          order.status = 'en_proceso';
-          this.updateStats();
-          console.log('Pedido en proceso:', orderId);
-        }
+        console.log('Pedido en proceso:', orderId);
+        // Recargar las órdenes para actualizar la vista
+        this.loadOrders();
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
+        alert('Error al marcar como en proceso');
       }
     });
   }
@@ -131,31 +161,49 @@ export class ChefDashboardComponent implements OnInit {
   markAsFinished(orderId: string) {
     this.orderService.finishOrder(orderId).subscribe({
       next: () => {
-        const order = this.orders.find(o => o.id === orderId);
-        if (order) {
-          order.status = 'finalizada';
-          this.updateStats();
-          console.log('Pedido finalizado:', orderId);
-        }
+        console.log('Pedido finalizado:', orderId);
+        // Recargar las órdenes para actualizar la vista
+        this.loadOrders();
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
+        alert('Error al finalizar el pedido');
       }
     });
   }
 
   markAsCanceled(orderId: string) {
-    this.orderService.cancelOrder(orderId).subscribe({
+    this.selectedOrderId = orderId;
+    this.cancelReason = '';
+    this.showCancelModal = true;
+  }
+
+  closeCancelModal() {
+    this.showCancelModal = false;
+    this.selectedOrderId = '';
+    this.cancelReason = '';
+  }
+
+  selectReason(reason: string) {
+    this.cancelReason = reason;
+  }
+
+  confirmCancel() {
+    if (!this.cancelReason.trim()) {
+      alert('Por favor, selecciona o escribe un motivo de cancelación');
+      return;
+    }
+
+    this.orderService.cancelOrder(this.selectedOrderId, this.cancelReason).subscribe({
       next: () => {
-        const order = this.orders.find(o => o.id === orderId);
-        if (order) {
-          order.status = 'cancelada';
-          this.updateStats();
-          console.log('Pedido cancelado:', orderId);
-        }
+        console.log('Pedido cancelado:', this.selectedOrderId, 'Razón:', this.cancelReason);
+        this.closeCancelModal();
+        // Recargar las órdenes para actualizar la vista
+        this.loadOrders();
       },
       error: (err) => {
-        console.error('Error al cambiar estado:', err);
+        console.error('Error al cancelar pedido:', err);
+        alert('Error al cancelar el pedido');
       }
     });
   }
@@ -176,6 +224,10 @@ export class ChefDashboardComponent implements OnInit {
 
   goToMenus() {
     console.log('Ir a gestionar menús');
+  }
+
+  viewOrderDetails(orderId: string) {
+    this.router.navigate(['/chef/order-details', orderId]);
   }
 }
 

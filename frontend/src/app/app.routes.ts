@@ -35,7 +35,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
-  { path:'', component: LandingComponent },
+  { path:'', component: LoginComponent },
   { path:'login', component: LoginComponent },
   { path:'signup', component: SignUpComponent },
   { path:'auth-success', component: AuthSuccesComponent },

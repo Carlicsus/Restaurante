@@ -36,7 +36,7 @@ export class OrderService {
 
   cancelOrder(uuid: string, reason?: string) {
     const body = reason ? { comment: reason } : {};
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel/comment`, body);
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel`, {});
   }
 
   getOrder(uuid: string) {

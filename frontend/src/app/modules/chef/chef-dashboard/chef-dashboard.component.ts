@@ -33,10 +33,9 @@ export class ChefDashboardComponent implements OnInit {
     listos: 0
   };
 
-  orders: any[] = []; // Órdenes activas para mostrar en la vista
-  allOrders: any[] = []; // Todas las órdenes para calcular estadísticas
+  orders: any[] = [];
+  allOrders: any[] = [];
   
-  // Modal de cancelación
   showCancelModal = false;
   selectedOrderId = '';
   cancelReason = '';
@@ -55,9 +54,7 @@ export class ChefDashboardComponent implements OnInit {
     this.orderService.getOrders().subscribe({
       next: (data: any) => {
         console.log('Respuesta completa de la API:', data);
-        // Extraer el array de órdenes
         const ordersData = data?.orders || [];
-        // Mapear la estructura de la API
         this.allOrders = ordersData.map((order: any) => {
           const mappedStatus = this.mapStatus(order.status);
           console.log(`Orden ${order.uuid}: Backend status="${order.status}" -> Mapped="${mappedStatus}"`);
@@ -70,7 +67,6 @@ export class ChefDashboardComponent implements OnInit {
           };
         });
         
-        // Filtrar solo órdenes pendientes y en proceso para mostrar en la vista
         this.orders = this.allOrders.filter(
           (order: any) => order.status === 'pendiente' || order.status === 'en_proceso'
         );
@@ -101,7 +97,6 @@ export class ChefDashboardComponent implements OnInit {
       this.allOrders = [];
       return;
     }
-    // Calcular estadísticas basadas en TODAS las órdenes del día
     this.stats.pedidosDia = this.allOrders.length;
     this.stats.enPreparacion = this.allOrders.filter(o => o.status === 'en_proceso').length;
     this.stats.listos = this.allOrders.filter(o => o.status === 'finalizada').length;
@@ -152,7 +147,6 @@ export class ChefDashboardComponent implements OnInit {
     this.orderService.prepareOrder(orderId).subscribe({
       next: () => {
         console.log('Pedido en proceso:', orderId);
-        // Recargar las órdenes para actualizar la vista
         this.loadOrders();
       },
       error: (err) => {
@@ -166,7 +160,6 @@ export class ChefDashboardComponent implements OnInit {
     this.orderService.finishOrder(orderId).subscribe({
       next: () => {
         console.log('Pedido finalizado:', orderId);
-        // Recargar las órdenes para actualizar la vista
         this.loadOrders();
       },
       error: (err) => {
@@ -202,7 +195,6 @@ export class ChefDashboardComponent implements OnInit {
       next: () => {
         console.log('Pedido cancelado:', this.selectedOrderId, 'Razón:', this.cancelReason);
         this.closeCancelModal();
-        // Recargar las órdenes para actualizar la vista
         this.loadOrders();
       },
       error: (err) => {

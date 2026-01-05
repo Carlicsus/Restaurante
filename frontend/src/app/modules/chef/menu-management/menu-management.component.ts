@@ -20,25 +20,19 @@ import { takeUntil } from 'rxjs/operators';
 export class MenuManagementComponent implements OnInit, OnDestroy {
   @ViewChild(DishModalComponent) dishModal!: DishModalComponent;
 
-  // Tab management
   activeTab: 'menus' | 'dishes' = 'menus';
 
-  // Menu types
   menuTypes: Menu[] = [];
 
-  // Dishes
   dishes: Dish[] = [];
 
-  // Filter dishes
   dishFilters = ['Todos', 'Activos', 'Inactivos'];
   activeDishFilter = 'Todos';
 
-  // Modal state
   isDishModalOpen = false;
   dishModalMode: 'create' | 'clone' = 'create';
   availableCategories: string[] = [];
 
-  // Loading states
   loadingMenus = false;
   loadingDishes = false;
   editingMenuUuid: string | null = null;
@@ -61,7 +55,6 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ==================== LOAD DATA ====================
   loadMenus() {
     this.loadingMenus = true;
     this.menuService.getMenus()
@@ -88,8 +81,46 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
-          if (response.success) {
-            this.dishes = response.data || [];
+          console.log('Respuesta de getDishes:', response);
+          if (response.success && response.data) {
+            const flatDishes: any[] = [];
+            
+            response.data.forEach((menu: any) => {
+              if (menu.dishes && Array.isArray(menu.dishes)) {
+                menu.dishes.forEach((dish: any) => {
+                  flatDishes.push({
+                    uuid: dish.uuid,
+                    name: dish.name,
+                    description: dish.description || '',
+                    cost: Math.round(dish.cost * 100), // Backend ya divide por 100, reconvertir a centavos
+                    status: dish.status,
+                    imageUrl: dish.imageUrl || null,
+                    menuType: { uuid: menu.uuid, name: menu.name }
+                  });
+                });
+              }
+              
+              if (menu.submenu && Array.isArray(menu.submenu)) {
+                menu.submenu.forEach((submenu: any) => {
+                  if (submenu.dishes && Array.isArray(submenu.dishes)) {
+                    submenu.dishes.forEach((dish: any) => {
+                      flatDishes.push({
+                        uuid: dish.uuid,
+                        name: dish.name,
+                        description: dish.description || '',
+                        cost: Math.round(dish.cost * 100),
+                        status: dish.status,
+                        imageUrl: dish.imageUrl || null,
+                        menuType: { uuid: submenu.uuid, name: submenu.name }
+                      });
+                    });
+                  }
+                });
+              }
+            });
+            
+            this.dishes = flatDishes;
+            console.log('Platillos cargados:', this.dishes.length);
           }
           this.loadingDishes = false;
         },
@@ -100,7 +131,6 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ==================== TAB NAVIGATION ====================
   setActiveTab(tab: 'menus' | 'dishes') {
     this.activeTab = tab;
   }
@@ -173,7 +203,6 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ==================== DISHES ====================
   openCreateDishModal() {
     this.dishModalMode = 'create';
     this.isDishModalOpen = true;
@@ -192,21 +221,43 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
 
   saveDish(dishData: any) {
     if (this.dishModalMode === 'create') {
-      // Crear nuevo platillo
       const payload = {
         name: dishData.name,
         description: dishData.description || '',
         cost: dishData.cost,
-        menuType: dishData.menuType // UUID del tipo de menú
+        menuType: dishData.menuType 
       };
 
       this.dishService.createDish(payload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
+            console.log('Respuesta de createDish:', response);
             if (response.success) {
-              this.loadDishes();
-              this.notificationService.success('Platillo creado exitosamente');
+              const dishUuid = response.data;
+              console.log('UUID del platillo creado:', dishUuid);
+              
+              if (dishData.image && dishUuid) {
+                console.log('Subiendo imagen para platillo:', dishUuid);
+                this.dishService.uploadDishImage(dishUuid, dishData.image)
+                  .pipe(takeUntil(this.destroy$))
+                  .subscribe({
+                    next: (imgResponse) => {
+                      console.log('Respuesta de uploadDishImage:', imgResponse);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo creado exitosamente con imagen');
+                    },
+                    error: (error) => {
+                      console.error('Error al subir imagen:', error);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo creado, pero no se pudo subir la imagen');
+                    }
+                  });
+              } else {
+                console.log('No hay imagen para subir');
+                this.loadDishes();
+                this.notificationService.success('Platillo creado exitosamente');
+              }
             } else {
               this.notificationService.error('Error: ' + response.mensaje);
             }
@@ -217,15 +268,43 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           }
         });
     } else {
-      // Clonar platillo
-      const dish = dishData as Dish;
-      this.dishService.cloneDish(dish.uuid)
+      const payload = {
+        name: dishData.name,
+        description: dishData.description || '',
+        cost: dishData.cost / 100,
+        menuType: dishData.menuType
+      };
+
+      this.dishService.cloneDish(dishData.uuid, payload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
+            console.log('Respuesta de cloneDish:', response);
             if (response.success) {
-              this.loadDishes();
-              this.notificationService.success('Platillo clonado exitosamente');
+              const dishUuid = response.data;
+              console.log('UUID del platillo clonado:', dishUuid);
+              
+              if (dishData.image && dishUuid) {
+                console.log('Subiendo imagen para platillo clonado:', dishUuid);
+                this.dishService.uploadDishImage(dishUuid, dishData.image)
+                  .pipe(takeUntil(this.destroy$))
+                  .subscribe({
+                    next: (imgResponse) => {
+                      console.log('Respuesta de uploadDishImage:', imgResponse);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo clonado exitosamente con imagen');
+                    },
+                    error: (error) => {
+                      console.error('Error al subir imagen:', error);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo clonado, pero no se pudo subir la imagen');
+                    }
+                  });
+              } else {
+                console.log('No hay imagen para subir');
+                this.loadDishes();
+                this.notificationService.success('Platillo clonado exitosamente');
+              }
             } else {
               this.notificationService.error('Error: ' + response.mensaje);
             }
@@ -293,7 +372,6 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   toggleDishStatus(uuid: string) {
     const dish = this.dishes.find(d => d.uuid === uuid);
     if (dish) {
-      // Status: 1 = active, 0 = inactive
       const newStatus = dish.status === 1 ? 0 : 1;
 
       if (newStatus === 1) {
@@ -327,12 +405,24 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   }
 
   getFilteredDishes(): Dish[] {
+    console.log('getFilteredDishes llamado');
+    console.log('Total dishes:', this.dishes.length);
+    console.log('Filtro activo:', this.activeDishFilter);
+    console.log('Dishes:', this.dishes);
+    
     if (this.activeDishFilter === 'Activos') {
-      return this.dishes.filter(d => d.status === 1);
+      const filtered = this.dishes.filter(d => d.status === 1);
+      console.log('Filtrados activos:', filtered.length);
+      return filtered;
     } else if (this.activeDishFilter === 'Inactivos') {
-      return this.dishes.filter(d => d.status === 0);
+      const filtered = this.dishes.filter(d => d.status === 0);
+      console.log('Filtrados inactivos:', filtered.length);
+      return filtered;
     }
-    return this.dishes.filter(d => d.status !== 2); // Excluir eliminados (status 2)
+    // Por defecto mostrar todos excepto eliminados
+    const filtered = this.dishes.filter(d => d.status !== 2);
+    console.log('Filtrados todos (status !== 2):', filtered.length);
+    return filtered;
   }
 
   getCategoryNames(menuTypes: any[]): string {
@@ -340,5 +430,28 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       return 'Sin categoría';
     }
     return menuTypes.map(mt => mt.name).join(' / ');
+  }
+
+  getDishImageUrl(dish: any): string {
+    console.log('getDishImageUrl llamado para:', dish.name);
+    console.log('dish.imageUrl:', dish.imageUrl);
+    
+    if (!dish.imageUrl) {
+      console.log('No hay imageUrl, usando placeholder');
+      return 'https://via.placeholder.com/250x200?text=Sin+imagen';
+    }
+    
+    const fileName = dish.imageUrl.split('/').pop();
+    const fullUrl = `http://localhost:3050/api/images/${fileName}`;
+    console.log('URL construida:', fullUrl);
+    return fullUrl;
+  }
+
+  formatPrice(costInCents: number): string {
+    const costInPesos = costInCents / 100;
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(costInPesos);
   }
 }

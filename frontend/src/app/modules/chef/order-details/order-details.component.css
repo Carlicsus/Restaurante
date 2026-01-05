@@ -107,7 +107,6 @@
   color: #2563eb;
 }
 
-/* Estado */
 .status-section {
   margin-bottom: 32px;
 }
@@ -148,7 +147,6 @@
   background: #16a34a;
 }
 
-/* Botones */
 .actions {
   display: flex;
   justify-content: space-between;
@@ -184,7 +182,6 @@
   opacity: 0.9;
 }
 
-/* Overlay */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -195,7 +192,6 @@
   z-index: 9999;
 }
 
-/* Modal */
 .modal-container {
   background: #ffffff;
   width: 420px;
@@ -205,7 +201,6 @@
   animation: fadeIn 0.2s ease-in-out;
 }
 
-/* Header */
 .modal-header {
   display: flex;
   align-items: center;
@@ -231,14 +226,12 @@
   font-weight: 600;
 }
 
-/* Text */
 .modal-description {
   font-size: 14px;
   color: #6b7280;
   margin-bottom: 16px;
 }
 
-/* Form */
 .modal-label {
   font-size: 14px;
   font-weight: 500;
@@ -261,7 +254,6 @@
   border-color: #2563eb;
 }
 
-/* Actions */
 .modal-actions {
   display: flex;
   justify-content: space-between;
@@ -291,7 +283,6 @@
   background: #b91c1c;
 }
 
-/* Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;

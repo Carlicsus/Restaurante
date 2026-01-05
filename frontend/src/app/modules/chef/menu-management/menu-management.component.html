@@ -4,7 +4,6 @@
 <div class="page-wrapper">
   <div class="content-wrapper">
 
-    <!-- DISHES TAB -->
     <div class="tab-content">
       <div class="header-row">
         <div>
@@ -16,7 +15,6 @@
         </button>
       </div>
 
-      <!-- Filters -->
       <div class="filters">
         <button *ngFor="let filter of dishFilters" (click)="setDishFilter(filter)"
           [class.active]="activeDishFilter === filter">
@@ -24,16 +22,14 @@
         </button>
       </div>
 
-      <!-- Grid -->
       <div class="menu-grid">
         <div class="menu-card" *ngFor="let dish of getFilteredDishes()">
-          <img [src]="dish.imageUrl || 'https://via.placeholder.com/250x200?text=Sin+imagen'" [alt]="dish.name"
-            class="dish-image">
+          <!-- <img [src]="getDishImageUrl(dish)" [alt]="dish.name" class="dish-image"> -->
 
           <div class="card-body">
             <h4>{{ dish.name }}</h4>
             <span class="categories">{{ dish.description || 'Sin descripción' }}</span>
-            <strong class="price">${{ (dish.cost / 100).toFixed(2) }}</strong>
+            <strong class="price">{{ formatPrice(dish.cost) }}</strong>
           </div>
 
           <div class="card-actions">
@@ -42,18 +38,16 @@
               {{ dish.status === 1 ? '✓' : '○' }}
             </button>
             <button (click)="openCloneDishModal(dish)" class="btn-clone" title="Clonar">
-              <img src="boton-editar.png" alt="Clonar">
+              <img src="clon.png" alt="Clonar">
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Loading State -->
       <div class="empty-state" *ngIf="loadingDishes">
         <p>Cargando platillos...</p>
       </div>
 
-      <!-- Empty State -->
       <div class="empty-state" *ngIf="getFilteredDishes().length === 0 && dishes.length > 0 && !loadingDishes">
         <p>No hay platillos que coincidan con el filtro.</p>
       </div>
@@ -66,7 +60,6 @@
   </div>
 </div>
 
-<!-- Modal para crear/clonar platillos -->
 <app-dish-modal [isOpen]="isDishModalOpen" [mode]="dishModalMode" [menuTypes]="menuTypes" (close)="closeDishModal()"
   (save)="saveDish($event)">
 </app-dish-modal>

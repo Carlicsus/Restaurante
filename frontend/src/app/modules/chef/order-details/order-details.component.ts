@@ -64,7 +64,6 @@ export class ChefOrderDetailsComponent implements OnInit {
         console.log('Detalles de la orden:', response);
         this.orderData = response.order || response;
         
-        // Mapear los items de la orden
         if (this.orderData.items) {
           this.orderItems = this.orderData.items.map((item: any) => ({
             name: item.dish?.name || item.name || 'Sin nombre',
@@ -73,7 +72,6 @@ export class ChefOrderDetailsComponent implements OnInit {
           }));
         }
         
-        // Mapear el estado
         this.orderStatus = this.mapStatusToNumber(this.orderData.status);
         this.isLoading = false;
       },
@@ -163,7 +161,7 @@ export class ChefOrderDetailsComponent implements OnInit {
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'MXN'
     }).format(value);
   }
 }

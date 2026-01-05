@@ -6,7 +6,6 @@
   margin-top: 10dvh;
 }
 
-/* Header */
 .dashboard-header {
   margin-bottom: 32px;
 }
@@ -23,7 +22,6 @@
   color: #6b7280;
 }
 
-/* Stats */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -50,7 +48,6 @@
   margin-top: 6px;
 }
 
-/* Orders */
 .orders-section h2 {
   font-size: 18px;
   font-weight: 600;
@@ -124,7 +121,6 @@
   cursor: not-allowed;
 }
 
-/* Status badges */
 .status-badge {
   padding: 4px 12px;
   border-radius: 12px;
@@ -152,7 +148,6 @@
   color: #991b1b;
 }
 
-/* Buttons */
 .btn-light {
   background: #f3f4f6;
   border: none;
@@ -220,7 +215,6 @@
   background: #dc2626;
 }
 
-/* Modal de Cancelación */
 .modal-overlay {
   position: fixed;
   top: 0;

@@ -7,7 +7,7 @@ import { Dish } from '../models/dish';
 })
 export class DishService {
 
-  URL_BASE = 'http://localhost:3050/api';
+  URL_BASE = 'http://localhost:3050/backend/api';
 
   constructor(private http:HttpClient) { }
 
@@ -39,7 +39,13 @@ export class DishService {
     return this.http.delete(`${this.URL_BASE}/dish/${uuid}/delete`)
   }
 
-  cloneDish(uuid:string){
-    return this.http.post(`${this.URL_BASE}/dish/${uuid}/clone`, {})
+  cloneDish(uuid:string, dishData: any){
+    return this.http.post(`${this.URL_BASE}/dish/${uuid}/clone`, dishData)
+  }
+
+  uploadDishImage(uuid: string, image: File) {
+    const formData = new FormData();
+    formData.append('image', image);
+    return this.http.post(`${this.URL_BASE}/dish/${uuid}/upload-image`, formData);
   }
 }

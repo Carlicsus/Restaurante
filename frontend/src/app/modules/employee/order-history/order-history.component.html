@@ -1,63 +1,82 @@
 <app-navbar-employee></app-navbar-employee>
 
-<div class="container">
-
-    <!-- HEADER -->
-    <div class="page-header">
-        <h2>Historial de Pedidos</h2>
-        <p>Consulta y filtra todos tus pedidos anteriores.</p>
-    </div>
-
-    <!-- CARGANDO -->
-    <div *ngIf="loading" class="loading">
-        <p>Cargando órdenes...</p>
-    </div>
-
-    <!-- FILTROS -->
-    <div class="filters" *ngIf="!loading">
-        <div class="chips">
-            <button class="chip" [class.active]="activeFilter === 'todos'" (click)="setFilter('todos')">Todos</button>
-            <button class="chip" [class.active]="activeFilter === 'pagado'"
-                (click)="setFilter('pagado')">Pagados</button>
-            <button class="chip" [class.active]="activeFilter === 'no-pagado'" (click)="setFilter('no-pagado')">No
-                Pagados</button>
-            <button class="chip" [class.active]="activeFilter === 'en-proceso'" (click)="setFilter('en-proceso')">En
-                Proceso</button>
-            <button class="chip" [class.active]="activeFilter === 'entregado'"
-                (click)="setFilter('entregado')">Entregados</button>
+<div class="page-wrapper">
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h1 class="page-title">Historial de Pedidos</h1>
+            <p class="page-subtitle">Consulta y filtra todos tus pedidos anteriores.</p>
         </div>
 
-        <div class="date-filter">
-            <input type="date" class="date-input" [(ngModel)]="startDate" placeholder="Desde" />
-            <input type="date" class="date-input" [(ngModel)]="endDate" placeholder="Hasta" />
+        <div *ngIf="loading" class="loading">
+            <p>Cargando órdenes...</p>
         </div>
-    </div>
 
-    <!-- LISTA DE PEDIDOS -->
-    <div class="orders" *ngIf="!loading">
-        <ng-container *ngIf="filteredOrders.length; else noOrders">
-            <div class="order-card" *ngFor="let order of filteredOrders">
-                <div class="order-info">
-                    <span class="status" [ngClass]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
+        <div *ngIf="!loading">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar por código o platillo..."
+                    [(ngModel)]="searchTerm" />
+            </div>
 
-                    <h4>Pedido #{{ order.code }}</h4>
-                    <p>Fecha: {{ formatDate(order.date) }} · Monto: {{ formatCurrency(order.amount) }}</p>
-
-                    <div class="items-summary">
-                        <span class="item-count">{{ order.items.length || 0 }} artículo(s)</span>
-                    </div>
-
-                    <div class="rating">{{ starString(order.rating) }}</div>
-
+            <div class="filters-section">
+                <div class="filter-chips">
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'todos'"
+                        (click)="setOrderFilter('todos')">Todos</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'en-cola'"
+                        (click)="setOrderFilter('en-cola')">En Cola</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'preparando'"
+                        (click)="setOrderFilter('preparando')">Preparando</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'terminado'"
+                        (click)="setOrderFilter('terminado')">Terminados</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'cancelado'"
+                        (click)="setOrderFilter('cancelado')">Cancelados</button>
                 </div>
 
-                <div class="order-image" [style.backgroundImage]="'url(' + (order.imageUrl || '/img-order.jpg') + ')'">
+                <div class="date-filters">
+                    <input type="date" class="date-input" [(ngModel)]="startDate" placeholder="Desde" />
+                    <input type="date" class="date-input" [(ngModel)]="endDate" placeholder="Hasta" />
                 </div>
             </div>
-        </ng-container>
 
-        <ng-template #noOrders>
-            <p class="no-orders">No hay pedidos para mostrar.</p>
-        </ng-template>
+            <div class="history-content">
+                <ng-container *ngIf="filteredOrders.length; else noOrders">
+                    <div class="items-grid">
+                        <div class="history-card" *ngFor="let order of filteredOrders">
+                            <div class="card-content">
+                                <div class="status-row">
+                                    <span class="status-badge" [ngClass]="statusClass(order.status)">{{
+                                        statusLabel(order.status) }}</span>
+                                    <span class="item-count">{{ getTotalItems(order.items) }} artículo(s)</span>
+                                </div>
+
+                                <h3 class="card-title">Pedido #{{ order.code }}</h3>
+                                <p class="card-meta">{{ formatDate(order.date) }}</p>
+                                <p class="card-amount">{{ formatCurrency(order.amount) }}</p>
+
+                                <div class="dishes-preview">
+
+                                    <div class="dishes-list" *ngIf="order.items.length > 0">
+                                        <div class="dish-item" *ngFor="let item of order.items | slice:0:3">
+                                            <span class="dish-name">{{ item.name }}</span>
+                                            <span class="dish-quantity">x{{ item.quantity }}</span>
+                                            <span class="dish-price">{{ formatCurrency(item.unitPrice * item.quantity)
+                                                }}</span>
+                                        </div>
+                                        <div class="more-dishes" *ngIf="order.items.length > 3">
+                                            <span>+{{ order.items.length - 3 }} platillos más</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <ng-template #noOrders>
+                    <div class="no-items">
+                        <p>No hay pedidos para mostrar.</p>
+                    </div>
+                </ng-template>
+            </div>
+        </div>
     </div>
 </div>

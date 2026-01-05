@@ -1,56 +1,11 @@
 <app-navbar-chef></app-navbar-chef>
+<app-notification></app-notification>
 
 <div class="page-wrapper">
   <div class="content-wrapper">
 
-    <!-- Tabs Navigation -->
-    <div class="tabs-container">
-      <button class="tab-btn" [class.active]="activeTab === 'menus'" (click)="setActiveTab('menus')">
-        Tipos de Menú
-      </button>
-      <button class="tab-btn" [class.active]="activeTab === 'dishes'" (click)="setActiveTab('dishes')">
-        Platillos
-      </button>
-    </div>
-
-    <!-- MENUS TAB -->
-    <div *ngIf="activeTab === 'menus'" class="tab-content">
-      <div class="header-row">
-        <div>
-          <h1>Tipos de Menú</h1>
-          <p>Crea y administra los tipos de menú disponibles.</p>
-        </div>
-        <button class="create-btn" (click)="createMenuType()">
-          + Crear tipo de menú
-        </button>
-      </div>
-
-      <div class="menus-container">
-        <div class="menu-item" *ngFor="let menuType of menuTypes; let i = index">
-          <div class="menu-info">
-            <h3>{{ menuType.name }}</h3>
-            <p class="menu-description">{{ menuType.dishes?.length || 0 }} platillos</p>
-          </div>
-          <div class="menu-actions">
-            <button class="btn-edit" (click)="editMenuType(i)">Editar</button>
-            <button class="btn-delete" (click)="deleteMenuType(i)">Eliminar</button>
-          </div>
-        </div>
-
-        <!-- Loading State -->
-        <div class="empty-state" *ngIf="loadingMenus">
-          <p>Cargando tipos de menú...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div class="empty-state" *ngIf="menuTypes.length === 0 && !loadingMenus">
-          <p>No hay tipos de menú. Crea uno para comenzar.</p>
-        </div>
-      </div>
-    </div>
-
     <!-- DISHES TAB -->
-    <div *ngIf="activeTab === 'dishes'" class="tab-content">
+    <div class="tab-content">
       <div class="header-row">
         <div>
           <h1>Gestión de Platillos</h1>
@@ -87,13 +42,7 @@
               {{ dish.status === 1 ? '✓' : '○' }}
             </button>
             <button (click)="openCloneDishModal(dish)" class="btn-clone" title="Clonar">
-              ⧂
-            </button>
-            <button (click)="editDish(dish.uuid)" class="btn-edit" title="Editar">
-              ✎
-            </button>
-            <button (click)="deleteDish(dish.uuid)" class="btn-delete" title="Eliminar">
-              🗑
+              <img src="boton-editar.png" alt="Clonar">
             </button>
           </div>
         </div>

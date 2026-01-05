@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Dish, Menu } from '../../../../core/models/dish';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
     selector: 'app-dish-modal',
@@ -17,6 +18,8 @@ export class DishModalComponent {
     @Output() close = new EventEmitter<void>();
     @Output() save = new EventEmitter<any>();
 
+    constructor(private notificationService: NotificationService) {}
+
     form = {
         name: '',
         description: '',
@@ -27,6 +30,8 @@ export class DishModalComponent {
     selectedDish: Dish | null = null;
 
     openModal(dishToClone?: Dish) {
+        console.log('Modal abierto, menuTypes:', this.menuTypes);
+        console.log('Modo:', this.mode);
         if (dishToClone && this.mode === 'clone') {
             this.selectedDish = dishToClone;
             this.form = {
@@ -55,10 +60,8 @@ export class DishModalComponent {
     onSubmit() {
         if (this.form.name.trim() && this.form.cost > 0 && this.form.menuType) {
             if (this.mode === 'clone' && this.selectedDish) {
-                // En modo clone, emitimos el platillo a clonar
                 this.save.emit(this.selectedDish);
             } else {
-                // En modo create, emitimos los datos del formulario
                 this.save.emit({
                     name: this.form.name,
                     description: this.form.description,
@@ -68,7 +71,7 @@ export class DishModalComponent {
             }
             this.closeModal();
         } else {
-            alert('Por favor completa todos los campos requeridos');
+            this.notificationService.error('Por favor completa todos los campos requeridos');
         }
     }
 

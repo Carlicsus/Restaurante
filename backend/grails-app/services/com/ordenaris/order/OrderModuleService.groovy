@@ -35,7 +35,14 @@ class OrderModuleService {
             }]
     }
     def listOrders() {
-        def orders = CustomerOrder.findAllByStatus("Queue")
+        // Obtener todas las órdenes del día actual (no solo Queue)
+        def today = new Date().clearTime()
+        def tomorrow = today + 1
+        
+        def orders = CustomerOrder.findAll {
+            dateCreated >= today && dateCreated < tomorrow
+        }
+        
         def formattedOrders = orders.collect { order ->
             mapOrder(order) 
         }

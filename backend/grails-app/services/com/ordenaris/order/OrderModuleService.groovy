@@ -35,7 +35,14 @@ class OrderModuleService {
             }]
     }
     def listOrders() {
-        def orders = CustomerOrder.findAllByStatus("Queue")
+        // Obtener todas las órdenes del día actual (no solo Queue)
+        def today = new Date().clearTime()
+        def tomorrow = today + 1
+        
+        def orders = CustomerOrder.findAll {
+            dateCreated >= today && dateCreated < tomorrow
+        }
+        
         def formattedOrders = orders.collect { order ->
             mapOrder(order) 
         }
@@ -172,29 +179,43 @@ class OrderModuleService {
     def editOrderStatus(data) {
         try {
             def order = CustomerOrder.findByUuid(data.uuidOrder)
-            if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
+            if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 if (!order) {
-                    return respond([success: false, message: "Orden no encontrada"], status: 404)
+                    return [
+                        resp: [success: false, message: "Orden no encontrada"],
+                        status: 404
+                    ]
                 }
                 if (order.status == "Finished") {
-                    return respond([success: false, message: "No se puede editar una orden que ya ha sido finalizada"], status: 400)
+                    return [
+                        resp: [success: false, message: "No se puede editar una orden que ya ha sido finalizada"],
+                        status: 400
+                    ]
                 }
                 if (order.status == "Cancelled") {
-                    return respond([success: false, message: "No se puede editar una orden que ya ha sido cancelada"], status: 400)
+                    return [
+                        resp: [success: false, message: "No se puede editar una orden que ya ha sido cancelada"],
+                        status: 400
+                    ]
                 }
-                if (order.status == "Preparing") {
-                    return respond([success: false, message: "No se puede editar una orden que ya esta siendo preparada"], status: 400)
+                // Permitir cambiar de Preparing a Finished o Cancelled
+                if (order.status == "Preparing" && data.status != "Finished" && data.status != "Cancelled") {
+                    return [
+                        resp: [success: false, message: "Una orden en preparación solo puede ser finalizada o cancelada"],
+                        status: 400
+                    ]
                 }
             }
             if (data.status == "Finished") {
-            saleService.createAutoSale(order.id)
+                saleService.createAutoSale(order.id)
             }
-            if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
+            if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 order.status = data.status
                 order.save(flush: true, failOnError: true)
-            return [
-                resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, order:mapOrder(order)],status: 200
-            ]
+                return [
+                    resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, order:mapOrder(order)],
+                    status: 200
+                ]
             }
         } catch (e) {
             return [
@@ -466,26 +487,33 @@ class OrderModuleService {
             
             if (data.status in ["Cancelled", "Preparing", "Finished"]) {
                 if (!order) {
-                    return respond([success: false, message: "Orden no encontrada"], status: 404)
+                    return [
+                        resp: [success: false, message: "Orden no encontrada"],
+                        status: 404
+                    ]
                 }
                 if (order.status == "Finished") {
-                    return respond([success: false, message: "No se puede cancelar una orden que ya ha sido finalizada"], status: 400)
+                    return [
+                        resp: [success: false, message: "No se puede cancelar una orden que ya ha sido finalizada"],
+                        status: 400
+                    ]
                 }
                 if (order.status == "Cancelled") {
-                    return respond([success: false, message: "No se puede cancelar una orden que ya ha sido cancelada"], status: 400)
+                    return [
+                        resp: [success: false, message: "No se puede cancelar una orden que ya ha sido cancelada"],
+                        status: 400
+                    ]
                 }
-                if (order.status == "Preparing") {
-                    return respond([success: false, message: "No se puede cancelar una orden que ya esta siendo preparada"], status: 400)
-                }
+                // Permitir cancelar órdenes en preparación con un motivo
             }
             
             order.comment = comment.comment
             order.status = data.status
             order.save(flush: true, failOnError: true)
 
-            //order.save(flush: true, failOnError: true)
             return [
-                resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, status: 200]
+                resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status],
+                status: 200
             ]
         }
         catch (e) {

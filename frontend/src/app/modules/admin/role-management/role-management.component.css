@@ -1,7 +1,7 @@
 .role-management-container {
   min-height: 100vh;
   background: var(--bg);
-  padding: 100px 80px 40px;
+  padding: 140px 250px;
   font-family: 'Inter', sans-serif;
 }
 
@@ -12,8 +12,8 @@
 .title {
   font-size: 28px;
   font-weight: 600;
-  color: var(--foreground);
-  margin-bottom: 8px;
+  color: #111827;
+  margin-bottom: 4px;
 }
 
 .subtitle {
@@ -21,7 +21,6 @@
   font-size: 14px;
 }
 
-/* ACTIONS BAR */
 .actions-bar {
   margin-bottom: 24px;
 }
@@ -62,7 +61,6 @@
   filter: brightness(0) invert(1);
 }
 
-/* ROLES GRID */
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -171,7 +169,6 @@
   transform: translateY(-2px);
 }
 
-/* LOADING & EMPTY STATES */
 .loading-state,
 .empty-state {
   text-align: center;
@@ -188,7 +185,6 @@
   margin-bottom: 16px;
 }
 
-/* MODAL */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -235,7 +231,6 @@
   text-align: center;
 }
 
-/* FORM */
 .form-group {
   margin-bottom: 20px;
 }
@@ -329,7 +324,6 @@
   }
 }
 
-/* RESPONSIVE */
 @media (max-width: 1200px) {
   .role-management-container {
     padding: 100px 40px 40px;

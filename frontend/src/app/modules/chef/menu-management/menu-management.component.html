@@ -1,1 +1,65 @@
-<div>a</div>
+<app-navbar-chef></app-navbar-chef>
+<app-notification></app-notification>
+
+<div class="page-wrapper">
+  <div class="content-wrapper">
+
+    <div class="tab-content">
+      <div class="header-row">
+        <div>
+          <h1>Gestión de Platillos</h1>
+          <p>Crea, edita y administra los platillos.</p>
+        </div>
+        <button class="create-btn" (click)="openCreateDishModal()">
+          + Crear nuevo platillo
+        </button>
+      </div>
+
+      <div class="filters">
+        <button *ngFor="let filter of dishFilters" (click)="setDishFilter(filter)"
+          [class.active]="activeDishFilter === filter">
+          {{ filter }}
+        </button>
+      </div>
+
+      <div class="menu-grid">
+        <div class="menu-card" *ngFor="let dish of getFilteredDishes()">
+          <!-- <img [src]="getDishImageUrl(dish)" [alt]="dish.name" class="dish-image"> -->
+
+          <div class="card-body">
+            <h4>{{ dish.name }}</h4>
+            <span class="categories">{{ dish.description || 'Sin descripción' }}</span>
+            <strong class="price">{{ formatPrice(dish.cost) }}</strong>
+          </div>
+
+          <div class="card-actions">
+            <button [class.active]="dish.status === 1" (click)="toggleDishStatus(dish.uuid)"
+              [title]="dish.status === 1 ? 'Desactivar' : 'Activar'" class="btn-status">
+              {{ dish.status === 1 ? '✓' : '○' }}
+            </button>
+            <button (click)="openCloneDishModal(dish)" class="btn-clone" title="Clonar">
+              <img src="clon.png" alt="Clonar">
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="loadingDishes">
+        <p>Cargando platillos...</p>
+      </div>
+
+      <div class="empty-state" *ngIf="getFilteredDishes().length === 0 && dishes.length > 0 && !loadingDishes">
+        <p>No hay platillos que coincidan con el filtro.</p>
+      </div>
+
+      <div class="empty-state" *ngIf="dishes.length === 0 && !loadingDishes">
+        <p>No hay platillos. Crea uno para comenzar.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<app-dish-modal [isOpen]="isDishModalOpen" [mode]="dishModalMode" [menuTypes]="menuTypes" (close)="closeDishModal()"
+  (save)="saveDish($event)">
+</app-dish-modal>

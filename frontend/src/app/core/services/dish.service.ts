@@ -27,15 +27,25 @@ export class DishService {
     return this.http.patch(`${this.URL_BASE}/dish/${dish.uuid}/edit`, dish)
   }
 
-  activateDish(dish:any){
-    return this.http.patch(`${this.URL_BASE}/dish/${dish.uuid}/activate`, dish)
+  activateDish(uuid: string){
+    return this.http.patch(`${this.URL_BASE}/dish/${uuid}/activate`, {})
   }
 
-  desactivateDish(dish:any){
-    return this.http.patch(`${this.URL_BASE}/dish/${dish.uuid}/desactivate`, dish)
+  desactivateDish(uuid: string){
+    return this.http.patch(`${this.URL_BASE}/dish/${uuid}/deactivate`, {})
+  }
+  
+  deleteDish(uuid: string){
+    return this.http.delete(`${this.URL_BASE}/dish/${uuid}/delete`)
   }
 
-  cloneDish(uuid:string){
-    return this.http.get(`${this.URL_BASE}/dish/${uuid}/clone`)
+  cloneDish(uuid:string, dishData: any){
+    return this.http.post(`${this.URL_BASE}/dish/${uuid}/clone`, dishData)
+  }
+
+  uploadDishImage(uuid: string, image: File) {
+    const formData = new FormData();
+    formData.append('image', image);
+    return this.http.post(`${this.URL_BASE}/dish/${uuid}/upload-image`, formData);
   }
 }

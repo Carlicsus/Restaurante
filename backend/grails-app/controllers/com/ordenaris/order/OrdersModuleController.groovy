@@ -100,7 +100,7 @@ class OrdersModuleController {
         if (!data.status) {
             return respond([success: false, message: "Falta el nuevo estado de la orden"], status: 400)
         }
-        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"])) {
+        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Finished"])) {
             return respond([success: false, message: "Estado de orden invalido"], status: 400)
         }
         
@@ -117,7 +117,7 @@ class OrdersModuleController {
         if (!data.status) {
             return respond([success: false, message: "Falta el nuevo estado de la orden"], status: 400)
         }
-        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"])) {
+        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Finished"])) {
             return respond([success: false, message: "Estado de orden invalido"], status: 400)
         }
         def serviceResponse = orderModuleService.cancelOrder(data, comment)

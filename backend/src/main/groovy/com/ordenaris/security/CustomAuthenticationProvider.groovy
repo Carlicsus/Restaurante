@@ -12,6 +12,12 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 
+import org.springframework.security.authentication.DisabledException
+import org.springframework.security.authentication.InsufficientAuthenticationException
+import org.springframework.security.authentication.LockedException
+import org.springframework.security.authentication.AccountExpiredException
+import org.springframework.security.authentication.CredentialsExpiredException
+
 @Service
 @GrailsCompileStatic
 class CustomAuthenticationProvider implements AuthenticationProvider{
@@ -33,6 +39,20 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
 
         if (!passwordEncoder.matches(password, user.password)) {
             throw new BadCredentialsException("Credenciales inválidas")
+        }
+
+        if (!user.enabled) {
+            throw new DisabledException("Tu cuenta debe ser activada por un administrador")
+        }
+
+        if (!user.accountNonLocked) {
+            throw new LockedException("La cuenta está bloqueada")
+        }
+
+        if (!user.authorities || user.authorities.isEmpty()) {
+            throw new InsufficientAuthenticationException(
+                "Tu cuenta no tiene roles asignados"
+            )
         }
 
         return new UsernamePasswordAuthenticationToken(

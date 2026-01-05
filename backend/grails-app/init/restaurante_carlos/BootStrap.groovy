@@ -6,6 +6,7 @@ import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
 import com.ordenaris.schedule.Schedule
 import java.time.LocalTime
+import java.sql.Time
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.restaurant.MenuType
 class BootStrap {
@@ -51,8 +52,8 @@ class BootStrap {
 
         new Schedule(
                 user: chefUser,
-                entryTime: LocalTime.of(9, 0),
-                exitTime: LocalTime.of(18, 0),
+                entryTime: Time.valueOf(LocalTime.of(9, 0)),
+                exitTime: Time.valueOf(LocalTime.of(18, 0)),
                 isWorking: true
             ).save(flush: true)
 

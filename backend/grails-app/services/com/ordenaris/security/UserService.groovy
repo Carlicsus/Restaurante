@@ -102,6 +102,10 @@ class UserService {
             return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
         }
 
+        if(user.enabled == enabled){
+            return [resp: [success: true, message: "Usuario ya " + (user.enabled ? "activado" : "desactivado")], status: 200]
+        } 
+
         user.enabled = enabled
         user.save(flush: true)
 
@@ -116,6 +120,10 @@ class UserService {
         if (!user) {
             return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
         }
+
+        if(user.accountLocked == locked){
+            return [resp: [success: true, message: "Usuario ya " + (user.enabled ? "bloqueado" : "desbloqueado")], status: 200]
+        } 
 
         user.accountLocked = locked
         user.save(flush: true)
@@ -163,7 +171,7 @@ class UserService {
         }
 
         // Imagen por defecto
-        return Paths.get(basePath, 'profile', 'default.jpg').toFile()
+        return Paths.get(basePath, 'profile', 'default.png').toFile()
     }
 
 

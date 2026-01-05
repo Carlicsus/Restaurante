@@ -21,7 +21,6 @@ nav {
   padding: 0 40px;
 }
 
-/* LOGO */
 .imagen {
   flex-shrink: 0;
   cursor: pointer;
@@ -33,7 +32,6 @@ nav {
   object-fit: contain;
 }
 
-/* OPCIONES */
 .options {
   position: absolute;
   left: 50%;
@@ -66,7 +64,6 @@ nav {
   color: var(--foreground);
 }
 
-/* PERFIL */
 .perfil {
   margin-left: auto;
   position: relative;
@@ -86,7 +83,6 @@ nav {
   border-color: var(--primary);
 }
 
-/* DROPDOWN PERFIL */
 .profile-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -135,7 +131,6 @@ nav {
   }
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .nav-container {
     padding: 0 20px;

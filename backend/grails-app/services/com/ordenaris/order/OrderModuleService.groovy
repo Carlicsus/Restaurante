@@ -129,9 +129,6 @@ class OrderModuleService {
                     customerOrder:customerOrder.id
                     ]).save(flush: true, failOnError: true)
                 def newQuantityDish = dish.availableDishes - order.quantityDish
-                println dish.availableDishes
-                println order.quantityDish
-                println newQuantityDish 
                 if( order.quantityDish > dish.availableDishes){
                     return [
                         resp: [

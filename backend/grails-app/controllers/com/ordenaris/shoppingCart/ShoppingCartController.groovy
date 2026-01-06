@@ -19,19 +19,16 @@ class ShoppingCartController {
     }
     def newOrderShoppingCart(){
         def data = request.JSON
-        println data
         for (item in data){
-            if(!data){
-                if (!data.dishId) {
+                if (!item.dishId) {
                     return respond([success: false, message: "Falta el ID del platillo"], status: 400)
                 }
-                if (!data.quantityDish || data.quantityDish <= 0) {
+                if (!item.quantityDish || item.quantityDish <= 0) {
                     return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
                 }
-                if (data.quantityDish > 5) {
+                if (item.quantityDish > 5) {
                     return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
                 }
-            }
         }
         def serviceResponse = shoppingCartService.newOrderShoppingCart(data, auth) 
         return respond(serviceResponse.resp, status: serviceResponse.status)

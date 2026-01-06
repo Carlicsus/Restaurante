@@ -35,12 +35,6 @@ class RoleService {
     }
 
     def createRole(String authority) {
-        if (!authority) {
-            return [
-                resp  : [success: false, message: "authority es obligatorio"],
-                status: 400
-            ]
-        }
 
         if (Role.findByAuthority(authority)) {
             return [

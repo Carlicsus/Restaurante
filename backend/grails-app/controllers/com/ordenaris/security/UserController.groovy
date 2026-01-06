@@ -42,23 +42,23 @@ class UserController {
     def paginateUsers() {
 
         if (!params.page || !params.page.soloNumeros()) {
-            return respond([success: false, mensaje: "La pagina es obligatoria"], status: 400)
+            return respond([success: false, message: "La pagina es obligatoria"], status: 400)
         }
 
         if (!params.max || !params.max.soloNumeros()) {
-            return respond([success: false, mensaje: "El max es obligatorio"], status: 400)
+            return respond([success: false, message: "El max es obligatorio"], status: 400)
         }
 
         if (!(params.max.toInteger() in [5, 10, 20, 50, 100])) {
-            return respond([success: false, mensaje: "El max no es valido"], status: 400)
+            return respond([success: false, message: "El max no es valido"], status: 400)
         }
 
         if (!params.orderColumn || !(params.orderColumn in ["username", "email"])) {
-            return respond([success: false, mensaje: "orderColumn invalido"], status: 400)
+            return respond([success: false, message: "orderColumn invalido"], status: 400)
         }
 
         if (!params.order || !(params.order in ["asc", "desc"])) {
-            return respond([success: false, mensaje: "order invalido"], status: 400)
+            return respond([success: false, message: "order invalido"], status: 400)
         }
 
         def response = userService.paginateUsers(
@@ -88,11 +88,8 @@ class UserController {
 
     @Secured(['isAuthenticated()'])
     def uploadPhoto() {
-
-        def file = null
-        if (request instanceof MultipartHttpServletRequest) {
-            file = ((MultipartHttpServletRequest) request).getFile('file')
-        }
+        
+        def file = request.getFile('file')
         GrailsUser principal =
                 springSecurityService.principal as GrailsUser
 

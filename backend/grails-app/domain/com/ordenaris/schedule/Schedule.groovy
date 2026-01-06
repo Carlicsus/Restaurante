@@ -3,6 +3,7 @@ package com.ordenaris.schedule
 import com.ordenaris.security.User
 import grails.compiler.GrailsCompileStatic
 import java.sql.Time
+
 @GrailsCompileStatic
 class Schedule {
     User user

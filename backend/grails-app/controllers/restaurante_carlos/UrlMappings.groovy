@@ -97,16 +97,12 @@ class UrlMappings {
 
             group "/user-role", {
 
-                // Obtener todos los roles de un usuario
                 get "/user/$userId"(controller: "userRole", action: "getRolesByUser")
 
-                // Asignar un rol a un usuario
                 post "/"(controller: "userRole", action: "assignRole")
 
-                // Cambiar un rol por otro
                 put "/"(controller: "userRole", action: "updateRole")
 
-                // Eliminar un rol a un usuario
                 delete "/"(controller: "userRole", action: "removeRole")
             }
             group "/sale", {

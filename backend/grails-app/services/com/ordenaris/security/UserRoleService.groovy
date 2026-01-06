@@ -44,9 +44,6 @@ class UserRoleService {
         ]
     }
 
-    /**
-     * Reemplaza un rol por otro (ej: ADMIN → USER)
-     */
     def updateRole(Long userId, Long oldRoleId, Long newRoleId) {
         def user = User.get(userId)
         def oldRole = Role.get(oldRoleId)

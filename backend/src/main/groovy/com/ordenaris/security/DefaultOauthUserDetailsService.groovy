@@ -58,11 +58,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         }
     }
 
-    // =========================
-    // === LÓGICA PRINCIPAL ===
-    // =========================
     protected OauthUser loadExistingUser(String email, OAuth20Profile profile) {
-        println profile.pictureUrl
 
         User domainUser = findUserByEmail(email)
         if (!domainUser) {
@@ -79,17 +75,15 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         Collection<GrantedAuthority> roles =
                 validateAndExtractRoles(userDetails)
 
-        new OauthUser(
+        new OauthManagerBean(
                 userDetails.username,
                 userDetails.password,
                 roles,
-                profile
+                profile,
+                domainUser.id
         )
     }
 
-    // =========================
-    // === VALIDACIONES ===
-    // =========================
 
     protected OAuth20Profile validateProfile(CommonProfile profile) {
         if (!(profile instanceof OAuth20Profile)) {
@@ -135,10 +129,6 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         roles
     }
 
-    // =========================
-    // === CREACIÓN USUARIO ===
-    // =========================
-
     protected void createPendingOauthUser(String email) {
 
         User user = new User(
@@ -154,9 +144,6 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         user.save(flush: true, failOnError: true)
     }
 
-    // =========================
-    // === UTILIDADES ===
-    // =========================
 
     protected String extractUsername(String email) {
         email.substring(0, email.indexOf('@'))

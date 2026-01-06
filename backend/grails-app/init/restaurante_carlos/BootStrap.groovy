@@ -6,6 +6,7 @@ import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
 import com.ordenaris.schedule.Schedule
 import java.time.LocalTime
+import java.sql.Time
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.restaurant.MenuType
 import java.time.LocalTime

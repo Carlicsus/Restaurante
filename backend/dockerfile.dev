@@ -13,6 +13,9 @@
 
     COPY . .
 
+    RUN mkdir -p /ordenaris/uploads/profile
+    COPY default.png /ordenaris/uploads/profile/default.png
+
     RUN grails compile
 
     EXPOSE 8080

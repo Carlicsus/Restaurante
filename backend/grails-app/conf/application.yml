@@ -141,7 +141,7 @@ grails:
     enabled: true
     allow:
       origins:
-        - "*" # Permite todos los orígenes (para desarrollo/pruebas)
+        - "*"
       methods:
         - "GET"
         - "POST"
@@ -153,7 +153,7 @@ grails:
         - "Access-Control-Request-Method"
         - "Access-Control-Request-Headers"
         - "Content-Type"
-        - "Authorization" # Importante si usas autenticación
+        - "Authorization" 
       credentials: true
     
 ---

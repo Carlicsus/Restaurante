@@ -13,13 +13,7 @@ class UserIdClaimProvider implements CustomClaimProvider {
     void provideCustomClaims(JWTClaimsSet.Builder builder,UserDetails details,String principal,Integer expiration) {
         builder.claim("username", details.username)
         if (details instanceof OauthUser) {
-            User user = User.findByUsername(details.username)
-            if (!user) {
-                throw new IllegalStateException(
-                    "No se pudo resolver el usuario para JWT"
-                )
-            }
-            builder.claim("id",user.id)
+            builder.claim("id",details.id)
         }
 
         if(details instanceof AuthManagerBean) {

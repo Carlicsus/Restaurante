@@ -42,20 +42,8 @@ class AuthManagerService implements GrailsUserDetailsService{
             throw new NoStackUsernameNotFoundException()
         }
 
-        // ========= REGLAS DE NEGOCIO =========
-
-        if (!user.enabled) {
-            throw new DisabledException(
-                "Tu cuenta debe ser activada por un administrador"
-            )
-        }
 
         Set<Role> roles = user.authorities as Set<Role>
-        if (!roles || roles.isEmpty()) {
-            throw new InsufficientAuthenticationException(
-                "Tu cuenta no tiene roles asignados por un administrador"
-            )
-        }
 
         def authorities = roles.collect {
             new SimpleGrantedAuthority(it.authority)
@@ -78,12 +66,10 @@ class AuthManagerService implements GrailsUserDetailsService{
 
         if (!identifier) return null
 
-        // Si parece email → buscar por email
         if (identifier.contains('@')) {
             return User.findByEmail(identifier)
         }
 
-        // Si no → username
         return User.findByUsername(identifier)
     }
 }

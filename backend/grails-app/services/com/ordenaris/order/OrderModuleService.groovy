@@ -109,6 +109,14 @@ class OrderModuleService {
                     status: 404
                 ]
             }
+            def dish_quantity= Dish.findById(data.dishId)
+            if(dish_quantity.availableDishes < 0){
+                return [
+                    resp:[success:false, message: "Lo sentimos no hay mas platillos"],
+                    status: 404
+                ]
+            }
+
             def customerOrder = new CustomerOrder([user:auth.id]).save(flush: true, failOnError: true)
 
             for (order in data) {
@@ -120,6 +128,30 @@ class OrderModuleService {
                     quantity: order.quantityDish, 
                     customerOrder:customerOrder.id
                     ]).save(flush: true, failOnError: true)
+                def newQuantityDish = dish.availableDishes - order.quantityDish
+                println dish.availableDishes
+                println order.quantityDish
+                println newQuantityDish 
+                if( order.quantityDish > dish.availableDishes){
+                    return [
+                        resp: [
+                            success:false, 
+                            message: "No hay suficnetes platillos para esta orden, solo quedan " + dish.availableDishes
+                            ],
+                        status:404
+                    ]
+                }
+                else if( order.quantityDish <= 0 ){
+                    return [
+                        resp: [
+                            success:false, 
+                            message: "Se a agotado este platillo"
+                            ],
+                        status:404
+                    ]
+                }
+                dish.availableDishes = newQuantityDish
+                dish.save(flush: true, failOnError:true)
             }
             customerOrder.refresh()
             return [
@@ -231,6 +263,7 @@ class OrderModuleService {
             }
             if (data.status == "Finished") {
                 saleService.createAutoSale(order.id)
+            def dish = Dish.findByUuid(data)
             }
             if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 order.status = data.status

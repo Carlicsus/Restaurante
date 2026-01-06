@@ -93,14 +93,26 @@ class ReviewService {
             if (!dish) {
                 return [resp: [success: false, message: 'Platillo no encontrado'], status: 404]
             }
-            def review = new Review([
+
+            def review = Review.createCriteria().get {
+                eq("user.id", user.id)
+                eq("dish.id", dish.id)
+            }
+            
+            if (review) {
+                return [resp: [success: false, message: 'Ya hay una review existente'], status: 404]
+            }
+            
+            def newReview = new Review([
                 user: user,
                 dish: dish,
                 comment: data.comment,
                 rating: data.rating
             ]).save(flush: true, failOnError: true)
+            
+            println 5 
 
-            return [resp: [success: true, message: 'Reseña creada', review: mapReview(review)], status: 201]
+            return [resp: [success: true, message: 'Reseña creada', review: mapReview(newReview)], status: 201]
         } catch (Exception e) {
             return [resp: [success: false, message: 'Error al crear la reseña: ' + e.message], status: 500]
         }

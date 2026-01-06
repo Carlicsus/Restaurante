@@ -59,7 +59,6 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
     }
 
     protected OauthUser loadExistingUser(String email, OAuth20Profile profile) {
-        println profile.pictureUrl
 
         User domainUser = findUserByEmail(email)
         if (!domainUser) {
@@ -76,11 +75,12 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         Collection<GrantedAuthority> roles =
                 validateAndExtractRoles(userDetails)
 
-        new OauthUser(
+        new OauthManagerBean(
                 userDetails.username,
                 userDetails.password,
                 roles,
-                profile
+                profile,
+                domainUser.id
         )
     }
 

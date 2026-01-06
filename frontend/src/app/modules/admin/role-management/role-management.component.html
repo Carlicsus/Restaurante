@@ -78,7 +78,6 @@
   <!-- Modal de confirmación de eliminación -->
   <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-icon">⚠️</div>
       <h3 class="modal-title">¿Eliminar Rol?</h3>
       <p class="modal-message">
         ¿Estás seguro de que deseas eliminar el rol <strong>{{ roleToDelete?.authority }}</strong>?

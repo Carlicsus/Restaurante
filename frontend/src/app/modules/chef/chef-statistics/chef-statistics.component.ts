@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NavbarChefComponent } from '../../../shared/navbar-chef/navbar-chef.component';
+import { StatisticsService } from '../../../core/services/statistics.service';
 
-// amCharts imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import * as am5percent from '@amcharts/amcharts5/percent';
@@ -23,10 +23,14 @@ export class ChefStatisticsComponent
   private root2: am5.Root | undefined;
   private root3: am5.Root | undefined;
 
-  constructor() {}
+  totalPedidosHoy = 0;
+  platoMasPopular = '-';
+  horaPico = '-';
+
+  constructor(private statisticsService: StatisticsService) {}
 
   ngOnInit(): void {
-    // Inicializar datos si es necesario
+    this.loadStatistics();
   }
 
   ngAfterViewInit(): void {
@@ -47,8 +51,38 @@ export class ChefStatisticsComponent
     }
   }
 
+  private loadStatistics(): void {
+    this.statisticsService.getOrdersStats().subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          const orders = response.data;
+          this.totalPedidosHoy = orders.length;
+          
+          const hourCounts: { [hour: string]: number } = {};
+          orders.forEach((order: any) => {
+            const hour = new Date(order.dateCreated).getHours();
+            const hourKey = `${hour}:00`;
+            hourCounts[hourKey] = (hourCounts[hourKey] || 0) + 1;
+          });
+          
+          const maxHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
+          this.horaPico = maxHour ? maxHour[0] : '-';
+        }
+      },
+      error: (error) => console.error('Error al cargar estadísticas de pedidos:', error)
+    });
+
+    this.statisticsService.getTopDishes(7, 10).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data && response.data.length > 0) {
+          this.platoMasPopular = response.data[0].name;
+        }
+      },
+      error: (error) => console.error('Error al cargar platillos populares:', error)
+    });
+  }
+
   private createOrdersChart(): void {
-    // Gráfico de pedidos por día (línea)
     this.root1 = am5.Root.new('ordersChart');
 
     this.root1.setThemes([am5themes_Animated.new(this.root1)]);
@@ -137,7 +171,6 @@ export class ChefStatisticsComponent
   }
 
   private createDishesChart(): void {
-    // Gráfico de platos más pedidos (pie)
     this.root2 = am5.Root.new('dishesChart');
 
     this.root2.setThemes([am5themes_Animated.new(this.root2)]);
@@ -150,8 +183,8 @@ export class ChefStatisticsComponent
 
     const series = chart.series.push(
       am5percent.PieSeries.new(this.root2, {
-        valueField: 'orders',
-        categoryField: 'dish',
+        valueField: 'quantity',
+        categoryField: 'name',
         alignLabels: false,
       })
     );
@@ -159,28 +192,33 @@ export class ChefStatisticsComponent
     series.labels.template.setAll({
       text: '{category}: {value}',
       fontSize: 12,
+      fill: am5.color(0x000000),
     });
 
-    series.slices.template.setAll({
-      stroke: am5.color(0xffffff),
-      strokeWidth: 2,
+    series.ticks.template.setAll({
+      stroke: am5.color(0x000000),
+      strokeWidth: 1,
     });
 
-    const data = [
-      { dish: 'Ensalada César', orders: 120 },
-      { dish: 'Pollo al Limón', orders: 95 },
-      { dish: 'Tacos de Pescado', orders: 78 },
-      { dish: 'Hamburguesa', orders: 65 },
-      { dish: 'Sopa de Tomate', orders: 52 },
-    ];
+    this.statisticsService.getTopDishes(7, 10).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          series.data.setAll(response.data);
+        } else {
+          series.data.setAll([]);
+        }
+        series.appear(1000, 100);
+      },
+      error: (error) => {
+        console.error('Error al cargar datos de platillos:', error);
+        series.data.setAll([]);
+      }
+    });
 
-    series.data.setAll(data);
-
-    series.appear(1000, 100);
+    chart.appear(1000, 100);
   }
 
   private createTimeChart(): void {
-    // Gráfico de pedidos por hora (barra)
     this.root3 = am5.Root.new('timeChart');
 
     this.root3.setThemes([am5themes_Animated.new(this.root3)]);

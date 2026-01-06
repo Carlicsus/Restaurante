@@ -27,15 +27,16 @@ export class OrderService {
   }
 
   prepareOrder(uuid: string) {
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/prepare`, uuid)
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/prepare`, {});
   }
 
   finishOrder(uuid: string) {
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/finish`, uuid)
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/finish`, {});
   }
 
-  cancelOrder(uuid: string) {
-    return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel`, uuid)
+  cancelOrder(uuid: string, reason?: string) {
+    const body = reason ? { comment: reason } : {};
+    return this.http.patch(`${this.URL_BASE}/order/${uuid}/cancel`, {});
   }
 
   getOrder(uuid: string) {

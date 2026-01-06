@@ -140,19 +140,7 @@ export class EmployeCartComponent implements OnInit {
   proceedToCheckout(): void {
     if (!this.canCheckout || !this.cartUuid) return;
 
-    this.processingOrder = true;
-
-    // Preparar los datos para crear la orden
-    const orderData = this.cartItems.map(item => ({
-      dishId: item.dishId,
-      quantityDish: item.quantity
-    }));
-
-    // Primero crear la orden
-    this.orderService.createOrder(orderData).subscribe({
-      next: () => {
-        // Después de crear la orden, finalizar el carrito
-        this.cartService.finishCart(this.cartUuid!).subscribe({
+    this.cartService.finishCart(this.cartUuid!).subscribe({
           next: () => {
             alert('Orden realizada con éxito.');
             this.processingOrder = false;
@@ -161,16 +149,9 @@ export class EmployeCartComponent implements OnInit {
           error: (error) => {
             console.error('Error finalizing cart:', error);
             alert('Error al finalizar el pedido. Por favor, intente de nuevo.');
-            this.processingOrder = false;
           }
         });
-      },
-      error: (error) => {
-        console.error('Error creating order:', error);
-        alert('Error al crear la orden. Por favor, intente de nuevo.');
-        this.processingOrder = false;
-      }
-    });
+            this.processingOrder = false;
   }
 
   goToMenu(): void {
@@ -181,6 +162,6 @@ export class EmployeCartComponent implements OnInit {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
-    }).format(amount);
+    }).format(amount); 
   }
 }

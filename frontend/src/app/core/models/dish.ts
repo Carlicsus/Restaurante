@@ -19,4 +19,5 @@ export interface Dish {
   dateCreated?: Date
   lastUpdated?: Date
   menuType?: string | Menu
+  imageUrl?: string
 }

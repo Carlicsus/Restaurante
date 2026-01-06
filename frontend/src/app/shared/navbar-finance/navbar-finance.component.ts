@@ -30,8 +30,7 @@ export class NavbarFinanceComponent {
   }
 
   logout(): void {
-    this.authService.logout();
     this.showProfileMenu = false;
-    this.router.navigate(['']);
+    this.authService.logout();
   }
 }

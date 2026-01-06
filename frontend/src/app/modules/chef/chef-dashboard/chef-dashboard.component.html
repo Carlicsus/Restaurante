@@ -1,14 +1,13 @@
 <app-navbar-chef></app-navbar-chef>
+<app-notification></app-notification>
 
 <div class="dashboard-wrapper">
 
-  <!-- Header -->
   <div class="dashboard-header">
     <h1>Hola, Chef</h1>
     <p>Administra pedidos, menús y órdenes en proceso.</p>
   </div>
 
-  <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
       <span>Pedidos del Día</span>
@@ -26,12 +25,11 @@
     </div>
   </div>
 
-  <!-- Orders -->
   <div class="orders-section">
     <h2>Órdenes de Hoy</h2>
 
     <div class="order-item" *ngFor="let order of orders">
-      <div class="order-info">
+      <div class="order-info" (click)="viewOrderDetails(order.id)">
         <div class="order-header">
           <h4>Pedido #{{ order.id }}</h4>
           <span class="status-badge" [ngClass]="getStatusClass(order.status)">
@@ -56,11 +54,52 @@
     </div>
   </div>
 
-  <!-- Action -->
   <div class="dashboard-action">
     <button class="btn-primary" (click)="goToMenus()">
-      Gestionar Menús
+      Gestionar Platillos
     </button>
   </div>
 
+</div>
+
+<div class="modal-overlay" *ngIf="showCancelModal" (click)="closeCancelModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Cancelar Pedido</h2>
+    </div>
+    
+    <p class="modal-description">
+      Describe el motivo de la cancelación. Esta acción no se puede deshacer.
+    </p>
+    
+    <div class="reason-buttons">
+      <button 
+        *ngFor="let reason of predefinedReasons" 
+        class="reason-btn"
+        [class.selected]="cancelReason === reason"
+        (click)="selectReason(reason)"
+        type="button">
+        {{ reason }}
+      </button>
+    </div>
+    
+    <div class="modal-input">
+      <label for="cancelReason">Motivo</label>
+      <textarea 
+        id="cancelReason"
+        [(ngModel)]="cancelReason" 
+        placeholder="Ej: Ingrediente no disponible..."
+        rows="4">
+      </textarea>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeCancelModal()" type="button">
+        Volver
+      </button>
+      <button class="btn-danger" (click)="confirmCancel()" type="button">
+        Cancelar ahora
+      </button>
+    </div>
+  </div>
 </div>

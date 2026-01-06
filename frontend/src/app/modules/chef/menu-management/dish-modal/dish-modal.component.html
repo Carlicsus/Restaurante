@@ -19,9 +19,9 @@
             </div>
 
             <div class="form-group">
-                <label for="cost">Costo (en centavos) *</label>
-                <input id="cost" type="number" [(ngModel)]="form.cost" name="cost" step="1" min="0"
-                    placeholder="1299 (= $12.99)" required>
+                <label for="cost">Costo *</label>
+                <input id="cost" type="number" [(ngModel)]="form.cost" name="cost" step="1" min="0" placeholder="$"
+                    required>
             </div>
 
             <div class="form-group">
@@ -33,6 +33,33 @@
                     </option>
                 </select>
             </div>
+
+            <!--
+            <div class="form-group">
+                <label for="image">Imagen del platillo</label>
+                <input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    (change)="onImageSelected($event)"
+                    #fileInput
+                    style="display: none"
+                >
+
+            <div class="image-upload-area">
+            <div *ngIf="!imagePreview" class="upload-placeholder" (click)="fileInput.click()">
+                <p>Haz clic para seleccionar una imagen</p>
+                <small>JPG, PNG o GIF (máx. 5MB)</small>
+            </div>
+
+            <div *ngIf="imagePreview" class="image-preview">
+                <img [src]="imagePreview" alt="Preview">
+                <button type="button" class="btn-remove-image" (click)="removeImage()">✕</button>
+            </div>
+         </div>
+        </div>
+        -->
+
 
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>

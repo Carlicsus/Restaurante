@@ -40,11 +40,19 @@ class BootStrap {
             def chefUser = User.findOrSaveByUsernameAndPasswordAndEmail('chef', 'chef','chef@ordenaris.com')
             def financeUser = User.findOrSaveByUsernameAndPasswordAndEmail('finance', 'finance','finance@ordenaris.com')
             def userUser = User.findOrSaveByUsernameAndPasswordAndEmail('user', 'user','user@ordenaris.com')
+            def user2 = User.findOrSaveByUsernameAndPasswordAndEmail('Angel Zacek', 'user2','angel.zacek@ordenaris.com')
+            def user3 = User.findOrSaveByUsernameAndPasswordAndEmail('Maria Gomez', 'user3','maria.gomez@ordenaris.com')
+            def user4 = User.findOrSaveByUsernameAndPasswordAndEmail('Luis Perez', 'user4','luis.perez@ordenaris.com')
+            def user5 = User.findOrSaveByUsernameAndPasswordAndEmail('Sofia Lopez', 'user5','sofia.lopez@ordenaris.com')
 
             UserRole.create adminUser, adminRole
             UserRole.create chefUser, chefRole
             UserRole.create financeUser, financeRole
             UserRole.create userUser, userRole
+            UserRole.create user2, userRole
+            UserRole.create user3, userRole
+            UserRole.create user4, userRole
+            UserRole.create user5, userRole
 
         UserRole.withSession {
             it.flush()
@@ -58,10 +66,9 @@ class BootStrap {
                 isWorking: true
             ).save(flush: true)
 
-        assert User.count() == 4
+        assert User.count() == 8
         assert Role.count() == 4
-        assert UserRole.count() == 4
-
+        assert UserRole.count() == 8
         }
 
         if (Dish.count() == 0) {

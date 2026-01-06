@@ -1,42 +1,38 @@
-import { Component, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavbarChefComponent } from '../../../shared/navbar-chef/navbar-chef.component';
 import { DishModalComponent } from './dish-modal/dish-modal.component';
 import { Dish, Menu } from '../../../core/models/dish';
 import { DishService } from '../../../core/services/dish.service';
 import { MenuService } from '../../../core/services/menu.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { NotificationComponent } from '../../../shared/notification/notification.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-menu-management',
   standalone: true,
-  imports: [CommonModule, NavbarChefComponent, DishModalComponent],
+  imports: [CommonModule, NavbarChefComponent, DishModalComponent, NotificationComponent],
   templateUrl: './menu-management.component.html',
   styleUrls: ['./menu-management.component.css']
 })
 export class MenuManagementComponent implements OnInit, OnDestroy {
   @ViewChild(DishModalComponent) dishModal!: DishModalComponent;
 
-  // Tab management
   activeTab: 'menus' | 'dishes' = 'menus';
 
-  // Menu types
   menuTypes: Menu[] = [];
 
-  // Dishes
   dishes: Dish[] = [];
 
-  // Filter dishes
   dishFilters = ['Todos', 'Activos', 'Inactivos'];
   activeDishFilter = 'Todos';
 
-  // Modal state
   isDishModalOpen = false;
   dishModalMode: 'create' | 'clone' = 'create';
   availableCategories: string[] = [];
 
-  // Loading states
   loadingMenus = false;
   loadingDishes = false;
   editingMenuUuid: string | null = null;
@@ -45,7 +41,8 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
 
   constructor(
     private dishService: DishService,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit() {
@@ -58,15 +55,16 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ==================== LOAD DATA ====================
   loadMenus() {
     this.loadingMenus = true;
     this.menuService.getMenus()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          console.log('Respuesta de getMenus:', response);
           if (response.success) {
             this.menuTypes = response.data || [];
+            console.log('menuTypes cargados:', this.menuTypes);
           }
           this.loadingMenus = false;
         },
@@ -83,8 +81,46 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
-          if (response.success) {
-            this.dishes = response.data || [];
+          console.log('Respuesta de getDishes:', response);
+          if (response.success && response.data) {
+            const flatDishes: any[] = [];
+            
+            response.data.forEach((menu: any) => {
+              if (menu.dishes && Array.isArray(menu.dishes)) {
+                menu.dishes.forEach((dish: any) => {
+                  flatDishes.push({
+                    uuid: dish.uuid,
+                    name: dish.name,
+                    description: dish.description || '',
+                    cost: Math.round(dish.cost * 100), // Backend ya divide por 100, reconvertir a centavos
+                    status: dish.status,
+                    imageUrl: dish.imageUrl || null,
+                    menuType: { uuid: menu.uuid, name: menu.name }
+                  });
+                });
+              }
+              
+              if (menu.submenu && Array.isArray(menu.submenu)) {
+                menu.submenu.forEach((submenu: any) => {
+                  if (submenu.dishes && Array.isArray(submenu.dishes)) {
+                    submenu.dishes.forEach((dish: any) => {
+                      flatDishes.push({
+                        uuid: dish.uuid,
+                        name: dish.name,
+                        description: dish.description || '',
+                        cost: Math.round(dish.cost * 100),
+                        status: dish.status,
+                        imageUrl: dish.imageUrl || null,
+                        menuType: { uuid: submenu.uuid, name: submenu.name }
+                      });
+                    });
+                  }
+                });
+              }
+            });
+            
+            this.dishes = flatDishes;
+            console.log('Platillos cargados:', this.dishes.length);
           }
           this.loadingDishes = false;
         },
@@ -95,7 +131,6 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ==================== TAB NAVIGATION ====================
   setActiveTab(tab: 'menus' | 'dishes') {
     this.activeTab = tab;
   }
@@ -110,14 +145,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadMenus();
-              alert('Tipo de menú creado exitosamente');
+              this.notificationService.success('Tipo de menú creado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al crear menú:', error);
-            alert('Error al crear el tipo de menú');
+            this.notificationService.error('Error al crear el tipo de menú');
           }
         });
     }
@@ -133,14 +168,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.success) {
               this.loadMenus();
-              alert('Tipo de menú actualizado exitosamente');
+              this.notificationService.success('Tipo de menú actualizado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al editar menú:', error);
-            alert('Error al editar el tipo de menú');
+            this.notificationService.error('Error al editar el tipo de menú');
           }
         });
     }
@@ -149,27 +184,25 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   deleteMenuType(index: number) {
     const menuType = this.menuTypes[index];
     if (confirm(`¿Eliminar el tipo de menú "${menuType.name}"?`)) {
-      // Usar status 2 para marcar como eliminado (soft delete)
-      this.menuService.deactivateMenu({ ...menuType, status: 2 })
+      this.menuService.deleteMenu(menuType)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
             if (response.success) {
               this.loadMenus();
-              alert('Tipo de menú eliminado exitosamente');
+              this.notificationService.success('Tipo de menú eliminado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al eliminar menú:', error);
-            alert('Error al eliminar el tipo de menú');
+            this.notificationService.error('Error al eliminar el tipo de menú');
           }
         });
     }
   }
 
-  // ==================== DISHES ====================
   openCreateDishModal() {
     this.dishModalMode = 'create';
     this.isDishModalOpen = true;
@@ -188,47 +221,97 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
 
   saveDish(dishData: any) {
     if (this.dishModalMode === 'create') {
-      // Crear nuevo platillo
       const payload = {
         name: dishData.name,
         description: dishData.description || '',
         cost: dishData.cost,
-        menuType: dishData.menuType // UUID del tipo de menú
+        menuType: dishData.menuType 
       };
 
       this.dishService.createDish(payload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
+            console.log('Respuesta de createDish:', response);
             if (response.success) {
-              this.loadDishes();
-              alert('Platillo creado exitosamente');
+              const dishUuid = response.data;
+              console.log('UUID del platillo creado:', dishUuid);
+              
+              if (dishData.image && dishUuid) {
+                console.log('Subiendo imagen para platillo:', dishUuid);
+                this.dishService.uploadDishImage(dishUuid, dishData.image)
+                  .pipe(takeUntil(this.destroy$))
+                  .subscribe({
+                    next: (imgResponse) => {
+                      console.log('Respuesta de uploadDishImage:', imgResponse);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo creado exitosamente con imagen');
+                    },
+                    error: (error) => {
+                      console.error('Error al subir imagen:', error);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo creado, pero no se pudo subir la imagen');
+                    }
+                  });
+              } else {
+                console.log('No hay imagen para subir');
+                this.loadDishes();
+                this.notificationService.success('Platillo creado exitosamente');
+              }
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al crear platillo:', error);
-            alert('Error al crear el platillo');
+            this.notificationService.error('Error al crear el platillo');
           }
         });
     } else {
-      // Clonar platillo
-      const dish = dishData as Dish;
-      this.dishService.cloneDish(dish.uuid)
+      const payload = {
+        name: dishData.name,
+        description: dishData.description || '',
+        cost: dishData.cost / 100,
+        menuType: dishData.menuType
+      };
+
+      this.dishService.cloneDish(dishData.uuid, payload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
+            console.log('Respuesta de cloneDish:', response);
             if (response.success) {
-              this.loadDishes();
-              alert('Platillo clonado exitosamente');
+              const dishUuid = response.data;
+              console.log('UUID del platillo clonado:', dishUuid);
+              
+              if (dishData.image && dishUuid) {
+                console.log('Subiendo imagen para platillo clonado:', dishUuid);
+                this.dishService.uploadDishImage(dishUuid, dishData.image)
+                  .pipe(takeUntil(this.destroy$))
+                  .subscribe({
+                    next: (imgResponse) => {
+                      console.log('Respuesta de uploadDishImage:', imgResponse);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo clonado exitosamente con imagen');
+                    },
+                    error: (error) => {
+                      console.error('Error al subir imagen:', error);
+                      this.loadDishes();
+                      this.notificationService.success('Platillo clonado, pero no se pudo subir la imagen');
+                    }
+                  });
+              } else {
+                console.log('No hay imagen para subir');
+                this.loadDishes();
+                this.notificationService.success('Platillo clonado exitosamente');
+              }
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al clonar platillo:', error);
-            alert('Error al clonar el platillo');
+            this.notificationService.error('Error al clonar el platillo');
           }
         });
     }
@@ -250,14 +333,14 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
             next: (response: any) => {
               if (response.success) {
                 this.loadDishes();
-                alert('Platillo actualizado exitosamente');
+                this.notificationService.success('Platillo actualizado exitosamente');
               } else {
-                alert('Error: ' + response.mensaje);
+                this.notificationService.error('Error: ' + response.mensaje);
               }
             },
             error: (error) => {
               console.error('Error al editar platillo:', error);
-              alert('Error al editar el platillo');
+              this.notificationService.error('Error al editar el platillo');
             }
           });
       }
@@ -267,21 +350,20 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   deleteDish(uuid: string) {
     const dish = this.dishes.find(d => d.uuid === uuid);
     if (dish && confirm(`¿Eliminar el platillo "${dish.name}"?`)) {
-      // Usar status 2 para marcar como eliminado (soft delete)
-      this.dishService.activateDish({ ...dish, status: 2 })
+      this.dishService.deleteDish(uuid)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
             if (response.success) {
               this.loadDishes();
-              alert('Platillo eliminado exitosamente');
+              this.notificationService.success('Platillo eliminado exitosamente');
             } else {
-              alert('Error: ' + response.mensaje);
+              this.notificationService.error('Error: ' + response.mensaje);
             }
           },
           error: (error) => {
             console.error('Error al eliminar platillo:', error);
-            alert('Error al eliminar el platillo');
+            this.notificationService.error('Error al eliminar el platillo');
           }
         });
     }
@@ -290,11 +372,10 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   toggleDishStatus(uuid: string) {
     const dish = this.dishes.find(d => d.uuid === uuid);
     if (dish) {
-      // Status: 1 = active, 0 = inactive
       const newStatus = dish.status === 1 ? 0 : 1;
 
       if (newStatus === 1) {
-        this.dishService.activateDish({ ...dish, status: newStatus })
+        this.dishService.activateDish(uuid)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response: any) => {
@@ -305,7 +386,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
             error: (error) => console.error('Error:', error)
           });
       } else {
-        this.dishService.desactivateDish({ ...dish, status: newStatus })
+        this.dishService.desactivateDish(uuid)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response: any) => {
@@ -324,11 +405,53 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   }
 
   getFilteredDishes(): Dish[] {
+    console.log('getFilteredDishes llamado');
+    console.log('Total dishes:', this.dishes.length);
+    console.log('Filtro activo:', this.activeDishFilter);
+    console.log('Dishes:', this.dishes);
+    
     if (this.activeDishFilter === 'Activos') {
-      return this.dishes.filter(d => d.status === 1);
+      const filtered = this.dishes.filter(d => d.status === 1);
+      console.log('Filtrados activos:', filtered.length);
+      return filtered;
     } else if (this.activeDishFilter === 'Inactivos') {
-      return this.dishes.filter(d => d.status === 0);
+      const filtered = this.dishes.filter(d => d.status === 0);
+      console.log('Filtrados inactivos:', filtered.length);
+      return filtered;
     }
-    return this.dishes.filter(d => d.status !== 2); // Excluir eliminados (status 2)
+    // Por defecto mostrar todos excepto eliminados
+    const filtered = this.dishes.filter(d => d.status !== 2);
+    console.log('Filtrados todos (status !== 2):', filtered.length);
+    return filtered;
+  }
+
+  getCategoryNames(menuTypes: any[]): string {
+    if (!menuTypes || menuTypes.length === 0) {
+      return 'Sin categoría';
+    }
+    return menuTypes.map(mt => mt.name).join(' / ');
+  }
+
+  getDishImageUrl(dish: any): string {
+    console.log('getDishImageUrl llamado para:', dish.name);
+    console.log('dish.imageUrl:', dish.imageUrl);
+    
+    if (!dish.imageUrl) {
+      console.log('No hay imageUrl, usando placeholder');
+      return 'https://via.placeholder.com/250x200?text=Sin+imagen';
+    }
+    
+    const fileName = dish.imageUrl.split('/').pop();
+    const fullUrl = `http://localhost:3050/api/images/${fileName}`;
+    console.log('URL construida:', fullUrl);
+    return fullUrl;
+  }
+
+  formatPrice(costInCents: number): string {
+    const costInPesos = costInCents / 100;
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(costInPesos);
   }
 }

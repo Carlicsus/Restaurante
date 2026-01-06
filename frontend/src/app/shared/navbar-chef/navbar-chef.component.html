@@ -9,13 +9,17 @@
       <ul>
         <li><button routerLink="/chef/dashboard">Inicio</button></li>
         <li><button routerLink="/chef/menu-management">Menú</button></li>
+        <!--<li><button routerLink="/chef/statistics">Estadísticas</button></li> -->
       </ul>
     </div>
 
     <div class="perfil" (click)="toggleProfileMenu()">
       <img src="/fperfil.jpg" alt="Perfil">
       <div class="profile-dropdown" *ngIf="showProfileMenu">
-        <button (click)="logout()">Cerrar Sesión</button>
+        <button (click)="logout()">
+          <img src="/cerrar-sesion.png" alt="Cerrar Sesión" style="width: 20px; height: 20px; margin-right: 8px; flex-shrink: 0; border-radius: 0; vertical-align: middle;">
+          Cerrar Sesión
+        </button>
       </div>
     </div>
 

@@ -22,6 +22,7 @@ def listDishes() {
             def dishes = Dish.findAllByStatusNotEqualsAndMenuType(2, type).collect { dish ->
                 return [
                     uuid: dish.uuid,
+                    id:dish.id,
                     name: dish.name,
                     description: dish.description,
                     cost: dish.cost / 100, 

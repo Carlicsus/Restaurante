@@ -37,31 +37,31 @@ class BootStrap {
             def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
             def userRole = Role.findOrSaveByAuthority('ROLE_USER')
 
-            def adminUser = User.findOrSaveByUsernameAndPasswordAndEmail('admin', 'admin','admin@ordenaris.com')
-            def chefUser = User.findOrSaveByUsernameAndPasswordAndEmail('chef', 'chef','chef@ordenaris.com')
-            def financeUser = User.findOrSaveByUsernameAndPasswordAndEmail('finance', 'finance','finance@ordenaris.com')
-            def userUser = User.findOrSaveByUsernameAndPasswordAndEmail('user', 'user','user@ordenaris.com')
+            def adminUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('admin', 'admin','admin@ordenaris.com',"zaseck","Cruz")
+            def chefUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('chef', 'chef','chef@ordenaris.com',"Carlos","Aranda")
+            def financeUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('finance', 'finance','finance@ordenaris.com',"Edgar","Cruz")
+            def userUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('user', 'user','user@ordenaris.com',"Raul","Reyes")
 
             UserRole.create adminUser, adminRole
             UserRole.create chefUser, chefRole
             UserRole.create financeUser, financeRole
             UserRole.create userUser, userRole
 
-        UserRole.withSession {
-            it.flush()
-            it.clear()
-        }
+            UserRole.withSession {
+                it.flush()
+                it.clear()
+            }
 
-        new Schedule(
-                user: chefUser,
-                entryTime: Time.valueOf(LocalTime.of(9, 0)),
-                exitTime: Time.valueOf(LocalTime.of(18, 0)),
-                isWorking: true
-            ).save(flush: true)
+            new Schedule(
+                    user: chefUser,
+                    entryTime: Time.valueOf(LocalTime.of(9, 0)),
+                    exitTime: Time.valueOf(LocalTime.of(18, 0)),
+                    isWorking: true
+                ).save(flush: true)
 
-        assert User.count() == 4
-        assert Role.count() == 4
-        assert UserRole.count() == 4
+            assert User.count() == 4
+            assert Role.count() == 4
+            assert UserRole.count() == 4
 
         }
 

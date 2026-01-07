@@ -22,7 +22,7 @@ class UserService {
 
     private static final long MAX_SIZE = 2 * 1024 * 1024 // 2MB
 
-    Map register(String username, String rawPassword, String email) {
+    Map register(String username, String rawPassword, String email, String names, String lastNames) {
 
         if (User.findByUsername(username)) {
             return [
@@ -41,7 +41,9 @@ class UserService {
         User user = new User(
                 username,
                 rawPassword,
-                email
+                email,
+                names,
+                lastNames
         )
 
         user.enabled = false 
@@ -145,6 +147,8 @@ class UserService {
             id            : user.id,
             username      : user.username,
             email         : user.email,
+            names         : user.names,
+            lastNames     : user.lastNames,
             enabled       : user.enabled,
             accountLocked : user.accountLocked,
         ]
@@ -199,5 +203,64 @@ class UserService {
 
     private String extractExtension(String filename) {
         filename.substring(filename.lastIndexOf('.')).toLowerCase()
+    }
+
+    Map getUserInfo(String username) {
+
+        User user = User.findByUsername(username)
+
+        if (!user) {
+            return [
+                resp: [success: false, message: "Usuario no encontrado"],
+                status: 404
+            ]
+        }
+
+        return [
+            resp: [
+                success: true,
+                data: [
+                    id            : user.id,
+                    username      : user.username,
+                    email         : user.email,
+                    names         : user.names,
+                    lastNames     : user.lastNames,
+                    enabled       : user.enabled,
+                    accountLocked : user.accountLocked,
+                    profileImage  : user.profileImagePath
+                ]
+            ],
+            status: 200
+        ]
+    }
+
+    Map adminChangePassword(Long userId, String rawPassword) {
+
+        User user = User.get(userId)
+
+        if (!user) {
+            return [
+                resp: [success: false, message: "Usuario no encontrado"],
+                status: 404
+            ]
+        }
+
+        user.password = rawPassword
+        user.passwordExpired = false
+
+        user.save(flush: true, failOnError: true)
+
+        return [
+            resp: [
+                success: true,
+                message: "Contraseña actualizada correctamente",
+                data: [
+                    id: user.id,
+                    username: user.username,
+                    email: user.email
+                ]
+            ],
+            status: 200
+        ]
     }
 }

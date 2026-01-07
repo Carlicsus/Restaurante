@@ -14,17 +14,21 @@ class User implements Serializable {
     String username
     String password
     String email
+    String names
+    String lastNames
     String profileImagePath   
     boolean enabled = true
     boolean accountExpired
     boolean accountLocked
     boolean passwordExpired
 
-    User(String username, String password, String email) {
+    User(String username, String password, String email, String names, String lastNames) {
 		this()
 		this.username = username
 		this.password = password
 		this.email = email
+		this.names = names
+		this.lastNames = lastNames
 	}
 
     Set<Role> getAuthorities() {
@@ -35,6 +39,8 @@ class User implements Serializable {
         password nullable: false, blank: false, password: true
         username nullable: false, blank: false, unique: true
         email nullable: false, blank: false, unique: true
+        names nullable: false, blank: false
+        lastNames nullable: false, blank: false
         profileImagePath nullable: true
     }
 

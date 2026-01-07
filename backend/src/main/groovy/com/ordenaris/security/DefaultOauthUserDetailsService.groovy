@@ -51,7 +51,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             return loadExistingUser(email, oauthProfile)
         } catch (UsernameNotFoundException e) {
             log.info "Creando usuario OAuth pendiente de autorización: ${email}"
-            createPendingOauthUser(email)
+            createPendingOauthUser(email, oauthProfile)
             throw new LockedException(
                 "Usuario pendiente de autorización por administrador"
             )
@@ -94,7 +94,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
     protected String validateEmail(String email) {
         if (!email) {
-            throw new UsernameNotFoundException("Google did not return email")
+            throw new UsernameNotFoundException("Google no regreso un email")
         }
 
         if (!email.endsWith('@utxicotepec.edu.mx')) {
@@ -129,12 +129,14 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         roles
     }
 
-    protected void createPendingOauthUser(String email) {
+    protected void createPendingOauthUser(String email, OAuth20Profile profile) {
 
         User user = new User(
                 username: extractUsername(email),
                 password: generateSecurePassword(),
                 email: email,
+                names: profile.firstName ?: "",
+                lastNames: profile.familyName ?: "",
                 enabled: false,
                 accountLocked: false,
                 accountExpired: false,

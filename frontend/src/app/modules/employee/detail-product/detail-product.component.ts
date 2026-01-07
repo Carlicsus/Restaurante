@@ -59,11 +59,17 @@ export class DetailProductComponent implements OnInit {
       return 'assets/images/default-dish.png';
     }
 
+    // Si ya viene como endpoint (correcto)
+    if (urlFromDb.startsWith('/api')) {
+      return `${this.BACKEND_HOST}${urlFromDb}`;
+    }
+
+    // Si por error viene algo raro
     if (urlFromDb.startsWith('http')) {
       return urlFromDb;
     }
 
-    return `${this.BACKEND_HOST}${urlFromDb}`;
+    return 'assets/images/default-dish.png';
   }
 
   getDishDetails(uuid: string) {

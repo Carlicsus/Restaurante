@@ -480,10 +480,10 @@ def listDishes() {
         String filename = "dish_${dish.uuid}${extension}"
 
         Path targetPath = dishDir.resolve(filename)
-
         file.transferTo(targetPath.toFile())
 
-        dish.imageUrl = "/api/images/${filename}"
+        // URL pública (NO path físico)
+        dish.imageUrl = "/api/dish/${dish.uuid}/image"
         dish.save(flush: true)
     }
 
@@ -536,6 +536,20 @@ def listDishes() {
 
     private String extractExtension(String filename) {
         return filename.substring(filename.lastIndexOf('.')).toLowerCase()
+    }
+
+    File resolveDishImageByUuid(String uuid) {
+        Path dishDir = Paths.get(basePath, 'dish')
+
+        def allowed = ['.jpg', '.png', '.webp']
+        for (ext in allowed) {
+            Path p = dishDir.resolve("dish_${uuid}${ext}")
+            if (Files.exists(p)) {
+                return p.toFile()
+            }
+        }
+
+        return dishDir.resolve("default.jpg").toFile()
     }
 
 }

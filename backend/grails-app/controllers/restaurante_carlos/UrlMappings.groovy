@@ -55,6 +55,7 @@ class UrlMappings {
                     // Imagen: subida y borrado (protegidos) 
                     post "/upload-image"(controller: "platillo", action: "uploadDishImage")
                     delete "/image"(controller: "platillo", action: "deleteDishImage")
+                    get "/image"(controller: "platillo", action: "getDishImage")
                 }
             }
 

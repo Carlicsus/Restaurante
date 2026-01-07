@@ -330,4 +330,27 @@
         def response = DishService.getTopSellingDishes(limit)
         return respond(response.resp, status: response.status)
     }
+
+    def getDishImage() {
+        if (!params.uuid || params.uuid.size() != 32) {
+            return respond([success: false, message: "UUID inválido"], status: 400)
+        }
+
+        File imageFile
+
+        try {
+            imageFile = dishService.resolveDishImageByUuid(params.uuid)
+        } catch (Exception e) {
+            response.status = 404
+            return
+        }
+
+        response.contentType =
+                java.nio.file.Files.probeContentType(imageFile.toPath())
+
+        response.outputStream << imageFile.bytes
+        response.outputStream.flush()
+
+        return 
+    }
 }

@@ -17,7 +17,7 @@
                 <input class="input" type="password" placeholder="Contraseña" [(ngModel)]="credentials.password" name="password" [disabled]="isLoading" />
             </div>
 
-            <button class="btn btn--primary" type="submit" [disabled]="isLoading">
+            <button class="btn btn--primary" type="submit" [disabled]="isLoading || !credentials.username || !credentials.password">
                 <span *ngIf="!isLoading">Iniciar sesión</span>
                 <span *ngIf="isLoading" class="loading-content">
                     <span class="spinner"></span>
@@ -34,7 +34,7 @@
                 Continuar con Google
             </button>
 
-            <a class="forgot" href="#">Olvidaste tu contraseña?</a>
+            <a class="forgot" routerLink="/sign-up">¿Aún no creas tu cuenta? Regístrate</a>
         </form>
     </div>
 </div>

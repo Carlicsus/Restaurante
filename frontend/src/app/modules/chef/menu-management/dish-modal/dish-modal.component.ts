@@ -39,7 +39,7 @@ export class DishModalComponent {
             this.form = {
                 name: dishToClone.name + ' (Clonado)',
                 description: dishToClone.description,
-                cost: dishToClone.cost / 100,
+                cost: dishToClone.cost,
                 menuType: typeof dishToClone.menuType === 'string'
                     ? dishToClone.menuType
                     : (dishToClone.menuType as any)?.uuid || ''

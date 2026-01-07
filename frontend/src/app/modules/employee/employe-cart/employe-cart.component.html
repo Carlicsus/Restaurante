@@ -53,7 +53,11 @@
       </div>
 
       <button class="btn-primary" (click)="proceedToCheckout()" [disabled]="!canCheckout || processingOrder">
-        {{ processingOrder ? 'Procesando...' : 'Confirmar Pedido' }}
+        <span *ngIf="!processingOrder">Confirmar Pedido</span>
+        <span *ngIf="processingOrder" class="loading-content">
+          <span class="spinner"></span>
+          <span>Procesando...</span>
+        </span>
       </button>
 
       <button class="btn-secondary" (click)="goToMenu()">

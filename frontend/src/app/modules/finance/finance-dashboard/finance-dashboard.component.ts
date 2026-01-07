@@ -277,7 +277,7 @@ export class FinanceDashboardComponent implements OnInit, AfterViewInit, OnDestr
     // Título
     chart.children.unshift(
       am5.Label.new(this.rootBar, {
-        text: 'Top 10 Empleados con Mayor Deuda',
+        text: 'Empleados con Mayor Deuda',
         fontSize: 16,
         fontWeight: '600',
         textAlign: 'center',

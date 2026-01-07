@@ -39,8 +39,12 @@
           <button (click)="increaseQuantity()" class="quantity-btn">+</button>
         </div>
 
-        <button (click)="addToCart()" class="add-to-cart-btn">
-          Añadir al carrito
+        <button (click)="addToCart()" class="add-to-cart-btn" [disabled]="addingToCart">
+          <span *ngIf="!addingToCart">Añadir al carrito</span>
+          <span *ngIf="addingToCart" class="loading-content">
+            <span class="spinner"></span>
+            <span>Agregando...</span>
+          </span>
         </button>
       </div>
     </div>

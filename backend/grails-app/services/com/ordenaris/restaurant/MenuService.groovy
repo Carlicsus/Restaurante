@@ -19,7 +19,7 @@ class MenuService {
                return mapMenuType(type,[])
             }
             return [
-                resp: [success: true, data: lista],
+                resp: [success: true, data: lista, message:"Listado de tipos de menú"],
                 status: 200
             ]
         } catch (e) {
@@ -48,7 +48,7 @@ class MenuService {
         return mapMenuType(subtype, []) 
         }
         return [ 
-            resp: [success: true, data: subMenu],
+            resp: [success: true, data: subMenu, message: "Listado de submenus que no han sido eliminados"],
             status: 200
         ]
         } catch (e){
@@ -80,7 +80,7 @@ class MenuService {
             }
             def newType = new MenuType([name: name, parentType: parentMenuType]).save(flush: true, failOnError: true)
             return [
-                resp: [success: true, data: newType.uuid],
+                resp: [success: true, data: newType.uuid, message: "Nuevo tipo de menú creado"],
                 status: 200
             ]
         } catch (e) {
@@ -107,7 +107,7 @@ class MenuService {
             menuType.name = name
             menuType.save()
             return [
-                resp: [success: true],
+                resp: [success: true, message: "Tipo de menú actualizado"],
                 status: 200
             ]
         } catch (e) {
@@ -138,7 +138,7 @@ class MenuService {
         }
         def response = mapMenuType(menu, list)
         return [
-            resp: [success: true, data: response],
+            resp: [success: true, data: response, message: "Información del tipo de menú"],
             status: 200
         ]
     }
@@ -155,7 +155,7 @@ class MenuService {
             menu.status = status
             menu.save()
             return [
-                resp: [success: true],
+                resp: [success: true, message: "Estado del tipo de menú actualizado"],
                 status: 200
             ]
         } catch (e) {
@@ -183,7 +183,7 @@ class MenuService {
                 order(orderColumn, order)
             }.collect { type -> mapMenuType(type, []) }
             return [
-                resp: [success: true, data: list],
+                resp: [success: true, data: list, mensage: "Tipos de menú paginados"],
                 status: 200
             ]
         } catch (e) {

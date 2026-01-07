@@ -110,8 +110,6 @@ class ReviewService {
                 rating: data.rating
             ]).save(flush: true, failOnError: true)
             
-            println 5 
-
             return [resp: [success: true, message: 'Reseña creada', review: mapReview(newReview)], status: 201]
         } catch (Exception e) {
             return [resp: [success: false, message: 'Error al crear la reseña: ' + e.message], status: 500]

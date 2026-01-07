@@ -24,12 +24,13 @@ export class DetailProductComponent implements OnInit {
   relatedDishes: any[] = [];
   addingToCart = false;
 
-  reviews: any[] = [];
+  private readonly BACKEND_HOST = 'http://localhost:8080';
+  
+  reviews: any[] = []; 
   reviewStats: any = null;
   loadingReviews = false;
   showReviewForm = false;
   submittingReview = false;
-
   newReview: any = {
     dishId: 0,
     rating: 5,
@@ -58,11 +59,24 @@ export class DetailProductComponent implements OnInit {
     });
   }
 
+  getFullImageUrl(urlFromDb: string | undefined): string {
+    if (!urlFromDb) {
+      return 'assets/images/default-dish.png';
+    }
+
+    if (urlFromDb.startsWith('http')) {
+      return urlFromDb;
+    }
+
+    return `${this.BACKEND_HOST}${urlFromDb}`;
+  }
+
   getDishDetails(uuid: string) {
     this.loading = true;
     this.dishService.getOneDish(uuid).subscribe({
       next: (response: any) => {
         this.dish = response.data;
+        console.log('Dish details:', this.dish);
         if (this.dish) {
           this.newReview.dishId = this.dish.id;
           this.loadReviews();

@@ -4,7 +4,7 @@ import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 import grails.rest.*
 import grails.converters.*
-@Secured(['permitAll'])
+@Secured(['isAuthenticated()'])
 class OrdersModuleController {
 	static responseFormats = ['json']
 	def orderModuleService

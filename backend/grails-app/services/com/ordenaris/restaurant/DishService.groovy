@@ -78,7 +78,7 @@ def listDishes() {
         }.findAll { it != null }  // Filtrar tipos de menú sin platillos
 
         return [
-            resp: [success: true, data: lista],
+            resp: [success: true, data: lista, message: "Listado de platillos por tipo de menú"],
             status: 200
         ]
     } catch (e) {
@@ -155,7 +155,7 @@ def listDishes() {
             ]).save(flush: true, failOnError: true)
 
             return [
-                resp: [success: true, data: newDish.uuid],
+                resp: [success: true, data: newDish.uuid, message: "Nuevo platillo creado"],
                 status: 200
             ]
         } catch (e) {
@@ -197,58 +197,88 @@ def listDishes() {
             response.subMenu = mapMenuType(subMenu, [])
         }
         return [
-            resp: [success: true, data: response],
+            resp: [success: true, data: response, mensage: "Información del platillo"],
             status: 200
         ]
     }
 
     def editDish(name, menuType, availableDate, cost, description, availableDishes, imageUrl, uuid) {
-        try {
-            def dish = Dish.findByUuid(uuid)
+    try {
+        def dish = Dish.findByUuid(uuid)
 
-            if (!dish) {
-                return [
-                    resp: [success: false, message: "El platillo no existe"],
-                    status: 500
-                ]
-            }
+        if (!dish) {
+            return [
+                resp: [success: false, message: "El platillo no existe"],
+                status: 404
+            ]
+        }
 
+        if (dish.status == 2) {
+            return [
+                resp: [success: false, message: "El platillo está eliminado y no puede modificarse"],
+                status: 409
+            ]
+        }
+
+        // MenuType solo si cambia
+        if (menuType && menuType != dish.menuType?.uuid) {
             def newMenuType = MenuType.findByUuid(menuType)
-
             if (!newMenuType) {
                 return [
                     resp: [success: false, message: "El tipo de menú no existe"],
-                    status: 500
+                    status: 404
+                ]
+            }
+            dish.menuType = newMenuType
+        }
+
+        if (name != null) dish.name = name
+        if (availableDate != null) dish.availableDate = availableDate
+        if (description != null) dish.description = description
+        if (imageUrl != null) dish.imageUrl = imageUrl
+
+        if (cost != null) {
+            if (cost > 500) {
+                return [
+                    resp: [success: false, message: "El platillo no puede ser exageradamente caro"],
+                    status: 400
+                ]
+            }
+            dish.cost = cost * 100
+        }
+
+        if (availableDishes != null) {
+            if (availableDishes > 50) {
+                return [
+                    resp: [success: false, message: "No puede haber tantos platillos disponibles"],
+                    status: 400
                 ]
             }
 
-            dish.name = name
-            dish.menuType = newMenuType
-            dish.availableDate = availableDate
-            dish.cost = (cost * 100)
-            dish.description = description
             dish.availableDishes = availableDishes
-            dish.imageUrl = imageUrl
 
+            // Manejo correcto de status
             if (availableDishes == 0) {
                 dish.status = 0
-            }
-            if (availableDishes > 0 && dish.status != 1) {
+            } else if (availableDishes > 0 && dish.status == 0) {
                 dish.status = 1
             }
-            dish.save()
-
-            return [
-                resp: [success: true],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.getMessage()],
-                status: 500
-            ]
         }
+
+        dish.save(failOnError: true)
+
+        return [
+            resp: [success: true, mensage: "Platillo actualizado correctamente"],
+            status: 200
+        ]
+
+    } catch (e) {
+        return [
+            resp: [success: false, message: e.getMessage()],
+            status: 500
+        ]
     }
+}
 
     def editDishStatus(status, uuid) {
         try {
@@ -268,7 +298,7 @@ def listDishes() {
             dish.status = status
             dish.save()
             return [
-                resp: [success: true],
+                resp: [success: true, mensage: "Estado del platillo actualizado"],
                 status: 200
             ]
         } catch (e) {
@@ -281,8 +311,8 @@ def listDishes() {
 
     def paginateDishes(page, orderColumn, order, max, status, availableDishes, query) {
         try {
-            println "------"
-            println(availableDishes as Boolean)
+            
+          
             def offset = page * max - max
 
             def list = Dish.createCriteria().list {
@@ -328,7 +358,7 @@ def listDishes() {
             }
 
             return [
-                resp: [success: true, data: list],
+                resp: [success: true, data: list, mensage: "Platillos paginados"],
                 status: 200
             ]
         } catch (e) {
@@ -340,77 +370,101 @@ def listDishes() {
     }
 
     def getDishRankingByRating(int limit = 10) {
-        try {
-            def ranking = Review.executeQuery('''
-                SELECT d.uuid, d.name, d.description, d.cost, AVG(r.rating) as avgRating, COUNT(r.id) as reviewCount
-                FROM Review r
-                JOIN r.dish d
-                WHERE d.status != 2
-                GROUP BY d.id, d.uuid, d.name, d.description, d.cost
-                ORDER BY avgRating DESC, reviewCount DESC
-            ''').collect { row ->
-                [
-                    uuid: row[0],
-                    name: row[1],
-                    description: row[2],
-                    cost: row[3] / 100,
-                    averageRating: row[4]?.round(2) ?: 0.0,
-                    reviewCount: row[5]?.toInteger() ?: 0
-                ]
-            }.take(limit)
+    try {
+        def results = Review.createCriteria().list {
+            createAlias("dish", "d")
 
-            return [
-                resp: [
-                    success: true,
-                    data: ranking,
-                    total: ranking.size()
-                ],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.getMessage()],
-                status: 500
+            ne("d.status", 2)
+
+            projections {
+                groupProperty("d.uuid")
+                groupProperty("d.name")
+                groupProperty("d.description")
+                groupProperty("d.cost")
+                avg("rating", "avgRating")
+                count("id", "reviewCount")
+            }
+
+            order("avgRating", "desc")
+            order("reviewCount", "desc")
+
+            maxResults(limit)
+        }
+
+        def ranking = results.collect { row ->
+            [
+                uuid          : row[0],
+                name          : row[1],
+                description   : row[2],
+                cost          : row[3] / 100,
+                averageRating : (row[4] ?: 0).round(2),
+                reviewCount   : row[5]?.toInteger() ?: 0
             ]
         }
-    }
 
+        return [
+            resp: [
+                success: true,
+                data: ranking,
+                total: ranking.size(),
+                mensage: "Ranking de platillos por calificación"
+            ],
+            status: 200
+        ]
+    } catch (Exception e) {
+        return [
+            resp: [success: false, message: e.message],
+            status: 500
+        ]
+    }
+}
     def getTopSellingDishes(int limit = 10) {
         try {
-            def topDishes = OrderItem.executeQuery('''
-                SELECT d.uuid, d.name, d.description, d.cost, SUM(oi.quantity) as totalSold
-                FROM OrderItem oi
-                JOIN oi.dish d
-                WHERE d.status != 2 AND oi.status = true
-                GROUP BY d.id, d.uuid, d.name, d.description, d.cost
-                ORDER BY totalSold DESC
-            ''').collect { row ->
+            def results = OrderItem.createCriteria().list {
+                createAlias("dish", "d")
+
+                eq("status", true)
+                ne("d.status", 2)
+
+                projections {
+                    groupProperty("d.uuid")
+                    groupProperty("d.name")
+                    groupProperty("d.description")
+                    groupProperty("d.cost")
+                    sum("quantity", "totalSold")
+                }
+
+                order("totalSold", "desc")
+
+                maxResults(limit)
+            }
+
+            def topDishes = results.collect { row ->
                 [
-                    uuid: row[0],
-                    name: row[1],
+                    uuid       : row[0],
+                    name       : row[1],
                     description: row[2],
-                    cost: row[3] / 100,
-                    totalSold: row[4]?.toInteger() ?: 0
+                    cost       : row[3] / 100,
+                    totalSold  : row[4]?.toInteger() ?: 0
                 ]
-            }.take(limit)
+            }
 
-            return [
-                resp: [
-                    success: true,
-                    data: topDishes,
-                    total: topDishes.size()
-                ],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.getMessage()],
-                status: 500
-            ]
-        }
+        return [
+            resp: [
+                success: true,
+                data: topDishes,
+                total: topDishes.size(), 
+                message:"Top platillos más vendidos"
+            ],
+            status: 200
+        ]
+    } catch (Exception e) {
+        return [
+            resp: [success: false, message: e.message],
+            status: 500
+        ]
     }
-
-    // ================= MANEJO DE IMÁGENES =================
+}
     
     private String basePath = Holders.config.app.upload.basePath as String
     private static final List<String> ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -429,7 +483,7 @@ def listDishes() {
 
         file.transferTo(targetPath.toFile())
 
-        dish.imageUrl = "dish/${filename}"
+        dish.imageUrl = "/api/images/${filename}"
         dish.save(flush: true)
     }
 
@@ -441,7 +495,6 @@ def listDishes() {
             }
         }
 
-        // Imagen por defecto
         return Paths.get(basePath, 'dish', 'default.jpg').toFile()
     }
 
@@ -452,7 +505,6 @@ def listDishes() {
             return imagePath.toFile()
         }
 
-        // Imagen por defecto
         return Paths.get(basePath, 'dish', 'default.jpg').toFile()
     }
 
@@ -467,7 +519,6 @@ def listDishes() {
         }
     }
 
-    // ================= UTILIDADES =================
 
     private void validateFile(MultipartFile file) {
         if (!file || file.empty) {

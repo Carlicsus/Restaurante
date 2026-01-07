@@ -46,6 +46,10 @@ class BootStrap {
             UserRole.create chefUser, chefRole
             UserRole.create financeUser, financeRole
             UserRole.create userUser, userRole
+            UserRole.create user2, userRole
+            UserRole.create user3, userRole
+            UserRole.create user4, userRole
+            UserRole.create user5, userRole
 
             UserRole.withSession {
                 it.flush()

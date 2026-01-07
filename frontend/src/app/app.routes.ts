@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './modules/auth/components/login/login.component';
-import { SignUpComponent } from './modules/auth/components/sign-up/sign-up.component'; 
 
 //employee
 import { EmployeeDashboardComponent } from './modules/employee/employee-dashboard/employee-dashboard.component';
@@ -27,17 +26,17 @@ import { AdminDashboardComponent } from './modules/admin/admin-dashboard/admin-d
 import { UserManagementComponent } from './modules/admin/user-management/user-management.component';
 import { RoleManagementComponent } from './modules/admin/role-management/role-management.component';
 
-import { LandingComponent } from './modules/home/pages/landing/landing.component';
 import { AuthSuccesComponent } from './modules/auth-succes/auth-succes.component';
 
 // Guards
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
-  { path:'', component: LandingComponent },
+  { path:'', component: LoginComponent },
   { path:'login', component: LoginComponent },
-  { path:'signup', component: SignUpComponent },
+  { path:'sign-up', component: SignUpComponent },
   { path:'auth-success', component: AuthSuccesComponent },
   
   // Rutas de Employee (ROLE_USER)
@@ -45,37 +44,37 @@ export const routes: Routes = [
     path:'employee/dashboard', 
     component: EmployeeDashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_USER'] }
   },
   { 
     path:'employee/details/:id', 
     component: OrderDetailsComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_USER'] }
   },
   { 
     path:'employee/history', 
     component: OrderHistoryComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_USER'] }
   },
   { 
     path:'employee/cart', 
     component: EmployeCartComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_USER'] }
   },
   { 
     path:'employee/complete-menu', 
     component: CompleteMenuComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_USER'] }
   },
   { 
     path:'employee/dish/:id', 
     component: DetailProductComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_USER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_USER'] }
   },
   
   // Rutas de Finance (ROLE_FINANCE)
@@ -83,19 +82,19 @@ export const routes: Routes = [
     path:'finance/dashboard', 
     component: FinanceDashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_FINANCE', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_FINANCE'] }
   },
   { 
     path:'finance/debt', 
     component: DebtManagementComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_FINANCE', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_FINANCE'] }
   },
   { 
     path:'finance/payment-employee', 
     component: PaymentEmployeeComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_FINANCE', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_FINANCE'] }
   },
   
   // Rutas de Chef (ROLE_CHEF)
@@ -103,37 +102,37 @@ export const routes: Routes = [
     path:'chef/dashboard', 
     component: ChefDashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_CHEF'] }
   },
   { 
     path:'chef/menu-management', 
     component: MenuManagementComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_CHEF'] }
   },
   { 
     path:'chef/statistics', 
     component: ChefStatisticsComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_CHEF'] }
   },
   { 
     path:'chef/order-management', 
     component: ChefOrderManagementComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_CHEF'] }
   },
   { 
     path:'chef/order-details/:orderId', 
     component: ChefOrderDetailsComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_CHEF'] }
   },
   { 
     path:'chef/clone-saucer', 
     component: CloneSaucerComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_CHEF'] }
   },
   
   // Rutas de Admin (ROLE_ADMIN)

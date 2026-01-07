@@ -4,7 +4,7 @@ import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 import grails.rest.*
 import grails.converters.*
-@Secured(['permitAll'])
+@Secured(['isAuthenticated()'])
 class OrdersModuleController {
 	static responseFormats = ['json']
 	def orderModuleService
@@ -107,7 +107,7 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.editOrderStatus(data)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
-  
+
     def cancelOrder(){
         def comment = request.JSON
         def data = params
@@ -187,13 +187,13 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.cancelRejection(rejectionUuid, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
-  def orderInfo(){
-        def uuid = params.uuidOrder
-        if (!uuid) {
-            return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
+    def orderInfo(){
+            def uuid = params.uuidOrder
+            if (!uuid) {
+                return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
+            }
+            def serviceResponse = orderModuleService.orderInfo(uuid)
+            return respond(serviceResponse.resp, status: serviceResponse.status)
         }
-        def serviceResponse = orderModuleService.orderInfo(uuid)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
+        
     }
-    
-}

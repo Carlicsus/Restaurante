@@ -202,7 +202,7 @@ class SaleService {
             return [
                 resp: [
                     success: true,
-                    message: "Platillo(s) pagado(s) exitosamente",
+                    message: "Platillo pagado exitosamente",
                     data: orderItems.collect { item ->
                         [
                             dishName: item.dish?.name ?: "Plato desconocido",
@@ -346,12 +346,12 @@ class SaleService {
             ]).save(flush: true, failOnError: true)
             
             return [
-                resp: [success: true, data: newSale.uuid],
+                resp: [success: true, message: "Venta creada correctamente", data: newSale.uuid],
                 status: 200
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error al crear la venta: ${e.getMessage()}"],
                 status: 500
             ]
         }
@@ -370,12 +370,12 @@ class SaleService {
                         
             def response = mapOrder(sale)
             return [
-                resp: [success: true, data: response],
+                resp: [success: true, message: "Venta obtenida de manera correcta", data: response],
                 status: 200
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error al conseguir la venta: ${e.getMessage()}"],
                 status: 500
             ]
         }
@@ -401,12 +401,12 @@ class SaleService {
                 order("dateCreated", "desc")
             }.collect { sale -> mapOrder(sale) }
             return [
-                resp: [success: true, data: list],
+                resp: [success: true, message: "Ventas del rango de ${start} a ${end} obtenidas correctamente", data: list],
                 status: 200
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error al conseguir las ventas en el rango especifico: ${e.getMessage()}"],
                 status: 500
             ]
         }
@@ -448,12 +448,12 @@ class SaleService {
                 }.collect { sale -> mapOrder(sale) }
             }
             return [
-                resp: [success: true, data: listOfSales],
+                resp: [success: true, message: "Compras del usuario obtenidas correctamente", data: listOfSales],
                 status: 200
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error al conseguir las compras del usuario: ${e.getMessage()}"],
                 status: 500
             ]
         }
@@ -471,7 +471,6 @@ class SaleService {
                 ]
             }
 
-            // Obtener todas las ventas del usuario en el rango de fechas
             def sales = Sale.createCriteria().list {
                 customerOrder {
                     user {
@@ -482,7 +481,6 @@ class SaleService {
                 order("dateCreated", "asc")
             }
 
-            // Agrupar ventas por día
             def dailyData = [:]
             def totalSpent = 0
             
@@ -495,7 +493,6 @@ class SaleService {
                 totalSpent += sale.total
             }
 
-            // Convertir a lista ordenada para la gráfica
             def dailyList = dailyData.collect { date, total ->
                 [
                     date: date,
@@ -503,7 +500,6 @@ class SaleService {
                 ]
             }.sort { it.date }
 
-            // Calcular estadísticas
             def transactionCount = sales.size()
             def averagePerTransaction = transactionCount > 0 ? (totalSpent / transactionCount) : 0
             def daysWithPurchases = dailyData.size()
@@ -512,6 +508,7 @@ class SaleService {
             return [
                 resp: [
                     success: true,
+                    message: "Gastos obtenidos correctamente",
                     data: [
                         daily: dailyList,
                         summary: [
@@ -527,7 +524,7 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error al conseguir la grafica de gastos: ${e.getMessage()}"],
                 status: 500
             ]
         }

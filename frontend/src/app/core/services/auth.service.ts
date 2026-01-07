@@ -15,6 +15,11 @@ export class AuthService {
     return this.http.post(`${this.URL_BASE}/login`, credentials);
   }
 
+  // register
+  register(payload: any) {
+    return this.http.post(`${this.URL_BASE}/user/register`, payload);
+  }
+
   logout() {
     sessionStorage.clear();
     this.router.navigate(['/login']);

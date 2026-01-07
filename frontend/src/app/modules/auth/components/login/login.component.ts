@@ -3,12 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, HttpClientModule],
+  imports: [FormsModule, CommonModule, HttpClientModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -26,13 +26,18 @@ export class LoginComponent {
   constructor(private auth: AuthService, private router: Router) { }
 
   onSubmit() {
+    // Prevent submission when fields are empty
+    if (!this.credentials.username || !this.credentials.password) {
+      return;
+    }
+
     console.log('Attempting login with:', this.credentials);
     this.isLoading = true;
     this.auth.login(this.credentials).subscribe({
       next: (response: any) => {
         sessionStorage.setItem('token', response.access_token);
         sessionStorage.setItem('info', JSON.stringify(response));
-        
+        this.isLoading = false;
         // Redirigir según el rol del usuario
         this.redirectByRole(response.roles);
       },
@@ -55,10 +60,8 @@ export class LoginComponent {
       return;
     }
 
-    // Convertir roles a minúsculas para comparación
     const userRoles = roles.map(role => role.toLowerCase());
 
-    // Prioridad de redirección: ROLE_ADMIN > ROLE_FINANCE > ROLE_CHEF > ROLE_USER
     if (userRoles.includes('role_admin') || userRoles.includes('admin')) {
       this.router.navigateByUrl('/admin/dashboard');
     } else if (userRoles.includes('role_finance') || userRoles.includes('finance')) {

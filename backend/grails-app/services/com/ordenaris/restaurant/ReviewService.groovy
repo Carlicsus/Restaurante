@@ -33,12 +33,20 @@ class ReviewService {
             maxResults(max)
             order("dateCreated", "desc")
         }
-        
-        def reviewsMapper = reviews.collect { review -> mapReview(review) }
-        return [
-            resp: [success: true, message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid, reviews: reviewsMapper],
-            status: 200
-        ]
+
+        if(reviews.isEmpty()) {
+            def dish = Dish.findById(dishId)
+            return [
+                resp: [success: true, message: 'No hay reseñas para listar', dishName: dish.name, dishUuid: dish.uuid, reviews: []],
+                status: 200
+            ]
+        }else {
+            def reviewsMapper = reviews.collect { review -> mapReview(review) }
+            return [
+                resp: [success: true, message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid, reviews: reviewsMapper],
+                status: 200
+            ]
+        }
     }
     def ReviewsWithStats(dishId) {
         def totalReviews = Review.createCriteria().count {
@@ -85,14 +93,24 @@ class ReviewService {
             if (!dish) {
                 return [resp: [success: false, message: 'Platillo no encontrado'], status: 404]
             }
-            def review = new Review([
+
+            def review = Review.createCriteria().get {
+                eq("user.id", user.id)
+                eq("dish.id", dish.id)
+            }
+            
+            if (review) {
+                return [resp: [success: false, message: 'Ya hay una review existente'], status: 404]
+            }
+            
+            def newReview = new Review([
                 user: user,
                 dish: dish,
                 comment: data.comment,
                 rating: data.rating
             ]).save(flush: true, failOnError: true)
-
-            return [resp: [success: true, message: 'Reseña creada', review: mapReview(review)], status: 201]
+            
+            return [resp: [success: true, message: 'Reseña creada', review: mapReview(newReview)], status: 201]
         } catch (Exception e) {
             return [resp: [success: false, message: 'Error al crear la reseña: ' + e.message], status: 500]
         }
@@ -116,8 +134,8 @@ class ReviewService {
         if (review.user.id != auth.id) {
             return [resp: [success: false, message: 'No tienes permiso para editar esta reseña'], status: 403]
         }
-        review.comment = data.comment ?: review.comment
-        review.rating = data.rating ?: review.rating
+        review.comment = data.comment
+        review.rating = data.rating as Float
         review.save(flush: true, failOnError: true)
         return [resp: [success: true, message: 'Reseña actualizada', review: mapReview(review)], status: 200]
     }

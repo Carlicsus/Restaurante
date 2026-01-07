@@ -35,7 +35,6 @@ class OrderModuleService {
             }]
     }
     def listOrders() {
-        // Obtener todas las órdenes del día actual (no solo Queue)
         def today = new Date().clearTime()
         def tomorrow = today + 1
         
@@ -95,7 +94,7 @@ class OrderModuleService {
         }
         catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error: ${e.message}"],
                 status: 500
             ]
         }
@@ -157,7 +156,7 @@ class OrderModuleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error: ${e.message}"],
                 status: 500
             ]
         }
@@ -223,7 +222,7 @@ class OrderModuleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error: ${e.message}"],
                 status: 500
             ]
         }
@@ -276,7 +275,7 @@ class OrderModuleService {
             }
         } catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error: ${e.message}"],
                 status: 500
             ]
         }
@@ -383,7 +382,7 @@ class OrderModuleService {
             }
 
             return [
-                resp: [success: true, rejections: formattedRejections],
+                resp: [success: true, message: "Ordenes rechasadas", rejections: formattedRejections],
                 status: 200
             ]
         } catch (e) {
@@ -406,7 +405,8 @@ class OrderModuleService {
 
             return [
                 resp: [
-                    success: true,
+                    success: true, 
+                    message: "Informacion del rechazo",
                     rejection: [
                         uuid: rejection.uuid,
                         reason: rejection.reason,
@@ -566,7 +566,6 @@ class OrderModuleService {
                         resp:[success: false, message: "No se puede cancelar una orden que ya esta siendo preparada"], 
                         status: 400]
                 }
-                // Permitir cancelar órdenes en preparación con un motivo
             }
             
             order.comment = comment.comment
@@ -579,7 +578,7 @@ class OrderModuleService {
         }
         catch (e) {
             return [
-                resp: [success: false, message: e.getMessage()],
+                resp: [success: false, message: "Error: ${e.message}"],
                 status: 500
             ]
         }
@@ -595,7 +594,7 @@ class OrderModuleService {
             }
             return [resp: [success: true, order: mapOrder(order)], status: 200]
         } catch (e) {
-            return [resp: [success: false, message: e.getMessage()], status: 500]
+            return [resp: [success: false, message: "Error: ${e.message}"], status: 500]
         }
     }
 }

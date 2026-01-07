@@ -37,14 +37,10 @@ class BootStrap {
             def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
             def userRole = Role.findOrSaveByAuthority('ROLE_USER')
 
-            def adminUser = User.findOrSaveByUsernameAndPasswordAndEmail('admin', 'admin','admin@ordenaris.com')
-            def chefUser = User.findOrSaveByUsernameAndPasswordAndEmail('chef', 'chef','chef@ordenaris.com')
-            def financeUser = User.findOrSaveByUsernameAndPasswordAndEmail('finance', 'finance','finance@ordenaris.com')
-            def userUser = User.findOrSaveByUsernameAndPasswordAndEmail('user', 'user','user@ordenaris.com')
-            def user2 = User.findOrSaveByUsernameAndPasswordAndEmail('Angel Zacek', 'user2','angel.zacek@ordenaris.com')
-            def user3 = User.findOrSaveByUsernameAndPasswordAndEmail('Maria Gomez', 'user3','maria.gomez@ordenaris.com')
-            def user4 = User.findOrSaveByUsernameAndPasswordAndEmail('Luis Perez', 'user4','luis.perez@ordenaris.com')
-            def user5 = User.findOrSaveByUsernameAndPasswordAndEmail('Sofia Lopez', 'user5','sofia.lopez@ordenaris.com')
+            def adminUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('admin', 'admin','admin@ordenaris.com',"zaseck","Cruz")
+            def chefUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('chef', 'chef','chef@ordenaris.com',"Carlos","Aranda")
+            def financeUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('finance', 'finance','finance@ordenaris.com',"Edgar","Cruz")
+            def userUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('user', 'user','user@ordenaris.com',"Raul","Reyes")
 
             UserRole.create adminUser, adminRole
             UserRole.create chefUser, chefRole
@@ -55,21 +51,22 @@ class BootStrap {
             UserRole.create user4, userRole
             UserRole.create user5, userRole
 
-        UserRole.withSession {
-            it.flush()
-            it.clear()
-        }
+            UserRole.withSession {
+                it.flush()
+                it.clear()
+            }
 
-        new Schedule(
-                user: chefUser,
-                entryTime: Time.valueOf(LocalTime.of(9, 0)),
-                exitTime: Time.valueOf(LocalTime.of(18, 0)),
-                isWorking: true
-            ).save(flush: true)
+            new Schedule(
+                    user: chefUser,
+                    entryTime: Time.valueOf(LocalTime.of(9, 0)),
+                    exitTime: Time.valueOf(LocalTime.of(18, 0)),
+                    isWorking: true
+                ).save(flush: true)
 
-        assert User.count() == 8
-        assert Role.count() == 4
-        assert UserRole.count() == 8
+            assert User.count() == 4
+            assert Role.count() == 4
+            assert UserRole.count() == 4
+
         }
 
         if (Dish.count() == 0) {

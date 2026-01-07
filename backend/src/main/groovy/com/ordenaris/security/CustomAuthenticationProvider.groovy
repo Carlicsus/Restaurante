@@ -45,10 +45,6 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
             throw new DisabledException("Tu cuenta debe ser activada por un administrador")
         }
 
-        if (!user.accountNonLocked) {
-            throw new LockedException("La cuenta está bloqueada")
-        }
-
         if (!user.authorities || user.authorities.isEmpty()) {
             throw new InsufficientAuthenticationException(
                 "Tu cuenta no tiene roles asignados"

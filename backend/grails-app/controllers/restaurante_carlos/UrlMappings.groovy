@@ -83,6 +83,9 @@ class UrlMappings {
                 get "/me/photo"(controller: "user", action: "myPhoto") 
                 post "/me/photo"(controller: "user", action: "uploadPhoto") 
 
+                get "/info/$username"(controller: "user", action: "getUserInfo")
+                patch "/$id/password"(controller: "user", action: "changeUserPassword")
+
             }
 
             group "/role", {

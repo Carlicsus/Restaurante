@@ -78,7 +78,7 @@ def listDishes() {
         }.findAll { it != null }  // Filtrar tipos de menú sin platillos
 
         return [
-            resp: [success: true, data: lista],
+            resp: [success: true, data: lista, message: "Listado de platillos por tipo de menú"],
             status: 200
         ]
     } catch (e) {
@@ -155,7 +155,7 @@ def listDishes() {
             ]).save(flush: true, failOnError: true)
 
             return [
-                resp: [success: true, data: newDish.uuid],
+                resp: [success: true, data: newDish.uuid, message: "Nuevo platillo creado"],
                 status: 200
             ]
         } catch (e) {
@@ -197,7 +197,7 @@ def listDishes() {
             response.subMenu = mapMenuType(subMenu, [])
         }
         return [
-            resp: [success: true, data: response],
+            resp: [success: true, data: response, mensage: "Información del platillo"],
             status: 200
         ]
     }
@@ -268,13 +268,13 @@ def listDishes() {
         dish.save(failOnError: true)
 
         return [
-            resp: [success: true],
+            resp: [success: true, mensage: "Platillo actualizado correctamente"],
             status: 200
         ]
 
     } catch (e) {
         return [
-            resp: [success: false, message: "Error interno"],
+            resp: [success: false, message: e.getMessage()],
             status: 500
         ]
     }
@@ -298,7 +298,7 @@ def listDishes() {
             dish.status = status
             dish.save()
             return [
-                resp: [success: true],
+                resp: [success: true, mensage: "Estado del platillo actualizado"],
                 status: 200
             ]
         } catch (e) {
@@ -311,8 +311,8 @@ def listDishes() {
 
     def paginateDishes(page, orderColumn, order, max, status, availableDishes, query) {
         try {
-            println "------"
-            println(availableDishes as Boolean)
+            
+          
             def offset = page * max - max
 
             def list = Dish.createCriteria().list {
@@ -358,7 +358,7 @@ def listDishes() {
             }
 
             return [
-                resp: [success: true, data: list],
+                resp: [success: true, data: list, mensage: "Platillos paginados"],
                 status: 200
             ]
         } catch (e) {
@@ -406,7 +406,8 @@ def listDishes() {
             resp: [
                 success: true,
                 data: ranking,
-                total: ranking.size()
+                total: ranking.size(),
+                mensage: "Ranking de platillos por calificación"
             ],
             status: 200
         ]
@@ -452,7 +453,8 @@ def listDishes() {
             resp: [
                 success: true,
                 data: topDishes,
-                total: topDishes.size()
+                total: topDishes.size(), 
+                message:"Top platillos más vendidos"
             ],
             status: 200
         ]
@@ -463,8 +465,6 @@ def listDishes() {
         ]
     }
 }
-
-    // ================= MANEJO DE IMÁGENES =================
     
     private String basePath = Holders.config.app.upload.basePath as String
     private static final List<String> ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -495,7 +495,6 @@ def listDishes() {
             }
         }
 
-        // Imagen por defecto
         return Paths.get(basePath, 'dish', 'default.jpg').toFile()
     }
 
@@ -506,7 +505,6 @@ def listDishes() {
             return imagePath.toFile()
         }
 
-        // Imagen por defecto
         return Paths.get(basePath, 'dish', 'default.jpg').toFile()
     }
 
@@ -521,7 +519,6 @@ def listDishes() {
         }
     }
 
-    // ================= UTILIDADES =================
 
     private void validateFile(MultipartFile file) {
         if (!file || file.empty) {

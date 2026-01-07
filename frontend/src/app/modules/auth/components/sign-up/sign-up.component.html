@@ -1,1 +1,59 @@
-<p>sign-up works!</p>
+<div class="login-page">
+	<div class="brand">
+		<img class="brand-logo" src="/logo.png" alt="Restaurante logo" />
+		<h1 class="brand-title">Restaurante Griales</h1>
+		<p class="brand-subtitle">Crea tu cuenta</p>
+	</div>
+
+	<div class="login-card">
+		<form class="login-form" (ngSubmit)="onSubmit()" autocomplete="off">
+			<div class="form-group">
+				<label class="label">Usuario</label>
+				<input class="input" type="text" placeholder="Usuario" [(ngModel)]="credentials.username" name="username" [disabled]="isLoading" />
+			</div>
+
+			<div class="form-group">
+				<label class="label">Correo</label>
+				<input class="input" type="email" placeholder="Correo electrónico" [(ngModel)]="credentials.email" name="email" [disabled]="isLoading" />
+			</div>
+
+			<div class="form-group">
+				<label class="label">Contraseña</label>
+				<input class="input" type="password" placeholder="Contraseña" [(ngModel)]="credentials.password" name="password" [disabled]="isLoading" />
+			</div>
+
+			<button class="btn btn--primary" type="submit" [disabled]="isLoading || !credentials.username || !credentials.email || !credentials.password">
+				<span *ngIf="!isLoading">Crear cuenta</span>
+				<span *ngIf="isLoading" class="loading-content">
+					<span class="spinner"></span>
+					<span>Creando cuenta...</span>
+				</span>
+			</button>
+
+			<div class="separator">
+				<span class="separator-text">o</span>
+			</div>
+
+			<button class="btn btn--google" type="button" (click)="loginWithGoogle()" [disabled]="isLoading">
+				<img src="/google.png" alt="Google" class="google-icon" />
+				Continuar con Google
+			</button>
+
+			<a class="forgot" routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
+		</form>
+	</div>
+</div>
+
+<!-- Modal de error -->
+<div class="modal-backdrop" *ngIf="showErrorModal" (click)="closeErrorModal()">
+	<div class="modal-container" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<div class="warning-icon">⚠️</div>
+			<h3>{{ errorTitle }}</h3>
+		</div>
+		<p class="modal-description">{{ errorMessage }}</p>
+		<div class="modal-actions">
+			<button class="btn btn--primary" (click)="closeErrorModal()">Entendido</button>
+		</div>
+	</div>
+</div>

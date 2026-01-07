@@ -37,7 +37,7 @@ import { roleGuard } from './core/guards/role.guard';
 export const routes: Routes = [
   { path:'', component: LoginComponent },
   { path:'login', component: LoginComponent },
-  { path:'signup', component: SignUpComponent },
+  { path:'sign-up', component: SignUpComponent },
   { path:'auth-success', component: AuthSuccesComponent },
   
   // Rutas de Employee (ROLE_USER)

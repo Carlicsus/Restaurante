@@ -270,7 +270,7 @@
   align-items: center;
 }
 
-.lock-btn {
+.toggle-btn {
   background: #f97316;
   color: var(--white);
   border: none;
@@ -285,20 +285,20 @@
   gap: 0.375rem;
 }
 
-.lock-btn:hover:not(:disabled) {
+.toggle-btn:hover:not(:disabled) {
   background: #ea580c;
   transform: translateY(-1px);
 }
 
-.lock-btn.locked {
-  background: var(--success);
+.toggle-btn.disabled {
+  background: #6b7280;
 }
 
-.lock-btn.locked:hover:not(:disabled) {
-  background: #059669;
+.toggle-btn.disabled:hover:not(:disabled) {
+  background: #4b5563;
 }
 
-.lock-btn:disabled {
+.toggle-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

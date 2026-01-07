@@ -70,7 +70,7 @@
         Volver
       </button>
 
-      <button class="btn danger" (click)="confirmCancelOrder()">
+      <button class="btn danger" (click)="confirmCancelOrder()" [disabled]="!cancelReason.trim()">
         Cancelar ahora
       </button>
     </div>

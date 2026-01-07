@@ -74,7 +74,7 @@ class UserController {
         return respond(response.resp, status: response.status)
     }
 
-    @Secured(['ROLE_ADMIN'])
+    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
     def setEnabled() {
         def response = userService.setEnabled(params.username, params.enable.toBoolean())
         return respond(response.resp, status: response.status)

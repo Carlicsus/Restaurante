@@ -36,6 +36,11 @@ export class DetailProductComponent implements OnInit {
     comment: ''
   };
 
+  showModal = false;
+  modalIcon = '';
+  modalTitle = '';
+  modalMessage = '';
+
   constructor(
     private dishService: DishService,
     private cartService: CartService,
@@ -104,7 +109,7 @@ export class DetailProductComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error adding item to cart:', error);
-            alert('Error al agregar al carrito. Por favor, intente de nuevo.');
+            this.showErrorModal('Error', 'Error al agregar al carrito. Por favor, intente de nuevo.');
             this.addingToCart = false;
           },
         });
@@ -125,13 +130,13 @@ export class DetailProductComponent implements OnInit {
             },
             error: (createError) => {
               console.error('Error creating cart:', createError);
-              alert('Error al crear el carrito. Por favor, intente de nuevo.');
+              this.showErrorModal('Error', 'Error al crear el carrito. Por favor, intente de nuevo.');
               this.addingToCart = false;
             },
           });
         } else {
           console.error('Error fetching cart:', error);
-          alert('Error al verificar el carrito. Por favor, intente de nuevo.');
+          this.showErrorModal('Error', 'Error al verificar el carrito. Por favor, intente de nuevo.');
           this.addingToCart = false;
         }
       },
@@ -139,7 +144,7 @@ export class DetailProductComponent implements OnInit {
   }
 
   showSuccessMessage() {
-    alert(`${this.dish?.name} (${this.quantity}) ha sido agregado al carrito.`);
+    this.showSuccessModal('¡Agregado al carrito!', `${this.dish?.name} (${this.quantity}) ha sido agregado al carrito.`);
     this.quantity = 1;
   }
 
@@ -199,7 +204,7 @@ export class DetailProductComponent implements OnInit {
     if (!this.dish || this.submittingReview) return;
 
     if (this.newReview.rating < 1 || this.newReview.rating > 5) {
-      alert('El rating debe estar entre 1 y 5 estrellas');
+      this.showErrorModal('Rating inválido', 'El rating debe estar entre 1 y 5 estrellas');
       return;
     }
 
@@ -208,19 +213,19 @@ export class DetailProductComponent implements OnInit {
     this.reviewService.createReview(this.newReview).subscribe({
       next: (response: any) => {
         if (response.success) {
-          alert('¡Reseña creada exitosamente!');
+          this.showSuccessModal('¡Reseña creada!', 'Tu reseña se ha publicado exitosamente');
           this.showReviewForm = false;
           this.resetReviewForm();
           this.loadReviews();
           this.loadReviewStats();
         } else {
-          alert('Error al crear la reseña: ' + response.message);
+          this.showErrorModal('Error', 'Error al crear la reseña: ' + response.message);
         }
         this.submittingReview = false;
       },
       error: (error) => {
         console.error('Error creating review:', error);
-        alert('Error al crear la reseña. Por favor, intente de nuevo.');
+        this.showErrorModal('Error', 'Error al crear la reseña. Por favor, intente de nuevo.');
         this.submittingReview = false;
       }
     });
@@ -249,5 +254,23 @@ export class DetailProductComponent implements OnInit {
       month: 'long',
       day: 'numeric'
     });
+  }
+
+  showSuccessModal(title: string, message: string): void {
+    this.modalIcon = '✅';
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  showErrorModal(title: string, message: string): void {
+    this.modalIcon = '❌';
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
   }
 }

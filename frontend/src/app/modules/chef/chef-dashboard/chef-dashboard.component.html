@@ -97,7 +97,7 @@
       <button class="btn-secondary" (click)="closeCancelModal()" type="button">
         Volver
       </button>
-      <button class="btn-danger" (click)="confirmCancel()" type="button">
+      <button class="btn-danger" (click)="confirmCancel()" [disabled]="!cancelReason.trim()" type="button">
         Cancelar ahora
       </button>
     </div>

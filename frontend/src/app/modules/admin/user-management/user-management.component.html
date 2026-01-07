@@ -57,8 +57,6 @@
             Email
             <span class="sort-icon" *ngIf="sortColumn === 'email'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
           </th>
-          <th>Estado</th>
-          <th>Bloqueo</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -66,34 +64,21 @@
         <tr *ngFor="let user of users">
           <td data-label="Usuario">{{ user.username }}</td>
           <td data-label="Email">{{ user.email }}</td>
-          <td data-label="Estado">
-            <span class="badge" [ngClass]="user.enabled ? 'badge-success' : 'badge-danger'">
-              {{ user.enabled ? 'Habilitado' : 'Deshabilitado' }}
-            </span>
-          </td>
-          <td data-label="Bloqueo">
-            <span class="badge" [ngClass]="user.accountLocked ? 'badge-warning' : 'badge-info'">
-              {{ user.accountLocked ? 'Bloqueado' : 'Desbloqueado' }}
-            </span>
-          </td>
           <td data-label="Acciones" class="actions-cell">
             <button 
-              class="action-btn btn-toggle"
+              class="toggle-btn"
+              [class.disabled]="!user.enabled"
               (click)="toggleEnabled(user)"
               [title]="user.enabled ? 'Deshabilitar' : 'Habilitar'">
-              <img [src]="user.enabled ? '/bloquear.png' : '/bloquear.png'" alt="Toggle" class="action-icon">
+              <img [src]="user.enabled ? '/candado.png' : '/candado-abierto.png'" alt="Toggle" class="btn-icon">
+              {{ user.enabled ? 'Deshabilitar' : 'Habilitar' }}
             </button>
             <button 
-              class="action-btn btn-lock"
-              (click)="toggleLocked(user)"
-              [title]="user.accountLocked ? 'Desbloquear' : 'Bloquear'">
-              <img [src]="user.accountLocked ? '/candado-abierto.png' : '/candado.png'" alt="Lock" class="action-icon">
-            </button>
-            <button 
-              class="action-btn btn-roles"
+              class="roles-btn"
               (click)="openRolesModal(user)"
               title="Gestionar Roles">
-              <img src="/boton-editar.png" alt="Roles" class="action-icon">
+              <img src="/boton-editar.png" alt="Roles" class="btn-icon">
+              Roles
             </button>
           </td>
         </tr>

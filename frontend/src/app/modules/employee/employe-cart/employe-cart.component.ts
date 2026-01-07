@@ -41,6 +41,16 @@ export class EmployeCartComponent implements OnInit {
   processingOrder = false;
   emptyCart = false;
 
+  showModal = false;
+  modalIcon = '';
+  modalTitle = '';
+  modalMessage = '';
+  
+  showConfirmModal = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
+
   ngOnInit(): void {
     this.loadCart();
   }
@@ -86,8 +96,10 @@ export class EmployeCartComponent implements OnInit {
   }
 
   removeItem(index: number): void {
-    if (confirm('¿Eliminar este producto del carrito?')) {
-      const item = this.cartItems[index];
+    const item = this.cartItems[index];
+    this.confirmTitle = 'Eliminar producto';
+    this.confirmMessage = '¿Eliminar este producto del carrito?';
+    this.confirmAction = () => {
       if (this.cartUuid && item.uuid) {
         this.cartService.deleteDish(this.cartUuid, item.uuid).subscribe({
           next: () => {
@@ -98,15 +110,18 @@ export class EmployeCartComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error removing item:', error);
-            alert('Error al eliminar el producto. Por favor, intente de nuevo.');
+            this.showErrorModal('Error', 'Error al eliminar el producto. Por favor, intente de nuevo.');
           }
         });
       }
-    }
+    };
+    this.showConfirmModal = true;
   }
 
   clearCart(): void {
-    if (confirm('¿Vaciar todo el carrito?')) {
+    this.confirmTitle = 'Vaciar carrito';
+    this.confirmMessage = '¿Vaciar todo el carrito?';
+    this.confirmAction = () => {
       this.clearingCart = true;
       if (this.cartUuid) {
         this.cartService.deleteCart(this.cartUuid).subscribe({
@@ -117,12 +132,13 @@ export class EmployeCartComponent implements OnInit {
           },
           error: (error) => {
             console.error('Error clearing cart:', error);
-            alert('Error al vaciar el carrito. Por favor, intente de nuevo.');
+            this.showErrorModal('Error', 'Error al vaciar el carrito. Por favor, intente de nuevo.');
             this.clearingCart = false;
           }
         });
       }
-    }
+    };
+    this.showConfirmModal = true;
   }
 
   get subtotal(): number {
@@ -142,13 +158,15 @@ export class EmployeCartComponent implements OnInit {
 
     this.cartService.finishCart(this.cartUuid!).subscribe({
           next: () => {
-            alert('Orden realizada con éxito.');
+            this.showSuccessModal('Orden realizada', 'Tu orden se ha realizado con éxito.');
             this.processingOrder = false;
-            this.router.navigate(['/employee/complete-menu']);
+            setTimeout(() => {
+              this.router.navigate(['/employee/complete-menu']);
+            }, 1500);
           },
           error: (error) => {
             console.error('Error finalizing cart:', error);
-            alert('Error al finalizar el pedido. Por favor, intente de nuevo.');
+            this.showErrorModal('Error', 'Error al finalizar el pedido. Por favor, intente de nuevo.');
           }
         });
             this.processingOrder = false;
@@ -163,5 +181,35 @@ export class EmployeCartComponent implements OnInit {
       style: 'currency',
       currency: 'MXN'
     }).format(amount); 
+  }
+
+  showSuccessModal(title: string, message: string): void {
+    this.modalIcon = '✅';
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  showErrorModal(title: string, message: string): void {
+    this.modalIcon = '❌';
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+  }
+
+  confirmYes(): void {
+    if (this.confirmAction) {
+      this.confirmAction();
+    }
+    this.closeConfirmModal();
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.confirmAction = null;
   }
 }

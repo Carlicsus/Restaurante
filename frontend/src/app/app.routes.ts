@@ -34,8 +34,9 @@ import { roleGuard } from './core/guards/role.guard';
 import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
-  { path:'', component: LoginComponent, canActivate: [guestGuard] },
-  { path:'login', component: LoginComponent, canActivate: [guestGuard] },
+  { path:'', component: LoginComponent },
+  { path:'login', component: LoginComponent },
+  { path:'sign-up', component: SignUpComponent },
   { path:'auth-success', component: AuthSuccesComponent },
   
   // Rutas de Employee (ROLE_USER)

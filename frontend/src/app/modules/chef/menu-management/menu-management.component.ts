@@ -227,7 +227,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
         cost: dishData.cost,
         menuType: dishData.menuType 
       };
-
+      console.log("hola"+dishData.cost);
       this.dishService.createDish(payload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -371,9 +371,10 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
 
   toggleDishStatus(uuid: string) {
     const dish = this.dishes.find(d => d.uuid === uuid);
+    console.log(uuid)
     if (dish) {
       const newStatus = dish.status === 1 ? 0 : 1;
-
+      console.log(newStatus);
       if (newStatus === 1) {
         this.dishService.activateDish(uuid)
           .pipe(takeUntil(this.destroy$))

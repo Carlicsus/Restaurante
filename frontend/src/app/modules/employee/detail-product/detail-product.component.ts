@@ -73,7 +73,7 @@ export class DetailProductComponent implements OnInit {
   }
 
   increaseQuantity() {
-    if (this.quantity < 10) {
+    if (this.quantity < 5) {
       this.quantity++;
     }
   }

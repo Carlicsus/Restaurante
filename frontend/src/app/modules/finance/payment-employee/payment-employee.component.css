@@ -750,6 +750,7 @@ details[open] summary::after {
 
 .modal-btn {
   padding: 0.75rem 2rem;
+  background-color: #0a4a8f;
   border: none;
   border-radius: 0.5rem;
   font-size: 0.9rem;

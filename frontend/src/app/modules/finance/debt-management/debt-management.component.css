@@ -358,6 +358,38 @@
   border-radius: 0.25rem;
 }
 
+.modal-btn {
+  padding: 0.75rem 2rem;
+  background-color: #0a4a8f;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-btn.primary {
+  background: linear-gradient(135deg, var(--primary) 0%, #0a4a8f 100%);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(16, 86, 138, 0.2);
+}
+
+.modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 86, 138, 0.3);
+}
+
+.modal-btn.secondary {
+  background: var(--white);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.modal-btn.secondary:hover {
+  background: var(--muted);
+}
+
 /* RESPONSIVE */
 @media (max-width: 1200px) {
   .content-wrapper {

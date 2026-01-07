@@ -332,6 +332,271 @@
   opacity: 0.7;
 }
 
+.btn-reviews {
+  background-color: transparent;
+  border: none;
+  padding: 4px 8px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.btn-reviews:hover {
+  transform: scale(1.2);
+}
+
+/* Modal de Reviews */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reviews-modal {
+  background: var(--white);
+  width: 700px;
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: var(--foreground);
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: opacity 0.2s;
+}
+
+.btn-close:hover {
+  opacity: 0.7;
+}
+
+.dish-info {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.dish-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.dish-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  opacity: 0.75;
+}
+
+.review-stats {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 2rem;
+}
+
+.average-rating {
+  text-align: center;
+  min-width: 150px;
+}
+
+.rating-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stars {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.stars span {
+  filter: grayscale(100%);
+  opacity: 0.3;
+}
+
+.stars span.filled {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+.total-reviews {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  opacity: 0.75;
+}
+
+.rating-distribution {
+  flex: 1;
+}
+
+.rating-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-label {
+  font-size: 0.875rem;
+  min-width: 50px;
+}
+
+.bar-container {
+  flex: 1;
+  height: 8px;
+  background: var(--muted);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.rating-count {
+  font-size: 0.875rem;
+  min-width: 30px;
+  text-align: right;
+  color: var(--foreground);
+  opacity: 0.75;
+}
+
+.reviews-list {
+  padding: 1.5rem;
+}
+
+.reviews-list h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.review-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.reviewer-info strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.review-stars {
+  font-size: 0.875rem;
+}
+
+.review-stars span {
+  filter: grayscale(100%);
+  opacity: 0.3;
+}
+
+.review-stars span.filled {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+.review-date {
+  font-size: 0.75rem;
+  color: var(--foreground);
+  opacity: 0.5;
+}
+
+.review-comment {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  line-height: 1.5;
+}
+
+.no-reviews {
+  text-align: center;
+  padding: 2rem;
+  color: var(--foreground);
+  opacity: 0.5;
+}
+
+.no-reviews p {
+  margin: 0;
+}
+
+.loading-reviews {
+  padding: 2rem;
+  text-align: center;
+  color: var(--foreground);
+  opacity: 0.75;
+}
+
+.loading-reviews p {
+  margin: 0;
+}
+
+
 @media (max-width: 1200px) {
   .content-wrapper {
     padding: 40px 20px;

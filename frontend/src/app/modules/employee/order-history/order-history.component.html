@@ -21,14 +21,14 @@
                 <div class="filter-chips">
                     <button class="filter-chip" [class.active]="activeOrderFilter === 'todos'"
                         (click)="setOrderFilter('todos')">Todos</button>
-                    <button class="filter-chip" [class.active]="activeOrderFilter === 'en-cola'"
-                        (click)="setOrderFilter('en-cola')">En Cola</button>
-                    <button class="filter-chip" [class.active]="activeOrderFilter === 'preparando'"
-                        (click)="setOrderFilter('preparando')">Preparando</button>
-                    <button class="filter-chip" [class.active]="activeOrderFilter === 'terminado'"
-                        (click)="setOrderFilter('terminado')">Terminados</button>
-                    <button class="filter-chip" [class.active]="activeOrderFilter === 'cancelado'"
-                        (click)="setOrderFilter('cancelado')">Cancelados</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'pendiente'"
+                        (click)="setOrderFilter('pendiente')">Pendientes</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'en_proceso'"
+                        (click)="setOrderFilter('en_proceso')">En Preparación</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'finalizada'"
+                        (click)="setOrderFilter('finalizada')">Finalizadas</button>
+                    <button class="filter-chip" [class.active]="activeOrderFilter === 'cancelada'"
+                        (click)="setOrderFilter('cancelada')">Canceladas</button>
                 </div>
 
                 <div class="date-filters">

@@ -115,7 +115,6 @@
   <!-- Modal de confirmación -->
   <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-icon">{{ modalIcon }}</div>
       <h3 class="modal-title">{{ modalTitle }}</h3>
       <p class="modal-message">{{ modalMessage }}</p>
       <button class="modal-btn" (click)="closeModal()">Entendido</button>
@@ -131,9 +130,9 @@
         <h4 class="section-subtitle">Roles Asignados</h4>
         <div class="roles-list" *ngIf="userRoles.length > 0">
           <div class="role-item" *ngFor="let role of userRoles">
-            <span class="role-badge">{{ role.authority }}</span>
+            <span class="role-badge">{{ getRoleNameInSpanish(role.authority) }}</span>
             <button class="btn-remove" (click)="removeRoleFromUser(role.id)" title="Quitar rol">
-              ❌
+              <img src="/equis.png" alt="Quitar" style="width: 16px; height: 16px;">
             </button>
           </div>
         </div>
@@ -142,17 +141,20 @@
 
       <div class="roles-section">
         <h4 class="section-subtitle">Asignar Nuevo Rol</h4>
+        <p class="warning-text" *ngIf="userRoles.length > 0" style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 0.75rem;">
+        Este usuario ya tiene un rol asignado. Elimina el rol actual para asignar uno nuevo.
+        </p>
         <div class="assign-role-form">
-          <select [(ngModel)]="selectedRoleId" class="role-select">
+          <select [(ngModel)]="selectedRoleId" class="role-select" [disabled]="userRoles.length > 0">
             <option [ngValue]="null">Seleccionar rol...</option>
             <option *ngFor="let role of availableRoles" [ngValue]="role.id">
-              {{ role.authority }}
+              {{ getRoleNameInSpanish(role.authority) }}
             </option>
           </select>
           <button 
             class="btn-assign" 
             (click)="assignRoleToUser()"
-            [disabled]="!selectedRoleId || loadingRoles">
+            [disabled]="!selectedRoleId || loadingRoles || userRoles.length > 0">
             Asignar
           </button>
         </div>

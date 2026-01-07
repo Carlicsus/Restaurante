@@ -45,7 +45,7 @@ export class LoginComponent {
         console.error('Login failed', error);
         this.isLoading = false;
         // Mostrar modal con el error
-        this.errorTitle = error?.error?.error || 'Error de autenticación';
+        this.errorTitle = 'Error de autenticación';
         this.errorMessage = error?.error?.message || 'No se pudo iniciar sesión. Por favor, verifica tus credenciales.';
         this.showErrorModal = true;
       }

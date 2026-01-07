@@ -24,7 +24,7 @@
     </div>
 
     <div *ngIf="errorMessage" class="error-banner">
-      <p>⚠️ {{ errorMessage }}</p>
+      <p>{{ errorMessage }}</p>
       <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
     </div>
 
@@ -92,24 +92,6 @@
 
         <div class="actions-group">
           <button
-            class="toggle-btn"
-            [class.disabled]="isUserDisabled(debtor.username)"
-            [disabled]="isTogglingInProgress(debtor.username)"
-            (click)="toggleEnabled(debtor.username, $event)"
-            [title]="isUserDisabled(debtor.username) ? 'Habilitar usuario' : 'Deshabilitar usuario'"
-          >
-            <ng-container *ngIf="!isTogglingInProgress(debtor.username)">
-              <img 
-                [src]="isUserDisabled(debtor.username) ? 'candado-abierto.png' : 'candado.png'" 
-                alt="Toggle icon"
-                style="width: 16px; height: 16px;"
-              />
-            </ng-container>
-            <span *ngIf="isTogglingInProgress(debtor.username)">⏳</span>
-            {{ isUserDisabled(debtor.username) ? 'Habilitar' : 'Deshabilitar' }}
-          </button>
-          
-          <button
             class="action-btn"
             (click)="viewDebtorDetails(debtor.username)"
           >
@@ -130,7 +112,6 @@
 <!-- Modal de confirmación -->
 <div class="modal-backdrop" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-icon">⚠️</div>
     <h3 class="modal-title">{{ confirmTitle }}</h3>
     <p class="modal-message">{{ confirmMessage }}</p>
     <div class="modal-buttons">
@@ -143,7 +124,6 @@
 <!-- Modal de éxito/error -->
 <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-icon">{{ modalIcon }}</div>
     <h3 class="modal-title">{{ modalTitle }}</h3>
     <p class="modal-message">{{ modalMessage }}</p>
     <button class="modal-btn" (click)="closeModal()">Entendido</button>

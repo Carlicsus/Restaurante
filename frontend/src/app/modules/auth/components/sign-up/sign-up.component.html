@@ -8,6 +8,16 @@
 	<div class="login-card">
 		<form class="login-form" (ngSubmit)="onSubmit()" autocomplete="off">
 			<div class="form-group">
+				<label class="label">Nombre(s)</label>
+				<input class="input" type="text" placeholder="Nombre(s)" [(ngModel)]="credentials.names" name="names" [disabled]="isLoading" />
+			</div>
+
+			<div class="form-group">
+				<label class="label">Apellidos</label>
+				<input class="input" type="text" placeholder="Apellidos" [(ngModel)]="credentials.lastNames" name="lastNames" [disabled]="isLoading" />
+			</div>
+
+			<div class="form-group">
 				<label class="label">Usuario</label>
 				<input class="input" type="text" placeholder="Usuario" [(ngModel)]="credentials.username" name="username" [disabled]="isLoading" />
 			</div>
@@ -22,7 +32,7 @@
 				<input class="input" type="password" placeholder="Contraseña" [(ngModel)]="credentials.password" name="password" [disabled]="isLoading" />
 			</div>
 
-			<button class="btn btn--primary" type="submit" [disabled]="isLoading || !credentials.username || !credentials.email || !credentials.password">
+			<button class="btn btn--primary" type="submit" [disabled]="isLoading || !credentials.username || !credentials.email || !credentials.password || !credentials.names || !credentials.lastNames">
 				<span *ngIf="!isLoading">Crear cuenta</span>
 				<span *ngIf="isLoading" class="loading-content">
 					<span class="spinner"></span>
@@ -48,7 +58,6 @@
 <div class="modal-backdrop" *ngIf="showErrorModal" (click)="closeErrorModal()">
 	<div class="modal-container" (click)="$event.stopPropagation()">
 		<div class="modal-header">
-			<div class="warning-icon">⚠️</div>
 			<h3>{{ errorTitle }}</h3>
 		</div>
 		<p class="modal-description">{{ errorMessage }}</p>

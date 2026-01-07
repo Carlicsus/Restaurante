@@ -15,6 +15,11 @@
     <div class="product-content">
       <div class="product-images">
         <div class="main-image">
+          <img 
+            [src]="getFullImageUrl(dish.imageUrl)" 
+            alt="{{ dish.name }}" 
+            class="dish-image" 
+          />
         </div>
       </div>
 

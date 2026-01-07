@@ -483,7 +483,7 @@ def listDishes() {
 
         file.transferTo(targetPath.toFile())
 
-        dish.imageUrl = "dish/${filename}"
+        dish.imageUrl = "/api/images/${filename}"
         dish.save(flush: true)
     }
 

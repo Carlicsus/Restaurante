@@ -108,21 +108,31 @@ export class EmployeeDashboardComponent implements OnInit {
 
   private mapStatus(status: string): string {
     switch (status) {
-      case 'Queue': return 'En Cola';
-      case 'Preparing': return 'Preparando';
-      case 'Finished': return 'Terminado';
-      case 'Cancelled': return 'Cancelado';
-      default: return 'Desconocido';
+      case 'Queue': return 'pendiente';
+      case 'Preparing': return 'en_proceso';
+      case 'Finished': return 'finalizada';
+      case 'Cancelled': return 'cancelada';
+      default: return 'pendiente';
     }
   }
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'En Cola': return 'status-queued';
-      case 'Preparando': return 'status-preparing';
-      case 'Terminado': return 'status-finished';
-      case 'Cancelado': return 'status-cancelled';
+      case 'pendiente': return 'status-queued';
+      case 'en_proceso': return 'status-preparing';
+      case 'finalizada': return 'status-finished';
+      case 'cancelada': return 'status-cancelled';
       default: return 'status-unknown';
+    }
+  }
+
+  statusLabel(status: string): string {
+    switch (status) {
+      case 'pendiente': return 'Pendiente';
+      case 'en_proceso': return 'En Preparación';
+      case 'finalizada': return 'Finalizada';
+      case 'cancelada': return 'Cancelada';
+      default: return 'Desconocido';
     }
   }
 

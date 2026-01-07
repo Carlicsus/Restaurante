@@ -93,7 +93,6 @@
 <!-- Modal de confirmación/éxito/error -->
 <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-icon">{{ modalIcon }}</div>
     <h3 class="modal-title">{{ modalTitle }}</h3>
     <p class="modal-message">{{ modalMessage }}</p>
     <button class="modal-btn" (click)="closeModal()">Entendido</button>

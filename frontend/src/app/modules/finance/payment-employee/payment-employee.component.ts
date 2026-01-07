@@ -29,7 +29,6 @@ export class PaymentEmployeeComponent implements OnInit {
   lockingInProgress = false;
 
   showModal = false;
-  modalIcon = '';
   modalTitle = '';
   modalMessage = '';
   
@@ -171,6 +170,16 @@ export class PaymentEmployeeComponent implements OnInit {
     return colors[status] || '#6b7280';
   }
 
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'Queue': 'Pendiente',
+      'Preparing': 'En Preparación',
+      'Finished': 'Finalizada',
+      'Cancelled': 'Cancelada'
+    };
+    return labels[status] || status;
+  }
+
   retryLoad(): void {
     this.loadDebtorDetails();
   }
@@ -178,23 +187,23 @@ export class PaymentEmployeeComponent implements OnInit {
   toggleLockUser(): void {
     if (this.lockingInProgress) return;
 
-    const action = this.isUserLocked ? 'desbloquear' : 'bloquear';
+    const action = this.isUserLocked ? 'habilitar' : 'deshabilitar';
     this.confirmTitle = `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`;
     this.confirmMessage = `¿Estás seguro de que deseas ${action} a ${this.username}?`;
     this.confirmAction = () => {
       this.lockingInProgress = true;
 
       const request$ = this.isUserLocked
-        ? this.userService.unlockUser(this.username)
-        : this.userService.lockUser(this.username);
+        ? this.userService.enableUser(this.username)
+        : this.userService.disableUser(this.username);
 
       request$.subscribe({
         next: (response) => {
           if (response.success) {
             this.isUserLocked = !this.isUserLocked;
             this.showSuccessModal(
-              `Usuario ${this.isUserLocked ? 'bloqueado' : 'desbloqueado'}`,
-              `Usuario ${this.username} ${this.isUserLocked ? 'bloqueado' : 'desbloqueado'} exitosamente`
+              `Usuario ${this.isUserLocked ? 'deshabilitado' : 'habilitado'}`,
+              `Usuario ${this.username} ${this.isUserLocked ? 'deshabilitado' : 'habilitado'} exitosamente`
             );
           } else {
             this.showErrorModal('Error', response.message);
@@ -222,14 +231,12 @@ export class PaymentEmployeeComponent implements OnInit {
   }
 
   showSuccessModal(title: string, message: string): void {
-    this.modalIcon = '✅';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
   }
 
   showErrorModal(title: string, message: string): void {
-    this.modalIcon = '❌';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;

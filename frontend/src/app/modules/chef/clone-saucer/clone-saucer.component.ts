@@ -25,13 +25,11 @@ export class CloneSaucerComponent {
   };
 
   showModal = false;
-  modalIcon = '';
   modalTitle = '';
   modalMessage = '';
 
   cancel(): void {
     console.log('Cancelado');
-    // Aquí puedes redirigir a gestión de menú
   }
 
   createClone(): void {
@@ -43,18 +41,15 @@ export class CloneSaucerComponent {
     console.log('Platillo clonado:', this.newDish);
     this.showSuccessModal('¡Platillo clonado!', 'El platillo se ha clonado exitosamente');
 
-    // 👉 Aquí iría el POST al backend
   }
 
   showSuccessModal(title: string, message: string): void {
-    this.modalIcon = '✅';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
   }
 
   showErrorModal(title: string, message: string): void {
-    this.modalIcon = '❌';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;

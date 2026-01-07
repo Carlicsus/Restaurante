@@ -38,7 +38,6 @@ export class DetailProductComponent implements OnInit {
   };
 
   showModal = false;
-  modalIcon = '';
   modalTitle = '';
   modalMessage = '';
 
@@ -271,14 +270,12 @@ export class DetailProductComponent implements OnInit {
   }
 
   showSuccessModal(title: string, message: string): void {
-    this.modalIcon = '✅';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
   }
 
   showErrorModal(title: string, message: string): void {
-    this.modalIcon = '❌';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;

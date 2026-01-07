@@ -34,7 +34,6 @@ export class DebtManagementComponent implements OnInit {
   togglingInProgress: Set<string> = new Set();
 
   showModal = false;
-  modalIcon = '';
   modalTitle = '';
   modalMessage = '';
   
@@ -151,12 +150,14 @@ export class DebtManagementComponent implements OnInit {
   toggleEnabled(username: string, event: Event): void {
     event.stopPropagation();
     
+    console.log('toggleEnabled llamado para:', username);
     const isCurrentlyDisabled = this.disabledUsers.has(username);
     const action = isCurrentlyDisabled ? 'habilitar' : 'deshabilitar';
     
     this.confirmTitle = `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`;
     this.confirmMessage = `¿Estás seguro de que deseas ${action} a ${username}?`;
     this.confirmAction = () => {
+      console.log('Ejecutando confirmAction para:', username);
       this.togglingInProgress.add(username);
 
       const request$ = isCurrentlyDisabled 
@@ -165,6 +166,7 @@ export class DebtManagementComponent implements OnInit {
 
       request$.subscribe({
         next: (response) => {
+          console.log('Respuesta del toggle:', response);
           if (response.success) {
             if (isCurrentlyDisabled) {
               this.disabledUsers.delete(username);
@@ -207,14 +209,12 @@ export class DebtManagementComponent implements OnInit {
   }
 
   showSuccessModal(title: string, message: string): void {
-    this.modalIcon = '✅';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
   }
 
   showErrorModal(title: string, message: string): void {
-    this.modalIcon = '❌';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
@@ -225,6 +225,7 @@ export class DebtManagementComponent implements OnInit {
   }
 
   confirmYes(): void {
+    console.log('confirmYes llamado, confirmAction existe:', !!this.confirmAction);
     if (this.confirmAction) {
       this.confirmAction();
     }

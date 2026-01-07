@@ -19,21 +19,37 @@ class UserController {
 
     @Secured(['permitAll'])
     def register() {
-        def body = request.JSON
+        def username = request.JSON?.username
+        def password = request.JSON?.password
+        def email = request.JSON?.email
 
-        if (!body.username || !body.password || !body.email) {
-            return respond([success: false, mensaje: "El usuario, contraseña y correo son obligatorios"], status: 400)
+        if (!(username instanceof String) || !(password instanceof String) || !(email instanceof String)) {
+            return respond([success: false, mensaje: "El nombre de usuario, contraseña y correo son obligatorios y deben de ser cadenas de texto"], status: 400)
         }
 
-        if(body.password.length() < 8) {
-            return respond([success: false, mensaje: "La contraseña debe tener al menos 8 caracteres"], status: 400)
+        if (!username  || !password || !email) {
+            return respond([success: false, mensaje: "El nombre de usuario, contraseña y correo no pueden estar vacios"], status: 400)
         }
 
-        if (!body.email?.endsWith('@utxicotepec.edu.mx')) {
+        if (username.trim() != username) {
+            return respond([success: false, message: "El nombre de usuario no puede tener espacios vacios al principio ni al final"],status: 400)
+        }
+
+        if (password.trim() != password) {
+            return respond([success: false, message: "La contraseña no puede tener espacios vacios al principio ni al final"],status: 400)
+        }
+
+        if (!email.endsWith('@utxicotepec.edu.mx')) {
             return respond([success: false, mensaje: "Solo se permiten correos institucionales"], status: 400)
         }
 
-        def response = userService.register(body.username, body.password, body.email)
+        def passwordRegex = ~/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&\/])[A-Za-z\d$@!%*?&\/]{8,15}$/
+
+        if (!(password ==~ passwordRegex)) {
+            return respond([success: false,mensaje: "La contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]"], status: 400)
+        }
+
+        def response = userService.register(username, password, email)
 
         return respond(response.resp, status: response.status)
     }

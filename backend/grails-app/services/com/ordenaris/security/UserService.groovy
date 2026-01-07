@@ -25,11 +25,17 @@ class UserService {
     Map register(String username, String rawPassword, String email) {
 
         if (User.findByUsername(username)) {
-            return [ success: false, message: "Ya existe un usuario con el usuario ${username}" ]
+            return [
+                resp:[ success: false, message: "Ya existe un usuario con el usuario " + username],
+                status:400
+            ]
         }
 
         if (User.findByEmail(email)) {
-            return [ success: false, message: "Ya existe un usuario con el correo ${email}" ]
+            return [
+                resp:[ success: false, message: "Ya existe un usuario con el correo " + email],
+                status:400
+            ]
         }
 
         User user = new User(

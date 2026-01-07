@@ -186,11 +186,6 @@ export class ChefDashboardComponent implements OnInit {
   }
 
   confirmCancel() {
-    if (!this.cancelReason.trim()) {
-      this.notificationService.error('Por favor, selecciona o escribe un motivo de cancelación');
-      return;
-    }
-
     this.orderService.cancelOrder(this.selectedOrderId, this.cancelReason).subscribe({
       next: () => {
         console.log('Pedido cancelado:', this.selectedOrderId, 'Razón:', this.cancelReason);

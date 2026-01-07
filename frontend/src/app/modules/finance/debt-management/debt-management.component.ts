@@ -30,8 +30,18 @@ export class DebtManagementComponent implements OnInit {
 
   totalDebtors = 0;
   totalDebt = 0;
-  lockedUsers: Set<string> = new Set();
-  lockingInProgress: Set<string> = new Set();
+  disabledUsers: Set<string> = new Set();
+  togglingInProgress: Set<string> = new Set();
+
+  showModal = false;
+  modalIcon = '';
+  modalTitle = '';
+  modalMessage = '';
+  
+  showConfirmModal = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   constructor(
     private saleService: SaleService,
@@ -138,60 +148,91 @@ export class DebtManagementComponent implements OnInit {
     this.loadDebtors();
   }
 
-  toggleLockUser(username: string, event: Event): void {
+  toggleEnabled(username: string, event: Event): void {
     event.stopPropagation();
     
-    const isCurrentlyLocked = this.lockedUsers.has(username);
-    const action = isCurrentlyLocked ? 'desbloquear' : 'bloquear';
+    const isCurrentlyDisabled = this.disabledUsers.has(username);
+    const action = isCurrentlyDisabled ? 'habilitar' : 'deshabilitar';
     
-    if (!confirm(`¿Estás seguro de que deseas ${action} a ${username}?`)) {
-      return;
-    }
+    this.confirmTitle = `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`;
+    this.confirmMessage = `¿Estás seguro de que deseas ${action} a ${username}?`;
+    this.confirmAction = () => {
+      this.togglingInProgress.add(username);
 
-    this.lockingInProgress.add(username);
+      const request$ = isCurrentlyDisabled 
+        ? this.userService.enableUser(username)
+        : this.userService.disableUser(username);
 
-    const request$ = isCurrentlyLocked 
-      ? this.userService.unlockUser(username)
-      : this.userService.lockUser(username);
-
-    request$.subscribe({
-      next: (response) => {
-        if (response.success) {
-          if (isCurrentlyLocked) {
-            this.lockedUsers.delete(username);
-            alert(`Usuario ${username} desbloqueado exitosamente`);
+      request$.subscribe({
+        next: (response) => {
+          if (response.success) {
+            if (isCurrentlyDisabled) {
+              this.disabledUsers.delete(username);
+              this.showSuccessModal('Usuario habilitado', `Usuario ${username} habilitado exitosamente`);
+            } else {
+              this.disabledUsers.add(username);
+              this.showSuccessModal('Usuario deshabilitado', `Usuario ${username} deshabilitado exitosamente`);
+            }
           } else {
-            this.lockedUsers.add(username);
-            alert(`Usuario ${username} bloqueado exitosamente`);
+            this.showErrorModal('Error', response.message);
           }
-        } else {
-          alert(`Error: ${response.message}`);
+          this.togglingInProgress.delete(username);
+        },
+        error: (error) => {
+          console.error('Error al cambiar estado del usuario:', error);
+          let errorMsg = 'Error al procesar la solicitud';
+          
+          if (error.status === 403) {
+            errorMsg = 'No tienes permisos para realizar esta acción';
+          } else if (error.status === 404) {
+            errorMsg = 'Usuario no encontrado';
+          } else if (error.error?.message) {
+            errorMsg = error.error.message;
+          }
+          
+          this.showErrorModal('Error', errorMsg);
+          this.togglingInProgress.delete(username);
         }
-        this.lockingInProgress.delete(username);
-      },
-      error: (error) => {
-        console.error('Error al cambiar estado del usuario:', error);
-        let errorMsg = 'Error al procesar la solicitud';
-        
-        if (error.status === 403) {
-          errorMsg = 'No tienes permisos para realizar esta acción';
-        } else if (error.status === 404) {
-          errorMsg = 'Usuario no encontrado';
-        } else if (error.error?.message) {
-          errorMsg = error.error.message;
-        }
-        
-        alert(errorMsg);
-        this.lockingInProgress.delete(username);
-      }
-    });
+      });
+    };
+    this.showConfirmModal = true;
   }
 
-  isUserLocked(username: string): boolean {
-    return this.lockedUsers.has(username);
+  isUserDisabled(username: string): boolean {
+    return this.disabledUsers.has(username);
   }
 
-  isLockingInProgress(username: string): boolean {
-    return this.lockingInProgress.has(username);
+  isTogglingInProgress(username: string): boolean {
+    return this.togglingInProgress.has(username);
+  }
+
+  showSuccessModal(title: string, message: string): void {
+    this.modalIcon = '✅';
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  showErrorModal(title: string, message: string): void {
+    this.modalIcon = '❌';
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+  }
+
+  confirmYes(): void {
+    if (this.confirmAction) {
+      this.confirmAction();
+    }
+    this.closeConfirmModal();
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.confirmAction = null;
   }
 }

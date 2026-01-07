@@ -155,20 +155,23 @@ export class EmployeCartComponent implements OnInit {
   proceedToCheckout(): void {
     if (!this.canCheckout || !this.cartUuid) return;
 
+    this.processingOrder = true;
+
     this.cartService.finishCart(this.cartUuid!).subscribe({
           next: () => {
+            this.showModal = true;
             this.showSuccessModal('Orden realizada', 'Tu orden se ha realizado con éxito.');
             this.processingOrder = false;
             setTimeout(() => {
               this.router.navigate(['/employee/complete-menu']);
-            }, 1500);
+            }, 2000);
           },
           error: (error) => {
             console.error('Error finalizing cart:', error);
             this.showErrorModal('Error', 'Error al finalizar el pedido. Por favor, intente de nuevo.');
+            this.processingOrder = false;
           }
         });
-            this.processingOrder = false;
   }
 
   goToMenu(): void {

@@ -9,6 +9,8 @@ export interface User {
   enabled: boolean;
   accountLocked: boolean;
   roles?: string[];
+  names?: string;
+  lastNames?: string;
 }
 
 export interface PaginatedResponse {

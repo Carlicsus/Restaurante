@@ -53,6 +53,8 @@
             Usuario 
             <span class="sort-icon" *ngIf="sortColumn === 'username'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
           </th>
+          <th>Nombre</th>
+          <th>Apellidos</th>
           <th (click)="sortBy('email')" class="sortable">
             Email
             <span class="sort-icon" *ngIf="sortColumn === 'email'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
@@ -63,6 +65,8 @@
       <tbody>
         <tr *ngFor="let user of users">
           <td data-label="Usuario">{{ user.username }}</td>
+          <td data-label="Nombre">{{ user.names || '-' }}</td>
+          <td data-label="Apellidos">{{ user.lastNames || '-' }}</td>
           <td data-label="Email">{{ user.email }}</td>
           <td data-label="Acciones" class="actions-cell">
             <button 

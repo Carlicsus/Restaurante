@@ -25,7 +25,7 @@ class MenuController {
 
     def listSubmenusByParent() {
         if (params.uuid?.size() != 32) {
-            return respond([success: false, mensaje: "El Uuid es inválido"], status: 400)
+            return respond([success: false, message: "El Uuid es inválido"], status: 400)
         }
         def response = MenuService.listSubmenusByParent(params.uuid)
         return respond(response.resp, status: response.status)
@@ -37,16 +37,16 @@ class MenuController {
         data.name = data.name?.trim()
     
         if (!data.name) {
-            return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
+            return respond([success: false, message: "El nombre es obligatorio"], status: 400)
         }
         if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)){
-            return respond([success: false, mensaje: "El nombre no debe contener números"], status: 400)
+            return respond([success: false, message: "El nombre no debe contener números ni caracteres especiales"], status: 400)
         }
         if (data.name.size() > 80) {
-            return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+            return respond([success: false, message: "El nombre no puede ser tan largo"], status: 400)
         }
         if (data.parentType && data.parentType.size() != 32) {
-            return respond([success: false, mensaje: "El parentType es invalido"], status: 400)
+            return respond([success: false, message: "El parentType es invalido"], status: 400)
         }
 
         def count = MenuType.createCriteria().count{
@@ -54,7 +54,7 @@ class MenuController {
             eq("status", 1)
         }
         if  (count > 0){
-            return respond([success: false, mensaje: "El nombre ya existe"], status: 409)
+            return respond([success: false, message: "El nombre ya existe"], status: 409)
         }
         def response = MenuService.newType(data.name, data.parentType)
         return respond(response.resp, status: response.status)
@@ -66,25 +66,25 @@ class MenuController {
     data.name = data.name?.trim()
 
     if (params.uuid?.size() != 32) {
-        return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
+        return respond([success: false, message: "El uuid es inválido"], status: 400)
     }
 
     def type = MenuType.findByUuid(params.uuid)
 
     if (!type) {
-        return respond([success: false, mensaje: "El tipo no existe"], status: 404)
+        return respond([success: false, message: "El tipo no existe"], status: 404)
     }
 
     if (!data.name) {
-        return respond([success: false, mensaje: "El nombre es obligatorio"], status: 400)
+        return respond([success: false, message: "El nombre es obligatorio"], status: 400)
     }
 
     if (data.name.size() > 80) {
-        return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
+        return respond([success: false, message: "El nombre no puede ser tan largo"], status: 400)
     }
 
     if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)) {
-        return respond([success: false, mensaje: "El nombre solo debe contener letras"], status: 400)
+        return respond([success: false, message: "El nombre no debe contener números ni caracteres especiales"], status: 400)
     }
     return respond(response.resp, status: response.status)
 }
@@ -92,7 +92,7 @@ class MenuController {
 
     def typeInfo() {
         if (params.uuid.size() != 32) {
-            return respond([success: false, mensaje: "El uuid es invalido"], status: 400)
+            return respond([success: false, message: "El uuid es invalido"], status: 400)
         }
         def response = MenuService.typeInfo(params.uuid)
         return respond(response.resp, status: response.status)
@@ -101,18 +101,18 @@ class MenuController {
     def editTypeStatus() {
 
     if (params.uuid?.size() != 32) {
-        return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
+        return respond([success: false, message: "El uuid es inválido"], status: 400)
     }
 
     def type = MenuType.findByUuid(params.uuid)
 
     if (!type) {
-        return respond([success: false, mensaje: "El tipo no existe"], status: 404)
+        return respond([success: false, message: "El tipo no existe"], status: 404)
     }
 
     if (type.status == 2) {
         return respond(
-            [success: false, mensaje: "El tipo está eliminado y no puede cambiar de estado"],
+            [success: false, message: "El tipo está eliminado y no puede cambiar de estado"],
             status: 409
         )
     }
@@ -124,34 +124,34 @@ class MenuController {
 
     def paginateTypes() {
         if (!params.page) {
-            return respond([success: false, mensaje: "La pagina no puede ir vacio"], status: 400)
+            return respond([success: false, message: "La pagina no puede ir vacio"], status: 400)
         }
         if (!params.page.soloNumeros()) {
-            return respond([success: false, mensaje: "La pagina debe contener solo numeros"], status: 400)
+            return respond([success: false, message: "La pagina debe contener solo numeros"], status: 400)
         }
 
         if (!params.orderColumn) {
-            return respond([success: false, mensaje: "El orderColumn no puede ir vacio"], status: 400)
+            return respond([success: false, message: "El orderColumn no puede ir vacio"], status: 400)
         }
         if (!(params.orderColumn in ["name", "status", "dateCreated"])) {
-            return respond([success: false, mensaje: "El orderColumn solo puede ser: name, status, dateCreated"], status: 400)
+            return respond([success: false, message: "El orderColumn solo puede ser: name, status, dateCreated"], status: 400)
         }
 
         if (!params.order) {
-            return respond([success: false, mensaje: "El order no puede ir vacio"], status: 400)
+            return respond([success: false, message: "El order no puede ir vacio"], status: 400)
         }
         if (!(params.order in ["asc", "desc"])) {
-            return respond([success: false, mensaje: "El order solo puede ser: asc, desc"], status: 400)
+            return respond([success: false, message: "El order solo puede ser: asc, desc"], status: 400)
         }
 
         if (!params.max) {
-            return respond([success: false, mensaje: "El max no puede ir vacio"], status: 400)
+            return respond([success: false, message: "El max no puede ir vacio"], status: 400)
         }
         if (!params.max.soloNumeros()) {
-            return respond([success: false, mensaje: "El max debe contener solo numeros"], status: 400)
+            return respond([success: false, message: "El max debe contener solo numeros"], status: 400)
         }
         if (!(params.max.toInteger() in [2, 5, 10, 20, 50, 100])) {
-            return respond([success: false, mensaje: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
+            return respond([success: false, message: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
         }
 
         def response = MenuService.paginateTypes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.query)

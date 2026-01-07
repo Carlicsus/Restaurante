@@ -23,7 +23,7 @@ class ImageService {
         def dish = Dish.findByUuid(uuid)
         if (!dish) {
             return [
-                resp: [success: false, mensaje: "Platillo no encontrado"],
+                resp: [success: false, message: "Platillo no encontrado"],
                 status: 404
             ]
         }

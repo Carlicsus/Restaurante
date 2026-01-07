@@ -17,7 +17,9 @@ export class SignUpComponent {
   credentials = {
     username: '',
     email: '',
-    password: ''
+    password: '',
+    names: '',
+    lastNames: ''
   };
 
   showErrorModal = false;
@@ -32,7 +34,7 @@ export class SignUpComponent {
   }
 
   onSubmit() {
-    if (!this.credentials.username || !this.credentials.email || !this.credentials.password) {
+    if (!this.credentials.username || !this.credentials.email || !this.credentials.password || !this.credentials.names || !this.credentials.lastNames) {
       return;
     }
 
@@ -48,7 +50,7 @@ export class SignUpComponent {
         console.error('Register failed', err);
         this.isLoading = false;
         this.errorTitle = err?.error?.error || 'Error al registrar';
-        this.errorMessage = err?.error?.message || 'No se pudo crear la cuenta.';
+        this.errorMessage = err?.error?.mensaje;
         this.showErrorModal = true;
       }
     });

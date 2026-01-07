@@ -6,6 +6,7 @@ import { Dish, Menu } from '../../../core/models/dish';
 import { DishService } from '../../../core/services/dish.service';
 import { MenuService } from '../../../core/services/menu.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ReviewService } from '../../../core/services/review.service';
 import { NotificationComponent } from '../../../shared/notification/notification.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -33,6 +34,12 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   dishModalMode: 'create' | 'clone' = 'create';
   availableCategories: string[] = [];
 
+  showReviewsModal = false;
+  selectedDish: Dish | null = null;
+  dishReviews: any[] = [];
+  reviewStats: any = null;
+  loadingReviews = false;
+
   loadingMenus = false;
   loadingDishes = false;
   editingMenuUuid: string | null = null;
@@ -42,7 +49,8 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
   constructor(
     private dishService: DishService,
     private menuService: MenuService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private reviewService: ReviewService
   ) { }
 
   ngOnInit() {
@@ -89,6 +97,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
               if (menu.dishes && Array.isArray(menu.dishes)) {
                 menu.dishes.forEach((dish: any) => {
                   flatDishes.push({
+                    id: dish.id,
                     uuid: dish.uuid,
                     name: dish.name,
                     description: dish.description || '',
@@ -105,6 +114,7 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
                   if (submenu.dishes && Array.isArray(submenu.dishes)) {
                     submenu.dishes.forEach((dish: any) => {
                       flatDishes.push({
+                        id: dish.id,
                         uuid: dish.uuid,
                         name: dish.name,
                         description: dish.description || '',
@@ -454,5 +464,68 @@ export class MenuManagementComponent implements OnInit, OnDestroy {
       style: 'currency',
       currency: 'MXN'
     }).format(costInPesos);
+  }
+
+  openReviewsModal(dish: Dish) {
+    this.selectedDish = dish;
+    this.showReviewsModal = true;
+    this.loadDishReviews(dish);
+  }
+
+  closeReviewsModal() {
+    this.showReviewsModal = false;
+    this.selectedDish = null;
+    this.dishReviews = [];
+    this.reviewStats = null;
+  }
+
+  loadDishReviews(dish: Dish) {
+    if (!dish.id) {
+      console.error('El platillo no tiene ID:', dish);
+      this.notificationService.error('No se puede cargar las reseñas: falta el ID del platillo');
+      return;
+    }
+    
+    console.log('Cargando reviews para platillo ID:', dish.id, 'Nombre:', dish.name);
+    this.loadingReviews = true;
+    
+    // Cargar estadísticas
+    this.reviewService.getReviewStats(dish.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          console.log('Respuesta de getReviewStats:', response);
+          if (response.success) {
+            this.reviewStats = response.data;
+          }
+        },
+        error: (error) => {
+          console.error('Error al cargar estadísticas:', error);
+          this.notificationService.error('Error al cargar las estadísticas de valoraciones');
+        }
+      });
+
+    // Cargar reseñas
+    this.reviewService.getReviews(dish.id, 1, 10)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          console.log('Respuesta de getReviews:', response);
+          if (response.success) {
+            this.dishReviews = response.data.reviews || [];
+            console.log('Reviews cargadas:', this.dishReviews.length);
+          }
+          this.loadingReviews = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar reseñas:', error);
+          this.notificationService.error('Error al cargar los comentarios');
+          this.loadingReviews = false;
+        }
+      });
+  }
+
+  getStarArray(rating: number): number[] {
+    return Array(5).fill(0).map((_, i) => i < rating ? 1 : 0);
   }
 }

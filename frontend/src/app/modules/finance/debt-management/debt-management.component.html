@@ -24,7 +24,7 @@
     </div>
 
     <div *ngIf="errorMessage" class="error-banner">
-      <p>⚠️ {{ errorMessage }}</p>
+      <p>{{ errorMessage }}</p>
       <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
     </div>
 
@@ -92,24 +92,6 @@
 
         <div class="actions-group">
           <button
-            class="lock-btn"
-            [class.locked]="isUserLocked(debtor.username)"
-            [disabled]="isLockingInProgress(debtor.username)"
-            (click)="toggleLockUser(debtor.username, $event)"
-            [title]="isUserLocked(debtor.username) ? 'Desbloquear usuario' : 'Bloquear usuario'"
-          >
-            <ng-container *ngIf="!isLockingInProgress(debtor.username)">
-              <img 
-                [src]="isUserLocked(debtor.username) ? 'candado-abierto.png' : 'candado.png'" 
-                alt="Lock icon"
-                style="width: 16px; height: 16px;"
-              />
-            </ng-container>
-            <span *ngIf="isLockingInProgress(debtor.username)">⏳</span>
-            {{ isUserLocked(debtor.username) ? 'Desbloquear' : 'Bloquear' }}
-          </button>
-          
-          <button
             class="action-btn"
             (click)="viewDebtorDetails(debtor.username)"
           >
@@ -124,5 +106,26 @@
       <p>{{ searchTerm ? 'Intenta con otro término de búsqueda' : 'No hay deudores pendientes en este momento' }}</p>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal-backdrop" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">{{ confirmTitle }}</h3>
+    <p class="modal-message">{{ confirmMessage }}</p>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" (click)="closeConfirmModal()">Cancelar</button>
+      <button class="modal-btn primary" (click)="confirmYes()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de éxito/error -->
+<div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">{{ modalTitle }}</h3>
+    <p class="modal-message">{{ modalMessage }}</p>
+    <button class="modal-btn" (click)="closeModal()">Entendido</button>
   </div>
 </div>

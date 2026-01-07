@@ -111,30 +111,6 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['ROLE_CHEF'] }
   },
-  { 
-    path:'chef/statistics', 
-    component: ChefStatisticsComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF'] }
-  },
-  { 
-    path:'chef/order-management', 
-    component: ChefOrderManagementComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF'] }
-  },
-  { 
-    path:'chef/order-details/:orderId', 
-    component: ChefOrderDetailsComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF'] }
-  },
-  { 
-    path:'chef/clone-saucer', 
-    component: CloneSaucerComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ROLE_CHEF'] }
-  },
   
   // Rutas de Admin (ROLE_ADMIN)
   { 

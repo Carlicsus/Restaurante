@@ -28,6 +28,15 @@ export class PaymentEmployeeComponent implements OnInit {
   isUserLocked = false;
   lockingInProgress = false;
 
+  showModal = false;
+  modalTitle = '';
+  modalMessage = '';
+  
+  showConfirmModal = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
+
   constructor(
     private saleService: SaleService,
     private userService: UserService,
@@ -74,65 +83,60 @@ export class PaymentEmployeeComponent implements OnInit {
   markAsPaid(order: OrderDetail): void {
     if (this.processingPayment) return;
 
-    const confirmed = confirm(
-      `¿Confirmar pago de la orden ${order.orderUuid}?\n` +
-      `Monto: ${this.formatCurrency(order.amount)}`
-    );
+    this.confirmTitle = 'Confirmar pago';
+    this.confirmMessage = `¿Confirmar pago de la orden ${order.orderUuid}?\nMonto: ${this.formatCurrency(order.amount)}`;
+    this.confirmAction = () => {
+      this.processingPayment = true;
+      this.selectedOrderUuid = order.saleUuid;
 
-    if (!confirmed) return;
-
-    this.processingPayment = true;
-    this.selectedOrderUuid = order.saleUuid;
-
-    this.saleService.paySingleSale(order.saleUuid).subscribe({
-      next: (response) => {
-        if (response.success) {
-          alert('Pago registrado exitosamente');
-          this.loadDebtorDetails(); // Recargar datos
-        } else {
-          alert('Error: ' + response.message);
+      this.saleService.paySingleSale(order.saleUuid).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.showSuccessModal('Pago registrado', 'El pago se ha registrado exitosamente');
+            this.loadDebtorDetails();
+          } else {
+            this.showErrorModal('Error', response.message);
+          }
+          this.processingPayment = false;
+          this.selectedOrderUuid = null;
+        },
+        error: (error) => {
+          console.error('Error al procesar pago:', error);
+          this.showErrorModal('Error', 'Error al procesar el pago. Intenta de nuevo.');
+          this.processingPayment = false;
+          this.selectedOrderUuid = null;
         }
-        this.processingPayment = false;
-        this.selectedOrderUuid = null;
-      },
-      error: (error) => {
-        console.error('Error al procesar pago:', error);
-        alert('Error al procesar el pago. Intenta de nuevo.');
-        this.processingPayment = false;
-        this.selectedOrderUuid = null;
-      }
-    });
+      });
+    };
+    this.showConfirmModal = true;
   }
 
   payAllOrders(): void {
     if (this.processingPayment || this.orders.length === 0) return;
 
-    const confirmed = confirm(
-      `¿Confirmar pago de TODAS las órdenes?\n` +
-      `Total de órdenes: ${this.totalOrders}\n` +
-      `Monto total: ${this.formatCurrency(this.totalDebt)}`
-    );
+    this.confirmTitle = 'Confirmar pago total';
+    this.confirmMessage = `¿Confirmar pago de TODAS las órdenes?\nTotal de órdenes: ${this.totalOrders}\nMonto total: ${this.formatCurrency(this.totalDebt)}`;
+    this.confirmAction = () => {
+      this.processingPayment = true;
 
-    if (!confirmed) return;
-
-    this.processingPayment = true;
-
-    this.saleService.payAllSalesForUser(this.username).subscribe({
-      next: (response) => {
-        if (response.success) {
-          alert('Todos los pagos registrados exitosamente');
-          this.loadDebtorDetails();
-        } else {
-          alert('Error: ' + response.message);
+      this.saleService.payAllSalesForUser(this.username).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.showSuccessModal('Pagos registrados', 'Todos los pagos se han registrado exitosamente');
+            this.loadDebtorDetails();
+          } else {
+            this.showErrorModal('Error', response.message);
+          }
+          this.processingPayment = false;
+        },
+        error: (error) => {
+          console.error('Error al procesar pagos:', error);
+          this.showErrorModal('Error', 'Error al procesar los pagos. Intenta de nuevo.');
+          this.processingPayment = false;
         }
-        this.processingPayment = false;
-      },
-      error: (error) => {
-        console.error('Error al procesar pagos:', error);
-        alert('Error al procesar los pagos. Intenta de nuevo.');
-        this.processingPayment = false;
-      }
-    });
+      });
+    };
+    this.showConfirmModal = true;
   }
 
   goBack(): void {
@@ -166,6 +170,16 @@ export class PaymentEmployeeComponent implements OnInit {
     return colors[status] || '#6b7280';
   }
 
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'Queue': 'Pendiente',
+      'Preparing': 'En Preparación',
+      'Finished': 'Finalizada',
+      'Cancelled': 'Cancelada'
+    };
+    return labels[status] || status;
+  }
+
   retryLoad(): void {
     this.loadDebtorDetails();
   }
@@ -173,42 +187,74 @@ export class PaymentEmployeeComponent implements OnInit {
   toggleLockUser(): void {
     if (this.lockingInProgress) return;
 
-    const action = this.isUserLocked ? 'desbloquear' : 'bloquear';
-    const confirmed = confirm(`¿Estás seguro de que deseas ${action} a ${this.username}?`);
+    const action = this.isUserLocked ? 'habilitar' : 'deshabilitar';
+    this.confirmTitle = `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`;
+    this.confirmMessage = `¿Estás seguro de que deseas ${action} a ${this.username}?`;
+    this.confirmAction = () => {
+      this.lockingInProgress = true;
 
-    if (!confirmed) return;
+      const request$ = this.isUserLocked
+        ? this.userService.enableUser(this.username)
+        : this.userService.disableUser(this.username);
 
-    this.lockingInProgress = true;
+      request$.subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.isUserLocked = !this.isUserLocked;
+            this.showSuccessModal(
+              `Usuario ${this.isUserLocked ? 'deshabilitado' : 'habilitado'}`,
+              `Usuario ${this.username} ${this.isUserLocked ? 'deshabilitado' : 'habilitado'} exitosamente`
+            );
+          } else {
+            this.showErrorModal('Error', response.message);
+          }
+          this.lockingInProgress = false;
+        },
+        error: (error) => {
+          console.error('Error al cambiar estado del usuario:', error);
+          let errorMsg = 'Error al procesar la solicitud';
 
-    const request$ = this.isUserLocked
-      ? this.userService.unlockUser(this.username)
-      : this.userService.lockUser(this.username);
+          if (error.status === 403) {
+            errorMsg = 'No tienes permisos para realizar esta acción';
+          } else if (error.status === 404) {
+            errorMsg = 'Usuario no encontrado';
+          } else if (error.error?.message) {
+            errorMsg = error.error.message;
+          }
 
-    request$.subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.isUserLocked = !this.isUserLocked;
-          alert(`Usuario ${this.username} ${this.isUserLocked ? 'bloqueado' : 'desbloqueado'} exitosamente`);
-        } else {
-          alert(`Error: ${response.message}`);
+          this.showErrorModal('Error', errorMsg);
+          this.lockingInProgress = false;
         }
-        this.lockingInProgress = false;
-      },
-      error: (error) => {
-        console.error('Error al cambiar estado del usuario:', error);
-        let errorMsg = 'Error al procesar la solicitud';
+      });
+    };
+    this.showConfirmModal = true;
+  }
 
-        if (error.status === 403) {
-          errorMsg = 'No tienes permisos para realizar esta acción';
-        } else if (error.status === 404) {
-          errorMsg = 'Usuario no encontrado';
-        } else if (error.error?.message) {
-          errorMsg = error.error.message;
-        }
+  showSuccessModal(title: string, message: string): void {
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
 
-        alert(errorMsg);
-        this.lockingInProgress = false;
-      }
-    });
+  showErrorModal(title: string, message: string): void {
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+  }
+
+  confirmYes(): void {
+    if (this.confirmAction) {
+      this.confirmAction();
+    }
+    this.closeConfirmModal();
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.confirmAction = null;
   }
 }

@@ -24,19 +24,38 @@ export class CloneSaucerComponent {
     category: ''
   };
 
+  showModal = false;
+  modalTitle = '';
+  modalMessage = '';
+
   cancel(): void {
     console.log('Cancelado');
-    // Aquí puedes redirigir a gestión de menú
   }
 
   createClone(): void {
     if (!this.newDish.name || !this.newDish.price) {
-      alert('Completa los campos obligatorios');
+      this.showErrorModal('Campos incompletos', 'Por favor completa todos los campos obligatorios');
       return;
     }
 
     console.log('Platillo clonado:', this.newDish);
+    this.showSuccessModal('¡Platillo clonado!', 'El platillo se ha clonado exitosamente');
 
-    // 👉 Aquí iría el POST al backend
+  }
+
+  showSuccessModal(title: string, message: string): void {
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  showErrorModal(title: string, message: string): void {
+    this.modalTitle = title;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
   }
 }

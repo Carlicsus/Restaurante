@@ -8,12 +8,11 @@
     </p>
 
     <div *ngIf="loading" class="loading-container">
-      <div class="spinner">⏳</div>
       <p>Cargando detalles del empleado...</p>
     </div>
 
     <div *ngIf="errorMessage && !loading" class="error-banner">
-      <p>⚠️ {{ errorMessage }}</p>
+      <p>{{ errorMessage }}</p>
       <button (click)="retryLoad()" class="retry-btn">Reintentar</button>
     </div>
 
@@ -47,7 +46,7 @@
             (click)="payAllOrders()"
             [disabled]="processingPayment"
           >
-            {{ processingPayment ? '⏳ Procesando...' : 'Pagar Todo' }}
+            {{ processingPayment ? ' Procesando...' : 'Pagar Todo' }}
           </button>
 
           <button 
@@ -55,7 +54,7 @@
             [class.locked]="isUserLocked"
             [disabled]="lockingInProgress"
             (click)="toggleLockUser()"
-            [title]="isUserLocked ? 'Desbloquear usuario' : 'Bloquear usuario'"
+            [title]="isUserLocked ? 'Habilitar usuario' : 'Deshabilitar usuario'"
           >
             <ng-container *ngIf="!lockingInProgress">
               <img 
@@ -64,8 +63,7 @@
                 style="width: 16px; height: 16px;"
               />
             </ng-container>
-            <span *ngIf="lockingInProgress">⏳</span>
-            {{ isUserLocked ? 'Desbloquear' : 'Bloquear' }}
+            {{ isUserLocked ? 'Habilitar' : 'Deshabilitar' }}
           </button>
         </div>
       </div>
@@ -95,7 +93,7 @@
           <span class="date">{{ formatDate(order.dateCreated) }}</span>
           <span class="order-status">
             <span class="status-badge" [style.background-color]="getStatusColor(order.orderStatus)">
-              {{ order.orderStatus }}
+              {{ getStatusLabel(order.orderStatus) }}
             </span>
           </span>
           <span class="days-pending" [class.urgent]="order.daysPending > 7">
@@ -109,7 +107,7 @@
             (click)="markAsPaid(order)"
             [disabled]="processingPayment"
           >
-            {{ selectedOrderUuid === order.saleUuid ? '⏳ Procesando...' : '✓ Pagar' }}
+            {{ selectedOrderUuid === order.saleUuid ? ' Procesando...' : '✓ Pagar' }}
           </button>
         </div>
       </div>
@@ -141,5 +139,26 @@
 
     </div>
 
+  </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal-backdrop" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">{{ confirmTitle }}</h3>
+    <p class="modal-message">{{ confirmMessage }}</p>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" (click)="closeConfirmModal()">Cancelar</button>
+      <button class="modal-btn primary" (click)="confirmYes()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de éxito/error -->
+<div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h3 class="modal-title">{{ modalTitle }}</h3>
+    <p class="modal-message">{{ modalMessage }}</p>
+    <button class="modal-btn" (click)="closeModal()">Entendido</button>
   </div>
 </div>

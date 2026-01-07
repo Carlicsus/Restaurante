@@ -57,8 +57,6 @@
             Email
             <span class="sort-icon" *ngIf="sortColumn === 'email'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
           </th>
-          <th>Estado</th>
-          <th>Bloqueo</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -66,34 +64,21 @@
         <tr *ngFor="let user of users">
           <td data-label="Usuario">{{ user.username }}</td>
           <td data-label="Email">{{ user.email }}</td>
-          <td data-label="Estado">
-            <span class="badge" [ngClass]="user.enabled ? 'badge-success' : 'badge-danger'">
-              {{ user.enabled ? 'Habilitado' : 'Deshabilitado' }}
-            </span>
-          </td>
-          <td data-label="Bloqueo">
-            <span class="badge" [ngClass]="user.accountLocked ? 'badge-warning' : 'badge-info'">
-              {{ user.accountLocked ? 'Bloqueado' : 'Desbloqueado' }}
-            </span>
-          </td>
           <td data-label="Acciones" class="actions-cell">
             <button 
-              class="action-btn btn-toggle"
+              class="toggle-btn"
+              [class.disabled]="!user.enabled"
               (click)="toggleEnabled(user)"
               [title]="user.enabled ? 'Deshabilitar' : 'Habilitar'">
-              <img [src]="user.enabled ? '/bloquear.png' : '/bloquear.png'" alt="Toggle" class="action-icon">
+              <img [src]="user.enabled ? '/candado.png' : '/candado-abierto.png'" alt="Toggle" class="btn-icon">
+              {{ user.enabled ? 'Deshabilitar' : 'Habilitar' }}
             </button>
             <button 
-              class="action-btn btn-lock"
-              (click)="toggleLocked(user)"
-              [title]="user.accountLocked ? 'Desbloquear' : 'Bloquear'">
-              <img [src]="user.accountLocked ? '/candado-abierto.png' : '/candado.png'" alt="Lock" class="action-icon">
-            </button>
-            <button 
-              class="action-btn btn-roles"
+              class="roles-btn"
               (click)="openRolesModal(user)"
               title="Gestionar Roles">
-              <img src="/boton-editar.png" alt="Roles" class="action-icon">
+              <img src="/boton-editar.png" alt="Roles" class="btn-icon">
+              Roles
             </button>
           </td>
         </tr>
@@ -130,7 +115,6 @@
   <!-- Modal de confirmación -->
   <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-icon">{{ modalIcon }}</div>
       <h3 class="modal-title">{{ modalTitle }}</h3>
       <p class="modal-message">{{ modalMessage }}</p>
       <button class="modal-btn" (click)="closeModal()">Entendido</button>
@@ -146,9 +130,9 @@
         <h4 class="section-subtitle">Roles Asignados</h4>
         <div class="roles-list" *ngIf="userRoles.length > 0">
           <div class="role-item" *ngFor="let role of userRoles">
-            <span class="role-badge">{{ role.authority }}</span>
+            <span class="role-badge">{{ getRoleNameInSpanish(role.authority) }}</span>
             <button class="btn-remove" (click)="removeRoleFromUser(role.id)" title="Quitar rol">
-              ❌
+              <img src="/equis.png" alt="Quitar" style="width: 16px; height: 16px;">
             </button>
           </div>
         </div>
@@ -157,17 +141,20 @@
 
       <div class="roles-section">
         <h4 class="section-subtitle">Asignar Nuevo Rol</h4>
+        <p class="warning-text" *ngIf="userRoles.length > 0" style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 0.75rem;">
+        Este usuario ya tiene un rol asignado. Elimina el rol actual para asignar uno nuevo.
+        </p>
         <div class="assign-role-form">
-          <select [(ngModel)]="selectedRoleId" class="role-select">
+          <select [(ngModel)]="selectedRoleId" class="role-select" [disabled]="userRoles.length > 0">
             <option [ngValue]="null">Seleccionar rol...</option>
             <option *ngFor="let role of availableRoles" [ngValue]="role.id">
-              {{ role.authority }}
+              {{ getRoleNameInSpanish(role.authority) }}
             </option>
           </select>
           <button 
             class="btn-assign" 
             (click)="assignRoleToUser()"
-            [disabled]="!selectedRoleId || loadingRoles">
+            [disabled]="!selectedRoleId || loadingRoles || userRoles.length > 0">
             Asignar
           </button>
         </div>

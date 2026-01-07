@@ -33,7 +33,6 @@ export class UserManagementComponent implements OnInit {
   
   // Modal
   showModal = false;
-  modalIcon = '';
   modalTitle = '';
   modalMessage = '';
   
@@ -159,14 +158,12 @@ export class UserManagementComponent implements OnInit {
   }
 
   showSuccessModal(title: string, message: string): void {
-    this.modalIcon = '';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
   }
 
   showErrorModal(title: string, message: string): void {
-    this.modalIcon = '';
     this.modalTitle = title;
     this.modalMessage = message;
     this.showModal = true;
@@ -225,8 +222,25 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  getRoleNameInSpanish(authority: string): string {
+    const roleNames: { [key: string]: string } = {
+      'ROLE_ADMIN': 'Administrador',
+      'ROLE_CHEF': 'Chef',
+      'ROLE_EMPLOYEE': 'Empleado',
+      'ROLE_FINANCE': 'Finanzas',
+      'ROLE_USER': 'Usuario'
+    };
+    return roleNames[authority] || authority;
+  }
+
   assignRoleToUser(): void {
     if (!this.selectedUser?.id || !this.selectedRoleId) {
+      return;
+    }
+
+    // Validar que el usuario no tenga ya un rol asignado
+    if (this.userRoles.length > 0) {
+      this.showErrorModal('Error', 'Este usuario ya tiene un rol asignado. Debe eliminar el rol actual antes de asignar uno nuevo.');
       return;
     }
 

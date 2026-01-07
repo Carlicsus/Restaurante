@@ -37,6 +37,9 @@
               [title]="dish.status === 1 ? 'Desactivar' : 'Activar'" class="btn-status">
               {{ dish.status === 1 ? '✓' : '○' }}
             </button>
+            <button (click)="openReviewsModal(dish)" class="btn-reviews" title="Ver comentarios">
+              <img src="bot-de-chat.png" alt="Ver comentarios" style="width: 16px; height: 16px;">
+            </button>
             <button (click)="openCloneDishModal(dish)" class="btn-clone" title="Clonar">
               <img src="clon.png" alt="Clonar">
             </button>
@@ -57,6 +60,69 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal de Reviews -->
+<div class="modal-overlay" *ngIf="showReviewsModal" (click)="closeReviewsModal()">
+  <div class="modal-content reviews-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Comentarios y valoraciones</h2>
+      <button class="btn-close" (click)="closeReviewsModal()">✕</button>
+    </div>
+    
+    <div class="dish-info" *ngIf="selectedDish">
+      <h3>{{ selectedDish.name }}</h3>
+      <p class="dish-description">{{ selectedDish.description }}</p>
+    </div>
+
+    <div class="review-stats" *ngIf="reviewStats">
+      <div class="average-rating">
+        <div class="rating-number">{{ reviewStats.averageRating || 0 }}</div>
+        <div class="stars">
+          <span *ngFor="let star of getStarArray(reviewStats.averageRating || 0)" 
+                [class.filled]="star === 1">⭐</span>
+        </div>
+        <div class="total-reviews">{{ reviewStats.totalReviews || 0 }} valoraciones</div>
+      </div>
+      
+      <div class="rating-distribution">
+        <div class="rating-bar" *ngFor="let rating of [5, 4, 3, 2, 1]">
+          <span class="rating-label">{{ rating }} ⭐</span>
+          <div class="bar-container">
+            <div class="bar-fill" 
+                 [style.width.%]="reviewStats['rating' + rating + 'Count'] ? (reviewStats['rating' + rating + 'Count'] / reviewStats.totalReviews * 100) : 0">
+            </div>
+          </div>
+          <span class="rating-count">{{ reviewStats['rating' + rating + 'Count'] || 0 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reviews-list" *ngIf="!loadingReviews">
+      <h4>Comentarios</h4>
+      <div class="review-item" *ngFor="let review of dishReviews">
+        <div class="review-header">
+          <div class="reviewer-info">
+            <strong>{{ review.person?.name || 'Usuario' }}</strong>
+            <div class="review-stars">
+              <span *ngFor="let star of getStarArray(review.rating)" 
+                    [class.filled]="star === 1">⭐</span>
+            </div>
+          </div>
+          <span class="review-date">{{ review.dateCreated | date: 'short' }}</span>
+        </div>
+        <p class="review-comment">{{ review.comment }}</p>
+      </div>
+      
+      <div class="no-reviews" *ngIf="dishReviews.length === 0">
+        <p>No hay comentarios todavía.</p>
+      </div>
+    </div>
+
+    <div class="loading-reviews" *ngIf="loadingReviews">
+      <p>Cargando comentarios...</p>
+    </div>
   </div>
 </div>
 

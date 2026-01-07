@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { NavbarEmployeeComponent } from '../../../shared/navbar-employee/navbar-employee.component';
 import { OrderService } from '../../../core/services/order.service';
 
-type OrderStatus = 'en-cola' | 'preparando' | 'terminado' | 'cancelado';
+type OrderStatus = 'pendiente' | 'en_proceso' | 'finalizada' | 'cancelada';
 type OrderFilter = 'todos' | OrderStatus;
 
 interface OrderItem {
@@ -124,20 +124,20 @@ export class OrderHistoryComponent implements OnInit {
 
   statusLabel(status: OrderStatus): string {
     switch (status) {
-      case 'en-cola': return 'En Cola';
-      case 'preparando': return 'Preparando';
-      case 'terminado': return 'Terminado';
-      case 'cancelado': return 'Cancelado';
+      case 'pendiente': return 'Pendiente';
+      case 'en_proceso': return 'En Preparación';
+      case 'finalizada': return 'Finalizada';
+      case 'cancelada': return 'Cancelada';
       default: return 'Desconocido';
     }
   }
 
   statusClass(status: OrderStatus): string {
     const classMap: { [key in OrderStatus]: string } = {
-      'en-cola': 'status-badge queued',
-      'preparando': 'status-badge preparing',
-      'terminado': 'status-badge finished',
-      'cancelado': 'status-badge cancelled',
+      'pendiente': 'status-badge queued',
+      'en_proceso': 'status-badge preparing',
+      'finalizada': 'status-badge finished',
+      'cancelada': 'status-badge cancelled',
     };
     return classMap[status] || 'status-badge';
   }
@@ -162,11 +162,11 @@ export class OrderHistoryComponent implements OnInit {
 
   private mapStatus(status: string): OrderStatus {
     switch (status) {
-      case 'Queue': return 'en-cola';
-      case 'Preparing': return 'preparando';
-      case 'Finished': return 'terminado';
-      case 'Cancelled': return 'cancelado';
-      default: return 'en-cola';
+      case 'Queue': return 'pendiente';
+      case 'Preparing': return 'en_proceso';
+      case 'Finished': return 'finalizada';
+      case 'Cancelled': return 'cancelada';
+      default: return 'pendiente';
     }
   }
 }

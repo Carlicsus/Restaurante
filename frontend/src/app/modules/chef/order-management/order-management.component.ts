@@ -86,18 +86,10 @@ export class ChefOrderManagementComponent {
   }
 
   confirmCancelOrder(): void {
-    if (!this.cancelReason.trim()) {
-      alert('Por favor, escribe un motivo de cancelación.');
-      return;
-    }
-
     console.log(
       `Pedido ${this.selectedOrderId} cancelado. Motivo:`,
       this.cancelReason
     );
-
-    // 👉 Aquí conectas backend
-    // this.orderService.cancelOrder(this.selectedOrderId, this.cancelReason);
 
     this.closeCancelModal();
   }

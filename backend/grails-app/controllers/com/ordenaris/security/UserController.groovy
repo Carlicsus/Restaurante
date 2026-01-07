@@ -187,4 +187,68 @@ class UserController {
         return respond(response.resp, status: response.status)
     }
 
+    @Secured(['ROLE_ADMIN'])
+    def uploadUserPhoto(Long id) {
+
+        if (!id) {
+            return respond(
+                [success: false, message: "El id del usuario es obligatorio"],
+                status: 400
+            )
+        }
+
+        def file = request.getFile('file')
+
+        if (!file || file.empty) {
+            return respond(
+                [success: false, message: "El archivo es obligatorio"],
+                status: 400
+            )
+        }
+
+        User user = User.get(id)
+
+        if (!user) {
+            return respond(
+                [success: false, message: "Usuario no encontrado"],
+                status: 404
+            )
+        }
+
+        userService.saveProfileImage(user, file)
+
+        respond([
+            success: true,
+            message: "Foto de perfil actualizada correctamente"
+        ])
+    }
+
+    @Secured(['ROLE_ADMIN'])
+    def getUserPhoto(Long id) {
+
+        if (!id) {
+            return respond(
+                [success: false, message: "El id del usuario es obligatorio"],
+                status: 400
+            )
+        }
+
+        User user = User.get(id)
+
+        if (!user) {
+            return respond(
+                [success: false, message: "Usuario no encontrado"],
+                status: 404
+            )
+        }
+
+        File image = userService.resolveProfileImage(user)
+
+        response.contentType =
+            Files.probeContentType(image.toPath())
+
+        response.outputStream << image.bytes
+        response.outputStream.flush()
+    }
+
 }

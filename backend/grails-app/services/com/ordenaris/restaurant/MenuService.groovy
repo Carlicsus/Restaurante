@@ -65,6 +65,8 @@ class MenuService {
             name: type.name,
             status: type.status,
             uuid: type.uuid,
+            startTime: type.startTime,
+            endTime: type.endTime
         ]
         if (list.size() > 0) {
             obj.submenu = list
@@ -72,13 +74,18 @@ class MenuService {
         return obj
     }
 
-    def newType(name, parentType) {
+    def newType(name, parentType, startTime = null, endTime = null) {
         try {
             def parentMenuType
             if (parentType) {
                 parentMenuType = MenuType.findByUuid(parentType)
             }
-            def newType = new MenuType([name: name, parentType: parentMenuType]).save(flush: true, failOnError: true)
+            def newType = new MenuType([
+                name: name, 
+                parentType: parentMenuType,
+                startTime: startTime,
+                endTime: endTime
+            ]).save(flush: true, failOnError: true)
             return [
                 resp: [success: true, data: newType.uuid, message: "Nuevo tipo de menú creado"],
                 status: 200
@@ -184,6 +191,31 @@ class MenuService {
             }.collect { type -> mapMenuType(type, []) }
             return [
                 resp: [success: true, data: list, mensage: "Tipos de menú paginados"],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.getMessage()],
+                status: 500
+            ]
+        }
+    }
+    def updateSchedule(uuid, startTime, endTime) {
+        try {
+            def menuType = MenuType.findByUuid(uuid)
+            if (!menuType) {
+                return [
+                    resp: [success: false, message: "Tipo de menú no encontrado"],
+                    status: 404
+                ]
+            }
+            
+            menuType.startTime = startTime
+            menuType.endTime = endTime
+            menuType.save(flush: true, failOnError: true)
+            
+            return [
+                resp: [success: true, message: "Horarios del tipo de menú actualizados correctamente", data: [startTime: startTime, endTime: endTime]],
                 status: 200
             ]
         } catch (e) {

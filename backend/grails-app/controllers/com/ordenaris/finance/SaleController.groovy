@@ -13,7 +13,6 @@ class SaleController {
 
     @Secured(['ROLE_FINANCE','ROLE_ADMIN'])
     def listDebtors() {
-        println "HOLA"
         def response = saleService.listDebtors()
         return respond(response.resp, status: response.status)
     }

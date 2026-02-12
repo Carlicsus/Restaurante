@@ -53,7 +53,7 @@ class ShoppingCartController {
                 if (!dataR.user_id) {
                     return respond([success: false, message: "Falta el ID del usuario"], status: 400)
                 }
-                if (!dataR.dishId) {
+                if (!dataR.dishUuid) {
                     return respond([success: false, message: "Falta el ID del platillo"], status: 400)
                 }
                 if (!dataR.quantityDish || dataR.quantityDish <= 0) {

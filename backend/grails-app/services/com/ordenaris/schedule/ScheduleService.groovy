@@ -7,109 +7,138 @@ import java.sql.Time
 @Transactional
 class ScheduleService {
 
-    Map createOrUpdate(
-        User user,
-        LocalTime entry,
-        LocalTime exit,
-        boolean isWorking
-    ) {
-        Schedule schedule = Schedule.findByUser(user)
-        boolean created = false
-
-        if (!schedule) {
-            schedule = new Schedule(user: user)
-            created = true
-        }
-
-        schedule.entryTime = Time.valueOf(entry)
-        schedule.exitTime  = Time.valueOf(exit)
-        schedule.isWorking = isWorking
-        schedule.save(failOnError: true)
-
-        [
-            resp: [
-                success: true,
-                message: created
-                    ? "Horario creado correctamente"
-                    : "Horario actualizado correctamente",
-                data: scheduleToResponse(schedule)
-            ],
-            status: created ? 201 : 200
-        ]
-    }
-
-    Map getByChef(Long userId) {
-        User user = User.get(userId)
-        if (!user) {
-            return [
-                resp  : [success: false, message: "Usuario no encontrado"],
-                status: 404
-            ]
-        }
-
-        Schedule schedule = Schedule.findByUser(user)
-        if (!schedule) {
-            return [
-                resp  : [success: false, message: "Horario no encontrado"],
-                status: 404
-            ]
-        }
-
-        [
-            resp  : [success: true, data: scheduleToResponse(schedule)],
-            status: 200
-        ]
-    }
-
-    Map listAll() {
+    def listAllSchedules() {
         def schedules = Schedule.list().collect {
             scheduleToResponse(it)
         }
 
-        [
+        return [
             resp  : [success: true, data: schedules],
             status: 200
         ]
     }
 
-    Map delete(Long userId) {
-        Schedule schedule = getScheduleEntity(userId)
+    def createUserSchedule( String uuidUser, LocalTime entry, LocalTime exit, boolean isWorking) {
+        def user = User.findByUuid(uuidUser)
+        if (!user) {
+            return [
+                resp  : [success: false, message: "usuario no encontrado"],
+                status: 412
+            ]
+        }
+
+        def schedule = Schedule.findByUser(user)
+        if (schedule){
+            return [
+                resp  : [success: false, message: "El usuario ya cuenta con un horario asignado"],
+                status: 409
+            ]
+        }
+
+
+        schedule = new Schedule(
+            user: user,
+            entryTime: Time.valueOf(entry),
+            exitTime: Time.valueOf(exit),
+            isWorking: isWorking
+        ).save(flush: true)
+
+        return [
+            resp  : [success: true, data: [message: "Se creó el horario con éxito", data: scheduleToResponse(schedule)]],
+            status: 201
+        ]
+    }
+
+    def updateUserSchedule( String uuidUser, LocalTime entry, LocalTime exit, boolean isWorking) {
+        def user = User.findByUuid(uuidUser)
+        if (!user) {
+            return [
+                resp  : [success: false, message: "usuario no encontrado"],
+                status: 412
+            ]
+        }
+
+        def schedule = Schedule.findByUser(user)
+        if (!schedule){
+            return [
+                resp  : [success: false, message: "El usuario no cuenta con un horario asignado"],
+                status: 409
+            ]
+        }
+
+        schedule.entryTime = Time.valueOf(entry)
+        schedule.exitTime = Time.valueOf(exit)
+        schedule.isWorking = isWorking
+        schedule.save(flush: true)
+
+        return [
+            resp  : [success: true, data: [message: "Se actualizo el horario con exito", data: scheduleToResponse(schedule)]],
+            status: 201
+        ]
+    }
+
+    def getByUuidUser(String uuidUser) {
+        def user = User.findByUuid(uuidUser)
+        if (!user) {
+            return [
+                resp  : [success: false, message: "Usuario no encontrado"],
+                status: 412
+            ]
+        }
+
+        def schedule = Schedule.findByUser(user)
         if (!schedule) {
             return [
                 resp  : [success: false, message: "Horario no encontrado"],
-                status: 404
+                status: 412
+            ]
+        }
+
+        return [
+            resp  : [success: true, data: scheduleToResponse(schedule)],
+            status: 200
+        ]
+    }
+
+    def deleteUserSchedule(String uuidUser) {
+        Schedule schedule = getScheduleEntity(uuidUser)
+        if (!schedule) {
+            return [
+                resp  : [success: false, message: "Horario no encontrado"],
+                status: 412
             ]
         }
 
         schedule.delete()
 
-        [
-            resp  : [success: true, message: "Horario eliminado correctamente"],
+        return [
+            resp  : [success: true, data: [message: "Horario eliminado correctamente"]],
             status: 200
         ]
+        
     }
 
-    private Schedule getScheduleEntity(Long userId) {
-        User user = User.get(userId)
-        user ? Schedule.findByUser(user) : null
+    def private getScheduleEntity(String uuidUser) {
+        User user = User.findByUuid(uuidUser)
+        return user ? Schedule.findByUser(user) : null
     }
 
-    boolean isAnyChefAvailable() {
-        Time now = Time.valueOf(
+    def isAnyChefAvailable() {
+        def now = Time.valueOf(
             LocalTime.now(java.time.ZoneId.of("America/Mexico_City"))
         )
 
-        Schedule.createCriteria().count {
+        return Schedule.createCriteria().count {
             eq("isWorking", true)
             le("entryTime", now)
             ge("exitTime", now)
         } > 0
     }
 
-    private Map scheduleToResponse(Schedule s) {
-        [
-            id        : s.id,
-            userId    : s.user.id,
+    def scheduleToResponse(Schedule s) {
+        return [ 
+            uuid      : s.uuid,
+            user_uuid : s.user.uuid,
             entryTime : s.entryTime.toLocalTime().toString(),
             exitTime  : s.exitTime.toLocalTime().toString(),
             isWorking : s.isWorking

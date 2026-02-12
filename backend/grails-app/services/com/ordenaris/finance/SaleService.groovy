@@ -17,8 +17,6 @@ class SaleService {
                     orderItems {
                         eq("status", true)    
                     }
-                    user {
-                    }
                 }
                 eq("status", "Pending")
             }
@@ -60,15 +58,15 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al obtener deudores."],
                 status: 500
             ]
         }
     }
 
-    def getDetailsByusername(String username) {
+    def getDetailsByUser(userUuid) {
         try {
-            def user = User.findByUsername(username)
+            def user = User.findByUuid(userUuid)
             if (!user) {
                 return [
                     resp: [success: false, message: "Usuario no encontrado"],
@@ -98,14 +96,14 @@ class SaleService {
                 status: 200
             ]
         }catch (e) {
-                return [
-                    resp: [success: false, message: "Error al obtener deudores: ${e.getMessage()}"],
-                    status: 500
-                ]
-            }
+            return [
+                resp: [success: false, message: "Error al obtener deudores."],
+                status: 500
+            ]
+        }
     }
 
-    def paySingleSale(String saleUuid) {
+    def paySingleSale(saleUuid) {
         try {
             def sale = Sale.findByUuid(saleUuid)
             if (!sale) {
@@ -144,13 +142,13 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al procesar el pago: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al procesar el pago."],
                 status: 500
             ]
         }
     }
 
-    def paySingleDish(String saleUuid, String orderItemUuid) {
+    def paySingleDish(saleUuid,orderItemUuid) {
         try {
             def sale = Sale.findByUuid(saleUuid)
             if (!sale) {
@@ -216,15 +214,15 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al procesar el pago del platillo: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al procesar el pago del platillo."],
                 status: 500
             ]
         }
     }
 
-    def payAllSalesForUser(String username) {
+    def payAllSalesForUser(userUuid) {
         try {
-            def user = User.findByUsername(username)
+            def user = User.findByUuid(userUuid)
             if (!user) {
                 return [
                     resp: [success: false, message: "Usuario no encontrado"],
@@ -269,7 +267,7 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al procesar los pagos: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al procesar los pagos."],
                 status: 500
             ]
         }
@@ -351,7 +349,7 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al crear la venta: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al crear la venta."],
                 status: 500
             ]
         }
@@ -375,13 +373,13 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al conseguir la venta: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al conseguir la venta."],
                 status: 500
             ]
         }
     }
 
-    def getUserSalesByDateRange(startDate, endDate,userId) {
+    def getUserSalesByDateRange(startDate, endDate, auth) {
         try {
             def start = parseDate(startDate)
             def end = parseDate(endDate)
@@ -393,9 +391,7 @@ class SaleService {
             }
             def list = Sale.createCriteria().list {
                 customerOrder {
-                    user {
-                        eq("id", userId)
-                    }
+                    eq("user", auth)
                 }
                 between("dateCreated", start, end)
                 order("dateCreated", "desc")
@@ -406,21 +402,19 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al conseguir las ventas en el rango especifico: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al conseguir las ventas en el rango especifico."],
                 status: 500
             ]
         }
     }
 
-    def getSalesByUser(userId, typeSale) {
+    def getSalesByUser(auth, typeSale) {
         try {
             def listOfSales
             if ( typeSale == 1 ) {
                 listOfSales = Sale.createCriteria().list {
                     customerOrder {
-                        user {
-                            eq("id", userId)
-                        }
+                        eq("user", auth)
                     }
                     eq("status", "Pending")
                     order("dateCreated", "desc")
@@ -429,9 +423,7 @@ class SaleService {
             if ( typeSale == 2 ) {
                 listOfSales = Sale.createCriteria().list {
                     customerOrder {
-                        user {
-                            eq("id", userId)
-                        }
+                        eq("user", auth)
                     }
                     eq("status", "Payed")
                     order("dateCreated", "desc")
@@ -440,9 +432,7 @@ class SaleService {
             if ( typeSale == 3 ) {
                 listOfSales = Sale.createCriteria().list {
                     customerOrder {
-                        user {
-                            eq("id", userId)
-                        }
+                        eq("user", auth)
                     }
                     order("dateCreated", "desc")
                 }.collect { sale -> mapOrder(sale) }
@@ -453,13 +443,13 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al conseguir las compras del usuario: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al conseguir las compras del usuario."],
                 status: 500
             ]
         }
     }
 
-    def getUserSpendingChart(startDate, endDate, userId) {
+    def getUserSpendingChart(startDate, endDate, auth) {
         try {
             def start = parseDate(startDate)
             def end = parseDate(endDate)
@@ -473,9 +463,7 @@ class SaleService {
 
             def sales = Sale.createCriteria().list {
                 customerOrder {
-                    user {
-                        eq("id", userId)
-                    }
+                    eq("user", auth)
                 }
                 between("dateCreated", start, end)
                 order("dateCreated", "asc")
@@ -524,7 +512,7 @@ class SaleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error al conseguir la grafica de gastos: ${e.getMessage()}"],
+                resp: [success: false, message: "Error al conseguir la grafica de gastos."],
                 status: 500
             ]
         }

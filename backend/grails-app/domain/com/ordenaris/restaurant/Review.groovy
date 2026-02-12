@@ -8,7 +8,8 @@ class Review {
     Date dateCreated
     Date lastUpdated
     String comment
-    float rating // e.g., 0.0 to 5.0
+    float rating 
+    int status = 1
 
     static belongsTo = [user: User, dish: Dish]
 
@@ -19,6 +20,7 @@ class Review {
         comment nullable: true, maxSize: 500
         rating range: 0.0..5.0
         lastUpdated nullable: true
+        status nullable: false
     }
 
     static mapping = {

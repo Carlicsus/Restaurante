@@ -5,20 +5,23 @@ import com.ordenaris.restaurant.Dish
 import com.ordenaris.order.CustomerOrder
 import com.ordenaris.order.OrderItem
 import com.ordenaris.finance.SaleService
-import com.ordenaris.finance.Sale
+import java.time.LocalTime
+import java.sql.Time
+import java.time.format.DateTimeFormatter
+
 @Transactional
 class OrderModuleService {
     def saleService
     def mapOrder = { CustomerOrder order ->
-        def obj = [
+        def orderResult = [
             uuid: order.uuid,
             status: order.status,
+            orderTime: order.orderTime.format("HH:mm"),
             dateCreated: order.dateCreated,
             lastUpdated: order.lastUpdated,
             user: [
                 uuid: order.user?.id,
                 username: order.user?.username,
-                //email: order.user?.email
             ],
             items: order.orderItems.collect { item ->
                 [
@@ -28,20 +31,26 @@ class OrderModuleService {
                     payed: item.payed,
                     dish: [
                         uuid: item.dish?.uuid,
-                        id:item.dish?.id,
                         name: item.dish?.name
                     ]
                 ]
-            }]
+            }
+        ]
+        if(order.completedTime) orderResult.completedTime = order.completedTime.format("HH:mm")
+        if(order.commentUser) orderResult.commentUser = order.commentUser
+        if(order.commentChef) orderResult.commentChef = order.commentChef
+        return orderResult
     }
+    Time now = Time.valueOf(
+        LocalTime.now(java.time.ZoneId.of("America/Mexico_City"))
+    )
+
     def listOrders() {
         def today = new Date().clearTime()
         def tomorrow = today + 1
-        
         def orders = CustomerOrder.findAll {
             dateCreated >= today && dateCreated < tomorrow
         }
-        
         def formattedOrders = orders.collect { order ->
             mapOrder(order) 
         }
@@ -50,12 +59,11 @@ class OrderModuleService {
                 status: 200
             ]
     }
-    def listOrdersByUser(data) {
+    def listOrdersByUser(data, userId) {
         try {
-            def userId = data instanceof Long ? data : data.id
             def user = User.get(userId)
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 400]
             }
 
             def max = data instanceof Long ? 10 : (data.max ? data.max.toInteger() : 10)
@@ -77,7 +85,6 @@ class OrderModuleService {
 
                 order(sortCol, orderDir)
             }
-
             def formattedOrders = resultList.collect { order -> 
                 mapOrder(order) 
             }
@@ -87,46 +94,52 @@ class OrderModuleService {
                     success: true, 
                     message: 'Ordenes listadas', 
                     orders: formattedOrders,
-                    total: resultList.totalCount
                 ],
                 status: 200
             ]
         }
         catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
     }
-    def newOrder(data, auth) {
+
+    def newOrder(data, auth, orderTime, commentUser) {
         try {
+            def now = LocalTime.now()
             def user = User.get(auth.id)
             if (!user) {
                 return [
                     resp: [success: false, message: 'Usuario no encontrado'], 
-                    status: 404
+                    status: 400
                 ]
             }
-            def dish_quantity= Dish.findById(data.dishId)
-            if(dish_quantity.availableDishes < 0){
+            if(orderTime.isBefore(now.plusHours(1))) {
                 return [
-                    resp:[success:false, message: "Lo sentimos no hay mas platillos"],
-                    status: 404
+                    resp:[success:false, message: "Lo sentimos no se puede pedir su orden en ese horario"],
+                    status: 400
+                ]            
+            }
+            def dishN = Dish.findById(data.dishId)
+            if (!dishN) {
+                return [
+                    resp: [success: false, message: "Platillo no encontrado"],
+                    status: 400
                 ]
             }
-
-            def customerOrder = new CustomerOrder([user:auth.id]).save(flush: true, failOnError: true)
-
+            if (dishN.availableDishes <= 0) {
+                return [
+                    resp: [success: false, message: "Lo sentimos no hay mas platillos", dish: dishN.name],
+                    status: 409
+                ]
+            }
+            if(commentUser == "") data.commentUser = null            
+            def customerOrder = new CustomerOrder([user:auth.id, orderTime:Time.valueOf(orderTime), commentUser: commentUser]).save(flush: true, failOnError: true)
             for (order in data) {
                 def dishId = order.dishId
                 def dish = Dish.findById(dishId)
-                def orderItem = new OrderItem([
-                    unitPrice: dish.cost, 
-                    dish: dishId, 
-                    quantity: order.quantityDish, 
-                    customerOrder:customerOrder.id
-                    ]).save(flush: true, failOnError: true)
                 def newQuantityDish = dish.availableDishes - order.quantityDish
                 if( order.quantityDish > dish.availableDishes){
                     return [
@@ -146,6 +159,12 @@ class OrderModuleService {
                         status:404
                     ]
                 }
+                def orderItem = new OrderItem([
+                    unitPrice: dish.cost, 
+                    dish: dishId, 
+                    quantity: order.quantityDish, 
+                    customerOrder:customerOrder.id
+                    ]).save(flush: true, failOnError: true)
                 dish.availableDishes = newQuantityDish
                 dish.save(flush: true, failOnError:true)
             }
@@ -156,7 +175,7 @@ class OrderModuleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
@@ -254,21 +273,75 @@ class OrderModuleService {
             ]
         }
     }
-    def editOrder(dataP, dataR) {
-        try {
+    def addDishOrder(dataP, dataR){
+        try{
             def order = CustomerOrder.findByUuid(dataP.uuidOrder)
+            def orderItem = OrderItem.findById(order.id)
             if (!order) {
                 return [
                     resp:[success: false, message: "Orden no encontrada o no existe"], 
                     status: 404
                     ]
             }
-            if (dataP.uuidDish){
-            def orderItem = OrderItem.findByUuid(dataP.uuidDish)
+            def dish = Dish.findByUuid(dataR.uuidItem)
+            if (!dish){
+                return [
+                    resp: [success: false, message: "No existe ese platillo"],
+                    status: 404
+                ]
+            }
+            def newQuantityDish
+            if(now <= order.completedTime){
+                return [resp: [success: false, message: "No se pueden agregar platillos a la orden 30 minutos antes de su horario que usted puso."], status: 404]
+            }
+            for(item in orderItem ){
+                if(item.dish.uuid == dataR.uuidItem){
+                    newQuantityDish = item.quantity + dataR.quantityDish
+                    if(newQuantityDish > 5){
+                        return [resp: [success: false, message: "No se pueden agregar mas platillos a la orden."], status: 404]
+                    }
+                    if(item.dish.availableDishes < newQuantityDish){
+                        return [resp: [success: false, message: "No hay suficientes platillos para la orden."], status: 404]
+                    }
+                    item.quantity = newQuantityDish
+                    item.save()
+                    return [resp: [success: true, message: "Se agrego la nueva cantidad del platillo a tu orden."], status: 201]
+                }
+            }
+            def orderItems = new OrderItem([
+                unitPrice: dish.cost,
+                dish: dish.id,
+                quantity: dataR.quantityDish,
+                customerOrder: order.id
+            ]).save(flush: true, failOnError: true)
+            return [
+                resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
+                status: 200
+            ]
+        }
+        catch(e){
+            return [
+                resp: [success: false, message: e.message],
+                status: 404
+            ]
+        }
+    }
+
+    def editOrder(dataP, dataR) {
+        try {
+            def order = CustomerOrder.findByUuid(dataP.uuidOrder)
+            if (!order) {
+                return [
+                    resp:[success: false, message: "Orden no encontrada o no existe"], 
+                    status: 400
+                ]
+            }
+            if (dataP.uuidItem){
+            def orderItem = OrderItem.findByUuid(dataP.uuidItem)
                 if (!orderItem) {
                     return [
-                        resp: [success: false, message: 'Item de la orden no encontrado'], 
-                        status: 404
+                        resp: [success: false, message: 'Platillo de la orden no encontrado'], 
+                        status: 400
                     ]
                 }
                 def newDishId = dataR.dishId
@@ -281,7 +354,7 @@ class OrderModuleService {
                 if (order.status in ["Finished", "Cancelled", "Preparing"]) {
                 return [
                     resp: [success: false, message: "No se puede editar esta orden si ya esta " + order.status], 
-                    status: 404
+                    status: 400
                     ]
                 }
 
@@ -290,16 +363,10 @@ class OrderModuleService {
                 orderItem.dish = newDishObject
                 orderItem.unitPrice = newDishObject.cost
                 orderItem.quantity = dataR.quantityDish
-                orderItem.status = dataR.status 
                 orderItem.save(flush: true, failOnError: true)
-            }
-            else{
-            def orderItem = OrderItem.findAllByCustomerOrder(order)
-            def dish = Dish.get(dataR.dishId)
-            if (!dish){
                 return [
                     resp: [success: false, message: "No existe ese platillo"],
-                    status: 404
+                    status: 400
                 ]
             }
             def orderItems = new OrderItem([
@@ -308,27 +375,34 @@ class OrderModuleService {
                 quantity: dataR.quantityDish,
                 customerOrder: order.id
             ]).save(flush: true, failOnError: true)
-            }
             return [
-                resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
+                resp: [success: false, message: "Se a actualizado tu orden", order: mapOrder(order)], 
                 status: 200
             ]
+            
+            
         } catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
-    }
-    def editOrderStatus(data) {
+    }       
+
+    def editOrderStatus(data, completedTime, commentChef) {
         try {
             def order = CustomerOrder.findByUuid(data.uuidOrder)
-            
             if (data.status in ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]) {
                 if (!order) {
                     return [
                         resp: [success: false, message: "Orden no encontrada"], 
-                        status: 404
+                        status: 400
+                    ]
+                }
+                if (order.status == "Queue" && data.status == "Finished") {
+                    return [
+                        resp: [success: false, message: "No se puede saltar el paso de preparacion de la orden, necesita primero que este en preparacion para poder finalizarla"], 
+                        status: 400
                     ]
                 }
                 if (order.status == "Finished") {
@@ -361,45 +435,53 @@ class OrderModuleService {
                     }
                 }
             }
-            if (data.status == "Finished") {
-                saleService.createAutoSale(order.id)
-            def dish = Dish.findByUuid(data)
-            }
             if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 order.status = data.status
                 order.save(flush: true, failOnError: true)
-            return [
-                resp: [
-                    success: true, 
-                    message: 'Estado de la orden actualizado a ' + data.status, 
-                    order:mapOrder(order)
-                ],
-                status: 200
-            ]
+                if (data.status == "Finished") {
+                    saleService.createAutoSale(order.id)
+                    order.commentChef = commentChef
+                    order.completedTime = Time.valueOf(completedTime)
+                    order.save(flush: true, failOnError: true)
+                }
+                if (data.status == "Cancelled") {
+                    saleService.createAutoSale(order.id)
+                    order.commentChef = commentChef
+                    order.completedTime = Time.valueOf(completedTime)
+                    order.save(flush: true, failOnError: true)
+                }
+                return [
+                    resp: [
+                        success: true, 
+                        message: 'Estado de la orden actualizado a ' + data.status, 
+                        order:mapOrder(order)
+                    ],
+                    status: 200
+                ]
             }
         } catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
-                status: 500
+                resp: [success: false, message: e.message],
+                status: 400
             ]
         }
     }
-    
+
     def rejectDish(String uuidOrder, String uuidDish, String reason, chef) {
         try {
             def order = CustomerOrder.findByUuid(uuidOrder)
             if (!order) {
                 return [
                     resp: [success: false, message: "Orden no encontrada"],
-                    status: 404
+                    status: 400
                 ]
             }
 
-            def orderItem = OrderItem.findByUuidAndCustomerOrder(uuidDish, order)
+            def orderItem = OrderItem.findByUuidAndCustomerOrder(uuidItem, order)
             if (!orderItem) {
                 return [
                     resp: [success: false, message: "Platillo no encontrado en la orden"],
-                    status: 404
+                    status: 400
                 ]
             }
 
@@ -407,7 +489,7 @@ class OrderModuleService {
             if (!chefUser) {
                 return [
                     resp: [success: false, message: "Chef no encontrado"],
-                    status: 404
+                    status: 400
                 ]
             }
 
@@ -451,7 +533,7 @@ class OrderModuleService {
             if (!user) {
                 return [
                     resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
+                    status: 400
                 ]
             }
 
@@ -491,7 +573,7 @@ class OrderModuleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
@@ -503,7 +585,7 @@ class OrderModuleService {
             if (!rejection) {
                 return [
                     resp: [success: false, message: "Rechazo no encontrado"],
-                    status: 404
+                    status: 400
                 ]
             }
 
@@ -536,7 +618,7 @@ class OrderModuleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
@@ -548,7 +630,7 @@ class OrderModuleService {
             if (!rejection) {
                 return [
                     resp: [success: false, message: "Rechazo no encontrado"],
-                    status: 404
+                    status: 400
                 ]
             }
 
@@ -605,7 +687,7 @@ class OrderModuleService {
             if (!rejection) {
                 return [
                     resp: [success: false, message: "Rechazo no encontrado"],
-                    status: 404
+                    status: 400
                 ]
             }
 
@@ -637,7 +719,7 @@ class OrderModuleService {
             ]
         } catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
@@ -651,7 +733,7 @@ class OrderModuleService {
                 if (!order) {
                     return [
                         resp:[success: false, message: "Orden no encontrada"], 
-                        status: 404
+                        status: 400
                     ]
                 }
                 if (order.status == "Finished") {
@@ -673,7 +755,7 @@ class OrderModuleService {
                 }
             }
             
-            order.comment = comment.comment
+            order.commentChef = comment.commentChef
             order.status = data.status
             order.save(flush: true, failOnError: true)
             return [
@@ -683,23 +765,23 @@ class OrderModuleService {
         }
         catch (e) {
             return [
-                resp: [success: false, message: "Error: ${e.message}"],
+                resp: [success: false, message: e.message],
                 status: 500
             ]
         }
     }
-        def orderInfo(uuid) {
+    def orderInfo(uuid) {
         try {
             def order = CustomerOrder.findByUuid(uuid)
             if (!order) {
                 return [
                     resp: [success: false, message: 'Orden no encontrada'], 
-                    status: 404
+                    status: 400
                 ]
             }
             return [resp: [success: true, order: mapOrder(order)], status: 200]
         } catch (e) {
-            return [resp: [success: false, message: "Error: ${e.message}"], status: 500]
+            return [resp: [success: false, message: e.message], status: 500]
         }
     }
 

@@ -3,7 +3,7 @@ package com.ordenaris.restaurant
 import grails.gorm.transactions.Transactional
 import com.ordenaris.security.User
 import com.ordenaris.restaurant.Dish
-
+import com.ordenaris.order.*
 @Transactional
 class ReviewService {
     def mapReview = { Review review ->
@@ -19,13 +19,21 @@ class ReviewService {
         ]
         
     }
-    def listReviews(dishId, page, max, rating) {
+    def listReviews(dishUuid, page, max, rating) {
+        Log.logger(Log.INFO, logId, "Listado de resenias.", "Llegada al servicio.", "params: { dish: ${dishId}, page: ${page}, max: ${max}, rating: ${rating} }")
+        def dish = Dish.findByUuid(dishUuid)
+        if (!dish) {
+            return [
+                resp: [success: false, message: 'Platillo no encontrado'],
+                status: 404
+            ]
+        }
         Integer offset = page * max - max
-
         def reviews = Review.createCriteria().list {
             dish {
-                eq("id", dishId)
+                eq("uuid", dishUuid)
             }
+            eq("status", 1)
             if(rating){
                 eq("rating", rating as Float)
             }
@@ -35,27 +43,32 @@ class ReviewService {
         }
 
         if(reviews.isEmpty()) {
-            def dish = Dish.findById(dishId)
+            Log.logger(Log.INFO, logId, "Listado de resenias.", "Platillo sin resenias.", "params: { dish: ${dishId}, page: ${page}, max: ${max}, rating: ${rating} }")
             return [
                 resp: [success: true, message: 'No hay reseñas para listar', dishName: dish.name, dishUuid: dish.uuid, reviews: []],
                 status: 200
             ]
         }else {
             def reviewsMapper = reviews.collect { review -> mapReview(review) }
+            Log.logger(Log.INFO, logId, "Listado de resenias.", "Resenias devueltas de manera exitosa.", "params: { dish: ${dishId}, page: ${page}, max: ${max}, rating: ${rating} }", "Resenias: ${reviews.size()}")
             return [
                 resp: [success: true, message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid, reviews: reviewsMapper],
                 status: 200
             ]
         }
     }
-    def ReviewsWithStats(dishId) {
+    def statisticsDish(dishUuid) {
         def totalReviews = Review.createCriteria().count {
-            eq("dish.id", dishId as Long)
+            dish {
+                eq("uuid", dishUuid)
+            }
+            eq("status", 1)
         }
         def avgRating = Review.createCriteria().get {
             dish {
-                eq("id", dishId)
+                eq("uuid", dishUuid)
             }
+            eq("status", 1)
             projections {
                 avg("rating")
             }
@@ -65,7 +78,7 @@ class ReviewService {
         (1..5).each { rating ->
             ratingsBreakdown[rating] = Review.createCriteria().count {
                 dish {
-                    eq("id", dishId)
+                    eq("uuid", dishUuid)
                 }
                 eq("rating", rating as Float)
             }
@@ -85,26 +98,37 @@ class ReviewService {
     }
     def createReview(data, auth) {
         try {
-            def user = User.get(auth.id)
-            if (!user) {
+            if (!auth) {
                 return [resp: [success: false, message: 'Usuario no encontrado'], status: 404]
             }
-            def dish = Dish.findById(data.dishId)
+            def dish = Dish.findByUuid(data.dishUuid)
             if (!dish) {
                 return [resp: [success: false, message: 'Platillo no encontrado'], status: 404]
             }
-
+            def orders = CustomerOrder.findAllByUserAndStatus(auth, "Finished")
+            if (!orders) {
+                return [resp: [success: false, message: 'No has realizado pedidos'], status: 400]
+            }
+            def items = OrderItem.createCriteria().list {
+                inList("customerOrder", orders)
+                eq("dish", dish)
+            }
+            if (!items) {
+                return [resp: [success: false, message: 'No has probado este platillo'], status: 400]
+            }
+            
             def review = Review.createCriteria().get {
-                eq("user.id", user.id)
-                eq("dish.id", dish.id)
+                eq("user", auth)
+                eq("dish", dish)
+                ne("status", 2)
             }
             
             if (review) {
-                return [resp: [success: false, message: 'Ya hay una review existente'], status: 404]
+                return [resp: [success: false, message: 'Ya hay una review existente'], status: 400]
             }
             
             def newReview = new Review([
-                user: user,
+                user: auth,
                 dish: dish,
                 comment: data.comment,
                 rating: data.rating
@@ -112,19 +136,31 @@ class ReviewService {
             
             return [resp: [success: true, message: 'Reseña creada', review: mapReview(newReview)], status: 201]
         } catch (Exception e) {
-            return [resp: [success: false, message: 'Error al crear la reseña: ' + e.message], status: 500]
+            return [resp: [success: false, message: "Error al crear la reseña"], status: 500]
         }
     }
-    def deleteReview(reviewUuid, auth) {
-        def review = Review.findByUuid(reviewUuid)
-        if (!review) {
-            return [resp: [success: false, message: 'Reseña no encontrada'], status: 404]
+    def statusReview(reviewUuid, status, auth) {
+        try {
+            if (!(status in [0, 1, 2])) {
+                return [resp: [success: false, message: 'Status inválido'], status: 400]
+            }
+            def review = Review.findByUuid(reviewUuid)
+            if (!review) {
+                return [resp: [success: false, message: 'Reseña no encontrada'], status: 404]
+            }
+            if (review.status == 2) {
+                return [resp: [success: false, message: 'La reseña ya ha sido eliminada'], status: 400]
+            }
+            if (review.status == status) {
+                def statusReview = status as boolean ? "activada." : "desactivada."
+                return [resp: [success: false, message: "La reseña ya ha sido "+statusReview], status: 400]
+            }
+            review.status = status
+            review.save()
+            return [resp: [success: true, message: "Estado de la reseña actualizado."], status: 200]
+        } catch (e) {
+            return [resp: [success: false, message: "Error al actualizar la reseña"], status: 500]
         }
-        if (review.user.id != auth.id) {
-            return [resp: [success: false, message: 'No tienes permiso para eliminar esta reseña'], status: 403]
-        }
-        review.delete(flush: true)
-        return [resp: [success: true, message: 'Reseña eliminada'], status: 200]
     }
     def editReview(reviewUuid, data, auth) {
         def review = Review.findByUuid(reviewUuid)

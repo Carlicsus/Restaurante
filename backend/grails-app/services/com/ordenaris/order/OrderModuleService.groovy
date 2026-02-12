@@ -59,6 +59,7 @@ class OrderModuleService {
                 status: 200
             ]
     }
+
     def listOrdersByUser(data, userId) {
         try {
             def user = User.get(userId)
@@ -180,10 +181,12 @@ class OrderModuleService {
             ]
         }
     }
+
     def addDishOrder(dataP, dataR){
         try{
             def order = CustomerOrder.findByUuid(dataP.uuidOrder)
             def orderItem = OrderItem.findById(order.id)
+            
             if (!order) {
                 return [
                     resp:[success: false, message: "Orden no encontrada o no existe"], 
@@ -199,7 +202,7 @@ class OrderModuleService {
             }
             def newQuantityDish
             if(now <= order.completedTime){
-                return [resp: [success: false, message: "No se pueden agregar platillos a la orden 30 minutos antes de su horario que usted puso."], status: 404]
+                return [resp: [success: false, message: "No se pueden agregar platillos a la orden 30 minutos antes de su horario de entrega."], status: 404]
             }
             for(item in orderItem ){
                 if(item.dish.uuid == dataR.uuidItem){
@@ -665,6 +668,7 @@ class OrderModuleService {
             ]
         }
     }
+
     def orderInfo(uuid) {
         try {
             def order = CustomerOrder.findByUuid(uuid)

@@ -145,22 +145,30 @@ class UrlMappings {
 
             group "/sale", {
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
-                get "/debtors/$username/details"(controller: "sale", action: "getDetailsByusername")
+                get "/debtors/$userUuid/details"(controller: "sale", action: "getDetailsByUser"){
+                    constraints {
+                        userUuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
                 post "/orders/pay-specific"(controller: "sale", action: "paySingleSale")
                 post "/orders/pay-dish"(controller: "sale", action: "paySingleDish")
                 post "/orders/pay-all-user"(controller: "sale", action: "payAllSalesForUser")
-                get "/date/$userId"(controller: "sale", action: "getUserSalesByDateRange")
+                get "/date"(controller: "sale", action: "getUserSalesByDateRange")
                 post "/user-expenses-chart"(controller: "sale", action: "getUserSpendingChart")
-                get "/pending/$userId"(controller: "sale", action: "getSalesByUser") {
+                get "/pending"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 1
                 }
-                get "/payed/$userId"(controller: "sale", action: "getSalesByUser") {
+                get "/payed"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 2
                 }
-                get "/all/$userId"(controller: "sale", action: "getSalesByUser") {
+                get "/all"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 3
                 }
-                get "/$uuid"(controller: "sale", action: "getOneSaleInfo")  
+                get "/$saleUuid"(controller: "sale", action: "getOneSaleInfo"){
+                    constraints {
+                        saleUuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
             }
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
@@ -211,13 +219,23 @@ class UrlMappings {
                     }
                 }
             }
+
             group "/review", {
                 get "/list"(controller: "review", action: "listReviews")
-                get "/stats/$dishId"(controller: "review", action: "reviewsWithStats")
+                get "/stats/$dishUuid"(controller: "review", action: "statisticsDish"){
+                    constraints {
+                        dishUuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
                 post "/new"(controller: "review", action: "createReview")
-                group "/$uuid", {
-                    delete "/delete"(controller: "review", action: "deleteReview")
+                group "/$reviewUuid", {
+                    delete "/delete"(controller: "review", action: "statusReview"){ status = 2 }
+                    patch "/deactivate"(controller: "review", action: "statusReview"){ status = 0 }
+                    patch "/activate"(controller: "review", action: "statusReview"){ status = 1 }
                     patch "/edit"(controller: "review", action: "editReview")
+                    constraints {
+                        reviewUuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
                 }
             }
         }

@@ -182,6 +182,98 @@ class OrderModuleService {
         }
     }
 
+    def createOrderFromItems(List items, auth) {
+        try {
+            def user = User.get(auth.id)
+            if (!user) {
+                return [
+                    resp: [success: false, message: 'Usuario no encontrado'],
+                    status: 404
+                ]
+            }
+
+            if (!items || items.isEmpty()) {
+                return [
+                    resp: [success: false, message: 'No hay items para la orden'],
+                    status: 400
+                ]
+            }
+
+            def validatedItems = []
+            for (item in items) {
+                if (!item?.dishId) {
+                    return [
+                        resp: [success: false, message: 'Falta el ID del platillo'],
+                        status: 400
+                    ]
+                }
+                if (!item?.quantityDish || item.quantityDish <= 0) {
+                    return [
+                        resp: [success: false, message: 'El numero de platillos no puede ser menor a 0 o ser 0'],
+                        status: 400
+                    ]
+                }
+                if (item.quantityDish > 5) {
+                    return [
+                        resp: [success: false, message: 'El numero de platillos no puede ser mayor a 5'],
+                        status: 400
+                    ]
+                }
+
+                def dish = Dish.get(item.dishId as Long)
+                if (!dish) {
+                    return [
+                        resp: [success: false, message: 'Platillo no encontrado'],
+                        status: 404
+                    ]
+                }
+
+                if (dish.availableDishes != null && dish.availableDishes >= 0) {
+                    if (item.quantityDish > dish.availableDishes) {
+                        return [
+                            resp: [
+                                success: false,
+                                message: "No hay suficientes platillos para esta orden, solo quedan ${dish.availableDishes}"
+                            ],
+                            status: 404
+                        ]
+                    }
+                }
+
+                validatedItems << [dish: dish, quantity: item.quantityDish as Integer]
+            }
+
+            def customerOrder = new CustomerOrder([user: user]).save(flush: true, failOnError: true)
+
+            for (entry in validatedItems) {
+                def dish = entry.dish
+                def quantity = entry.quantity
+
+                new OrderItem([
+                    unitPrice: dish.cost,
+                    dish: dish,
+                    quantity: quantity,
+                    customerOrder: customerOrder
+                ]).save(flush: true, failOnError: true)
+
+                if (dish.availableDishes != null && dish.availableDishes >= 0) {
+                    dish.availableDishes = dish.availableDishes - quantity
+                    dish.save(flush: true, failOnError: true)
+                }
+            }
+
+            customerOrder.refresh()
+            return [
+                resp: [success: true, message: 'Orden creada', order: mapOrder(customerOrder)],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
     def addDishOrder(dataP, dataR){
         try{
             def order = CustomerOrder.findByUuid(dataP.uuidOrder)

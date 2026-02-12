@@ -4,27 +4,28 @@ import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 import grails.rest.*
 import grails.converters.*
+import java.time.LocalTime
+
 @Secured(['isAuthenticated()'])
 class OrdersModuleController {
 	static responseFormats = ['json']
 	def orderModuleService
     def scheduleService
-    SpringSecurityService springSecurityService
+    SpringSecurityService springSecurityService    
 
-    private static final List<String> VALID_STATUSES = ["Cancelled", "Preparing", "Queue", "Pending", "Finished"]
-    
-    private getAuth() { springSecurityService.principal }
     def listOrders(){
+        def auth = springSecurityService.principal
         def serviceResponse = orderModuleService.listOrders()
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
     def listOrdersByUser(){
-        def userId = params.userId
+        def auth = springSecurityService.principal
+        def userId = auth.id
         if (!userId) {
             return respond([success: false, message: "Falta el ID del usuario"], status: 400)
         }
-        def serviceResponse = orderModuleService.listOrdersByUser(userId)
+        def serviceResponse = orderModuleService.listOrdersByUser(params, userId)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
@@ -38,8 +39,9 @@ class OrdersModuleController {
     }
 
     def newOrder(){
-        def data = request.JSON
-
+        def data = request.JSON.order
+        def auth = springSecurityService.principal   
+        def orderTime = request.JSON.orderTime
         for (item in data){
             if(!item){
                 return respond([success: false, message: "Datos invalidos"], status: 400)
@@ -60,19 +62,46 @@ class OrdersModuleController {
                 message: "Lo sentimos, la cocina está cerrada en este momento. No hay chefs disponibles."
             ], status: 409) 
         }
-        def serviceResponse = orderModuleService.newOrder(data, auth)
+        orderTime = LocalTime.parse(orderTime)
+        def serviceResponse = orderModuleService.newOrder(data, auth, orderTime, request.JSON.commentUser)
         return respond(serviceResponse.resp, status: serviceResponse.status) 
     }
-
-    def editOrder(){
+    def addDishOrder(){
         def dataP = params
-        def dataR = request.JSON        
+        def dataR = request.JSON
         if (!dataR){
-            if (!dataP.uuidOrder || !dataP.uuidDish ) {
+            if (!dataP.uuidOrder || !dataP.uuidItem ) {
+                if (!dataP.uuidOrder) {
+                    return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
+                }
+                if (!dataP.uuidItem) {
+                    return respond([success: false, message: "Falta el UUID del platillo en la orden"], status: 400)
+                }
+            }
+            return respond([success: false, message: "Faltan los datos para editar la orden"], status: 400)
+        }
+        if (!dataR.uuidItem) {
+            return respond([success: false, message: "Falta el ID del nuevo platillo"], status: 400)
+        }
+        if (!dataR.quantityDish || dataR.quantityDish < 1) {
+            return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
+        }
+        if (dataR.quantityDish > 5) {
+            return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
+        }
+        def serviceResponse = orderModuleService.addDishOrder(dataP, dataR)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+    def editOrder(){
+        def auth = springSecurityService.principal
+        def dataP = params
+        def dataR = request.JSON
+        if (!dataR){
+            if (!dataP.uuidOrder || !dataP.uuidItem ) {
             if (!dataP.uuidOrder) {
                 return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
             }
-            if (!dataP.uuidDish) {
+            if (!dataP.uuidItem) {
                 return respond([success: false, message: "Falta el UUID del platillo en la orden"], status: 400)
             }
         }
@@ -93,7 +122,16 @@ class OrdersModuleController {
     }
 
     def editOrderStatus(){
+        def auth = springSecurityService.principal
         def data = params
+        def dataR = request.JSON
+        def completedTime = null
+        if (data.status == "Finished" ) {
+            if (!dataR.completedTime) {
+                    return respond([success: false, message: "El horario de entrega es obligatorio para finalizar la orden"], status: 400)
+                }
+            completedTime = LocalTime.parse(dataR.completedTime)
+        }
         if (!data.uuidOrder) {
             return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
         }
@@ -104,11 +142,12 @@ class OrdersModuleController {
             return respond([success: false, message: "Estado de orden invalido"], status: 400)
         }
         
-        def serviceResponse = orderModuleService.editOrderStatus(data)
+        def serviceResponse = orderModuleService.editOrderStatus(data, completedTime, dataR.commentChef)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
     def cancelOrder(){
+        def auth = springSecurityService.principal
         def comment = request.JSON
         def data = params
         if (!data.uuidOrder) {
@@ -127,14 +166,14 @@ class OrdersModuleController {
     @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
     def rejectDish() {
         def uuidOrder = params.uuidOrder
-        def uuidDish = params.uuidDish
+        def uuidItem = params.uuidItem
         def data = request.JSON
 
         if (!uuidOrder || uuidOrder.size() != 32) {
             return respond([success: false, message: "UUID de orden inválido"], status: 400)
         }
 
-        if (!uuidDish || uuidDish.size() != 32) {
+        if (!uuidItem || uuidItem.size() != 32) {
             return respond([success: false, message: "UUID de platillo inválido"], status: 400)
         }
 
@@ -142,7 +181,7 @@ class OrdersModuleController {
             return respond([success: false, message: "Debe proporcionar una razón del rechazo"], status: 400)
         }
 
-        def serviceResponse = orderModuleService.rejectDish(uuidOrder, uuidDish, data.reason, auth)
+        def serviceResponse = orderModuleService.rejectDish(uuidOrder, uuidItem, data.reason, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
@@ -187,6 +226,7 @@ class OrdersModuleController {
         def serviceResponse = orderModuleService.cancelRejection(rejectionUuid, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
+
     def orderInfo(){
             def uuid = params.uuidOrder
             if (!uuid) {

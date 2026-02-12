@@ -42,7 +42,7 @@ class ShoppingCartController {
             return respond([success: false, message: "Faltan los datos para actualizar el estado del carrito de compras"], status: 400)
         }
 
-        def serviceResponse = shoppingCartService.editStatusShoppingCart(data) 
+        def serviceResponse = shoppingCartService.editStatusShoppingCart(data, request.JSON.commentUser, request.JSON.orderTime) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
     def addItemShoppingCart(){
@@ -69,7 +69,6 @@ class ShoppingCartController {
     }
     def deleteItemShoppingCart(){
         def data = params
-        println data
         if (!data) {
             if (!data.uuidSP) {
                 return respond([success: false, message: "Falta el UUID del carrito de compras"], status: 400)

@@ -74,6 +74,7 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
+
     def listOrderShoppingCartByUser(data) {
         try{
             def user = User.get(data.id)
@@ -85,6 +86,7 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
+
     def newOrderShoppingCart(data, auth) {
         try {
             if (!data) {
@@ -126,6 +128,7 @@ class ShoppingCartService {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }       
     }
+
     def editStatusShoppingCart(data, commentUser, orderTime){
         try {
             def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
@@ -189,18 +192,35 @@ class ShoppingCartService {
             return [resp: [success: false, message: "Hubo un error con el carrito de compras" + e.message], status: 404]
         }
     }
+
     def addItemShoppingCart(dataR, dataP) {
         try{
             if (!dataR) {
                 return [resp: [success: false, message: "Datos invalidos"], status: 400]
             }
             def shoppingCart = ShoppingCart.findByUuid(dataP.uuidSC)
+            def shoppingCartItem = ShoppingCartItem.findAllByShoppingCart(shoppingCart)
             if (!shoppingCart) {
                 return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
             }
-            def dish = Dish.findById(dataR.dishId)
+            def dish = Dish.findByUuid(dataR.dishUuid)
             if (!dish) {
                 return [resp: [success: false, message: "Platillo no encontrado"], status: 404]
+            } 
+            def newQuantityDish
+            for(item in shoppingCartItem ){
+                if(item.dish.uuid == dataR.dishUuid[0]){
+                    newQuantityDish = item.quantity + dataR.quantityDish
+                    if(newQuantityDish > 5){
+                        return [resp: [success: false, message: "No se pueden agregar mas platillos a la orden, excede el maximo de 5 por orden."], status: 404]
+                    }
+                    if(item.dish.availableDishes < newQuantityDish){
+                        return [resp: [success: false, message: "No hay suficientes platillos para la orden."], status: 404]
+                    }
+                    item.quantity = newQuantityDish
+                    item.save()
+                    return [resp: [success: true, message: "Se agrego la nueva cantidad del platillo a tu orden."], status: 201]
+                }
             }
             println dish
             def shoppingCartItemEntry = new ShoppingCartItem([
@@ -214,9 +234,9 @@ class ShoppingCartService {
         }
         catch (e) {
             return [resp: [success:false, message: e.getMessage()], status: 500]
-        }
-    
+        }      
     }
+
     def deleteItemShoppingCart(data) {
             try{
             def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)

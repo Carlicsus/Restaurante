@@ -182,6 +182,98 @@ class OrderModuleService {
         }
     }
 
+    def createOrderFromItems(List items, auth) {
+        try {
+            def user = User.get(auth.id)
+            if (!user) {
+                return [
+                    resp: [success: false, message: 'Usuario no encontrado'],
+                    status: 404
+                ]
+            }
+
+            if (!items || items.isEmpty()) {
+                return [
+                    resp: [success: false, message: 'No hay items para la orden'],
+                    status: 400
+                ]
+            }
+
+            def validatedItems = []
+            for (item in items) {
+                if (!item?.dishId) {
+                    return [
+                        resp: [success: false, message: 'Falta el ID del platillo'],
+                        status: 400
+                    ]
+                }
+                if (!item?.quantityDish || item.quantityDish <= 0) {
+                    return [
+                        resp: [success: false, message: 'El numero de platillos no puede ser menor a 0 o ser 0'],
+                        status: 400
+                    ]
+                }
+                if (item.quantityDish > 5) {
+                    return [
+                        resp: [success: false, message: 'El numero de platillos no puede ser mayor a 5'],
+                        status: 400
+                    ]
+                }
+
+                def dish = Dish.get(item.dishId as Long)
+                if (!dish) {
+                    return [
+                        resp: [success: false, message: 'Platillo no encontrado'],
+                        status: 404
+                    ]
+                }
+
+                if (dish.availableDishes != null && dish.availableDishes >= 0) {
+                    if (item.quantityDish > dish.availableDishes) {
+                        return [
+                            resp: [
+                                success: false,
+                                message: "No hay suficientes platillos para esta orden, solo quedan ${dish.availableDishes}"
+                            ],
+                            status: 404
+                        ]
+                    }
+                }
+
+                validatedItems << [dish: dish, quantity: item.quantityDish as Integer]
+            }
+
+            def customerOrder = new CustomerOrder([user: user]).save(flush: true, failOnError: true)
+
+            for (entry in validatedItems) {
+                def dish = entry.dish
+                def quantity = entry.quantity
+
+                new OrderItem([
+                    unitPrice: dish.cost,
+                    dish: dish,
+                    quantity: quantity,
+                    customerOrder: customerOrder
+                ]).save(flush: true, failOnError: true)
+
+                if (dish.availableDishes != null && dish.availableDishes >= 0) {
+                    dish.availableDishes = dish.availableDishes - quantity
+                    dish.save(flush: true, failOnError: true)
+                }
+            }
+
+            customerOrder.refresh()
+            return [
+                resp: [success: true, message: 'Orden creada', order: mapOrder(customerOrder)],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: "Error: ${e.message}"],
+                status: 500
+            ]
+        }
+    }
     def addDishOrder(dataP, dataR){
         try{
             def order = CustomerOrder.findByUuid(dataP.uuidOrder)
@@ -333,6 +425,17 @@ class OrderModuleService {
                         status: 400
                     ]
                 }
+                
+                // Validación: Chef no puede tener más de 2 órdenes en "Preparing"
+                if (data.status == "Preparing" && order.status != "Preparing") {
+                    def ordersPreparing = CustomerOrder.countByStatusAndUser("Preparing", order.user)
+                    if (ordersPreparing >= 2) {
+                        return [
+                            resp: [success: false, message: "El chef ya tiene 2 órdenes en proceso. No se pueden tener más."],
+                            status: 409
+                        ]
+                    }
+                }
             }
             if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 order.status = data.status
@@ -366,7 +469,7 @@ class OrderModuleService {
         }
     }
 
-    def rejectDish(String uuidOrder, String uuidItem, String reason, chef) {
+    def rejectDish(String uuidOrder, String uuidDish, String reason, chef) {
         try {
             def order = CustomerOrder.findByUuid(uuidOrder)
             if (!order) {
@@ -552,16 +655,17 @@ class OrderModuleService {
             rejection.dateApproved = new Date()
             rejection.save(flush: true, failOnError: true)
 
-            // Remover el item de la orden
+             // Marcar el item como inactivo en lugar de eliminarlo
             def orderItem = rejection.orderItem
             def order = rejection.order
-            order.removeFromOrderItems(orderItem)
-            orderItem.delete(flush: true)
+            orderItem.status = false
+            orderItem.save(flush: true, failOnError: true)
 
-            // Si la orden no tiene más items, cancelarla
-            if (order.orderItems.size() == 0) {
+            // Si la orden no tiene más items activos, cancelarla
+            def activeItems = order.orderItems.findAll { it.status == true }
+            if (activeItems.size() == 0) {
                 order.status = "Cancelled"
-                order.save(flush: true)
+                order.save(flush: true, failOnError: true)
             }
 
             return [
@@ -681,6 +785,39 @@ class OrderModuleService {
             return [resp: [success: true, order: mapOrder(order)], status: 200]
         } catch (e) {
             return [resp: [success: false, message: e.message], status: 500]
+        }
+    }
+
+    def listOrderByChef(auth) {
+        try {
+            def user = User.get(auth.id)
+            if (!user) {
+                return [
+                    resp: [success: false, message: "Usuario no encontrado"],
+                    status: 404
+                ]
+            }
+            
+            // Obtener todas las órdenes del chef ordenadas por fecha
+            def allOrders = CustomerOrder.findAllByUser(user, [sort: "dateCreated", order: "desc"])
+            
+            // Contar cuántas están en preparación
+            def preparingCount = allOrders.count { it.status == "Preparing" }
+            
+            return [
+                resp: [
+                    success: true,
+                    data: allOrders.take(5).collect { mapOrder(it) },
+                    ordersPreparing: preparingCount,
+                    canAcceptMore: preparingCount < 2
+                ],
+                status: 200
+            ]
+        } catch (e) {
+            return [
+                resp: [success: false, message: e.message],
+                status: 500
+            ]
         }
     }
 }

@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import com.ordenaris.RegisterTypeUser
 
 import java.security.SecureRandom
 
@@ -30,13 +31,13 @@ import com.ordenaris.security.Role
 @CompileStatic
 class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
-    private static final String PASSWORD_CHARS =
+    private static final String CRD_CHARS =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$/@!%*?&()-_=+[]{}<>'
 
     private static final SecureRandom secureRandom = new SecureRandom()
 
     @Delegate
-    UserDetailsService userDetailsService
+    AuthManagerService authManagerService
 
     @Override
     OauthUser loadUserByUserProfile(
@@ -53,13 +54,12 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             log.info "Creando usuario OAuth pendiente de autorización: ${email}"
             createPendingOauthUser(email, oauthProfile)
             throw new LockedException(
-                "Usuario pendiente de autorización por administrador"
+                "Usuario pendiente de autorizacion por administrador"
             )
         }
     }
 
     protected OauthUser loadExistingUser(String email, OAuth20Profile profile) {
-
         User domainUser = findUserByEmail(email)
         if (!domainUser) {
             throw new UsernameNotFoundException(
@@ -67,17 +67,15 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             )
         }
 
-        UserDetails userDetails =
-                userDetailsService.loadUserByUsername(domainUser.username)
+        UserDetails userDetails = authManagerService.loadUserByUsername(domainUser.username)
 
         validateUserIsEnabled(userDetails)
 
-        Collection<GrantedAuthority> roles =
-                validateAndExtractRoles(userDetails)
+        Collection<GrantedAuthority> roles = validateAndExtractRoles(userDetails)
 
         new OauthManagerBean(
                 userDetails.username,
-                userDetails.password,
+                domainUser.crd,
                 roles,
                 profile,
                 domainUser.id
@@ -106,20 +104,17 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
     }
 
     protected void validateUserIsEnabled(UserDetails userDetails) {
-        if (!userDetails.enabled) {
+        if (!userDetails.accountNonLocked) {
             throw new DisabledException(
-                "Tu cuenta debe ser activada por un administrador"
+                "Tu cuenta debe ser desbloqueada por un administrador"
             )
         }
     }
 
-    protected Collection<GrantedAuthority> validateAndExtractRoles(
-            UserDetails userDetails
-    ) {
-        Collection<GrantedAuthority> roles =
-                userDetails.authorities
-                    .findAll { it.authority != 'ROLE_NO_ROLES' }
-                    .collect { (GrantedAuthority) it }
+    protected Collection<GrantedAuthority> validateAndExtractRoles( UserDetails userDetails) {
+        Collection<GrantedAuthority> roles = userDetails.authorities
+            .findAll { it.authority != 'ROLE_NO_ROLES' }
+            .collect { (GrantedAuthority) it }
 
         if (!roles) {
             throw new InsufficientAuthenticationException(
@@ -133,12 +128,13 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
         User user = new User(
                 username: extractUsername(email),
-                password: generateSecurePassword(),
+                crd: generateSecureCrd(),
                 email: email,
                 names: profile.firstName ?: "",
                 lastNames: profile.familyName ?: "",
-                enabled: false,
-                accountLocked: false,
+                registerType: RegisterTypeUser.GOOGLE,
+                enabled: true,
+                accountLocked: true,
                 accountExpired: false,
                 passwordExpired: false
         )
@@ -151,14 +147,14 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         email.substring(0, email.indexOf('@'))
     }
 
-    protected String generateSecurePassword(int length = 24) {
+    protected String generateSecureCrd(int length = 24) {
 
-        StringBuilder password = new StringBuilder(length)
+        StringBuilder crd = new StringBuilder(length)
         for (int i = 0; i < length; i++) {
-            int index = secureRandom.nextInt(PASSWORD_CHARS.length())
-            password.append(PASSWORD_CHARS.charAt(index))
+            int index = secureRandom.nextInt(CRD_CHARS.length())
+            crd.append(CRD_CHARS.charAt(index))
         }
-        password.toString()
+        crd.toString()
     }
 
     @CompileDynamic

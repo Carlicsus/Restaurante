@@ -12,43 +12,42 @@ class ScheduleController {
     static responseFormats = ['json']
     ScheduleService scheduleService
 
-    def index() {
-        def response = scheduleService.listAll()
+    def listAllSchedules() {
+        def response = scheduleService.listAllSchedules()
         respond response.resp, status: response.status
     }
 
-    def show(Long id) {
-        def response = scheduleService.getByChef(id)
+    def getScheduleInfo(String uuidUser) {
+        def response = scheduleService.getByUuidUser(uuidUser)
         respond response.resp, status: response.status
     }
 
-    def save() {
-        User user = User.get(request.JSON.userId)
-        if (!user) {
-            return respond(
-                [success: false, message: "Chef no encontrado"],
-                status: 404
-            )
-        }
-
-        def response = scheduleService.createOrUpdate(
-            user,
+    def createSchedule(String uuidUser) {
+        
+        def response = scheduleService.createUserSchedule(
+            uuidUser,
             LocalTime.parse(request.JSON.entryTime),
             LocalTime.parse(request.JSON.exitTime),
-            request.JSON.isWorking as boolean
+            request.JSON.isWorking
         )
 
         respond response.resp, status: response.status
     }
 
-    def delete(Long id) {
-        def response = scheduleService.delete(id)
+    def updateSchedule(String uuidUser) {
+        
+        def response = scheduleService.updateUserSchedule(
+            uuidUser,
+            LocalTime.parse(request.JSON.entryTime),
+            LocalTime.parse(request.JSON.exitTime),
+            request.JSON.isWorking
+        )
+
         respond response.resp, status: response.status
     }
 
-    def isOpen() {
-        respond([
-            available: chefAvailabilityService.isAnyChefAvailable()
-        ])
+    def deleteSchedule(String uuidUser) {
+        def response = scheduleService.deleteUserSchedule(uuidUser)
+        respond response.resp, status: response.status
     }
 }

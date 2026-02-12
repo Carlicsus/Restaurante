@@ -3,6 +3,7 @@
     import grails.rest.*
     import grails.converters.*
     import grails.plugin.springsecurity.annotation.Secured
+    import grails.plugin.springsecurity.SpringSecurityService
     import org.springframework.web.multipart.MultipartFile
     import org.springframework.web.multipart.MultipartHttpServletRequest
 
@@ -12,8 +13,16 @@
         def DishService
         def ImageService  
 
+         // Usuarios normales: solo platillos activos
         def listDishes() {
-            def response = DishService.listDishes()
+            def response = DishService.listDishes(false)
+            return respond(response.resp, status: response.status)
+        }
+
+        // Chef/Admin: todos los platillos (activos y desactivados)
+        @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
+        def listAllDishes() {
+            def response = DishService.listDishes(true)
             return respond(response.resp, status: response.status)
         }
 
@@ -26,9 +35,6 @@
                 return respond([success: false, message: "El nombre es obligatorio"], status: 400)
             }
             
-            //if (data.name.soloNumeros()) { 
-              //  return respond([success: false, message: "El nombre debe contener letras y no solo numeros"], status: 400)
-           // }
             if (data.name.size() > 80) { 
                 return respond([success: false, message: "El nombre no puede ser tan largo"], status: 400)
             }
@@ -352,5 +358,34 @@
         response.outputStream.flush()
 
         return 
+    }
+    
+        def addStock() {
+        def data = request.JSON
+        
+        if (params.uuid?.size() != 32) {
+            return respond([success: false, message: "El uuid es inválido"], status: 400)
+        }
+        
+        if (!data.quantity) {
+            return respond([success: false, message: "La cantidad es obligatoria"], status: 400)
+        }
+        
+        if (data.quantity instanceof String && !data.quantity.soloNumeros()) {
+            return respond([success: false, message: "La cantidad debe ser un número"], status: 400)
+        }
+        
+        Integer quantity = data.quantity.toInteger()
+        
+        if (quantity <= 0) {
+            return respond([success: false, message: "La cantidad debe ser mayor a 0"], status: 400)
+        }
+        
+        if (quantity > 50) {
+            return respond([success: false, message: "No se puede agregar más de 50 unidades a la vez"], status: 400)
+        }
+        
+        def response = DishService.addStock(params.uuid, quantity)
+        return respond(response.resp, status: response.status)
     }
 }

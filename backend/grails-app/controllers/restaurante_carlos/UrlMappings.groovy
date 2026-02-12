@@ -26,9 +26,18 @@ class UrlMappings {
                     }
                 }
             }
+            group "/menu-del-dia", {
+                post "/new"(controller: "menuDelDia", action: "create")
+                get "/list"(controller: "menuDelDia", action: "list")
+                get "/today"(controller: "menuDelDia", action: "getToday")
+                post "/order/today"(controller: "menuDelDia", action: "orderToday")
+                get "/date/$fecha"(controller: "menuDelDia", action: "getByDate")
+                patch "/date/$fecha"(controller: "menuDelDia", action: "updateByDate")
+            }
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
+                get "/list-all"(controller: "platillo", action: "listAllDishes")  // Chef/Admin: todos los platillos
                 get "/view"(controller: "platillo", action: "paginateDishes")
                 get "/ranking/rating"(controller: "platillo", action: "dishRankingByRating")
                 get "/ranking/topselling"(controller: "platillo", action: "topSellingDishes")
@@ -52,6 +61,7 @@ class UrlMappings {
                     delete "/delete"(controller: "platillo", action: "editDishStatus") {
                         status = 2
                     }
+                    patch "/add-stock"(controller: "platillo", action: "addStock")
                     // Imagen: subida y borrado (protegidos) 
                     post "/upload-image"(controller: "platillo", action: "uploadDishImage")
                     delete "/image"(controller: "platillo", action: "deleteDishImage")
@@ -63,55 +73,86 @@ class UrlMappings {
             group "/images", {
                 get "/$fileName"(controller: "platillo", action: "downloadDishImage")
             }
+
             group "/user", {  
                 post "/register"(controller: "user", action: "register")
-                get "/view"(controller: "user", action: "paginateUsers")
-
-                patch "/enable/$username"(controller: "user", action: "setEnabled"){
-                    enable=true
+                get "/paginate"(controller: "user", action: "paginateUsers")
+                get "/me/photo"(controller: "user", action: "getMyPhoto") 
+                post "/me/photo"(controller: "user", action: "uploadMyPhoto")
+                patch "/requestChangeCrd"(controller: "user", action: "requestChangeCrd")
+                group "/$uuid", {
+                    constraints{
+                        uuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                    patch "/change-status/$status"(controller: "user", action: "changeStatus"){
+                        constraints {
+                            status inList:[
+                                "active",
+                                "deactivate",
+                                "block",
+                                "unlock"
+                            ]
+                        }
+                    }
+                    get "/info"(controller: "user", action: "getUserInfo")
+                    patch "/changeCrd"(controller: "user", action: "changeUserCrd")
+                    get "/photo"(controller: "user", action: "getUserPhoto")
+                    post "/photo"(controller: "user", action: "uploadUserPhoto")
                 }
-                patch "/disable/$username"(controller: "user", action: "setEnabled"){
-                    enable=false
-                }
-
-                patch "/lock/$username"(controller: "user", action: "setLocked"){
-                    lock=true
-                }
-                patch "/unlock/$username"(controller: "user", action: "setLocked"){
-                    lock=false
-                }
-
-                get "/me/photo"(controller: "user", action: "myPhoto") 
-                post "/me/photo"(controller: "user", action: "uploadPhoto") 
-
-                get  "/$id/photo"(controller: "user", action: "getUserPhoto")
-                post "/$id/photo"(controller: "user", action: "uploadUserPhoto")
-
-                get "/info/$username"(controller: "user", action: "getUserInfo")
-                patch "/$id/password"(controller: "user", action: "changeUserPassword")
-
             }
 
             group "/role", {
 
-                get "/"(controller: "role", action: "index")
-                get "/$id"(controller: "role", action: "show")
+                get "/listAll"(controller: "role", action: "listAllRoles")
+                post "/create"(controller: "role", action: "createNewRole")
+                group "/$uuid", {
+                    constraints{
+                        uuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                    get "/info"(controller: "role", action: "getRoleInfo")
+                    delete "/delete"(controller: "role", action: "deleteRole")
+                    patch "/changeAuthority"(controller: "role", action: "changeAuthority")
+                }
 
-                post "/"(controller: "role", action: "save")
-                put "/$id"(controller: "role", action: "update")
-                delete "/$id"(controller: "role", action: "delete")
             }
 
-            group "/user-role", {
-
-                get "/user/$userId"(controller: "userRole", action: "getRolesByUser")
-
-                post "/"(controller: "userRole", action: "assignRole")
-
-                put "/"(controller: "userRole", action: "updateRole")
-
-                delete "/"(controller: "userRole", action: "removeRole")
+            group "/userRole", {
+                get "/getRoles/$uuidUser"(controller: "userRole", action: "getRolesByUser"){
+                    constraints{
+                        uuidUser(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
+                post "/assignRole/$uuidUser/$uuidRole"(controller: "userRole", action: "assignRole"){
+                    constraints{
+                        uuidUser(matches: /^[a-fA-F0-9]{32}/)
+                        uuidRole(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
+                delete "/removeRole/$uuidUser/$uuidRole"(controller: "userRole", action: "removeRole"){
+                    constraints{
+                        uuidUser(matches: /^[a-fA-F0-9]{32}/)
+                        uuidRole(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
+                patch "/changeRole/$uuidUser/$uuidRole/$uuidNewRole"(controller: "userRole", action: "changeRole"){
+                    constraints{
+                        uuidUser(matches: /^[a-fA-F0-9]{32}/)
+                        uuidRole(matches: /^[a-fA-F0-9]{32}/)
+                        uuidNewRole(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
             }
+
+            group "/schedule", {
+                get "/listAllSchedules"(controller: "schedule", action: "listAllSchedules")
+                group "/user/$uuidUser", {
+                    get "/getUserSchedule"(controller: "schedule", action: "getScheduleInfo")
+                    post "/createSchedule"(controller: "schedule", action: "createSchedule")
+                    put "/updateSchedule"(controller: "schedule", action: "updateSchedule")
+                    delete "/deleteSchedule"(controller: "schedule", action: "deleteSchedule")
+                }
+            }
+
             group "/sale", {
                 get "/debtors/all"(controller: "sale", action: "listDebtors")
                 get "/debtors/$userUuid/details"(controller: "sale", action: "getDetailsByUser"){
@@ -144,6 +185,7 @@ class UrlMappings {
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
                 get "/listOrdersByUser/$userId"(controller: "ordersModule", action: "listOrdersByUser")
                 get "/myOrders"(controller: "ordersModule", action: "getMyOrders")
+                get "/listOrderByChef"(controller: "ordersModule", action: "listOrderByChef")
                 get "/rejections"(controller: "ordersModule", action: "listRejections")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
@@ -188,6 +230,7 @@ class UrlMappings {
                     }
                 }
             }
+
             group "/review", {
                 get "/list"(controller: "review", action: "listReviews")
                 get "/stats/$dishUuid"(controller: "review", action: "statisticsDish"){
@@ -205,14 +248,6 @@ class UrlMappings {
                         reviewUuid(matches: /^[a-fA-F0-9]{32}/)
                     }
                 }
-            }
-
-            group "/schedule", {
-                get "/"(controller: "schedule", action: "index")
-                post "/"(controller: "schedule", action: "save")
-                get "/is-open"(controller: "schedule", action: "isOpen")
-                delete "/$id"(controller: "schedule", action: "delete")
-                get "/$id"(controller: "schedule", action: "show")
             }
         }
         "/"(controller: 'application', action:'index')

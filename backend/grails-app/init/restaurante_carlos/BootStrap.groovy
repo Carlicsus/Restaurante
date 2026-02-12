@@ -9,6 +9,7 @@ import java.time.LocalTime
 import java.sql.Time
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.restaurant.MenuType
+import com.ordenaris.restaurant.MenuDelDia
 import java.time.LocalTime
 import java.sql.Time
 class BootStrap {
@@ -20,13 +21,29 @@ class BootStrap {
             def match = patter.matcher(delegate)
             return match.matches()
         }
+
+        String.metaClass.roleFormat = {
+            def expression = '^ROLE_[A-Z_]+$'
+            def patter = Pattern.compile(expression)
+            def match = patter.matcher(delegate)
+            return match.matches()
+        }
+
+        String.metaClass.securePassword = {
+            def expresion = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&\/])[A-Za-z\d$@!%*?&\/]{8,15}$/
+            def pattern = Pattern.compile(expresion)
+            def matcher = pattern.matcher(delegate)
+            return matcher.matches()
+        }
+
     if (MenuType.count() == 0) {
             println "Iniciando carga de MenuType..."
-            new MenuType([ name: "Desayuno" ]).save(flush:true)
-            new MenuType([ name: "Comida" ]).save(flush:true)
-            new MenuType([ name: "Especiales" ]).save(flush:true)
-            new MenuType([ name: "Postres" ]).save(flush:true)
-            new MenuType([ name: "Bebidas" ]).save(flush:true)
+            new MenuType([ name: "Desayuno", startTime: "09:00", endTime: "11:00" ]).save(flush:true)
+            new MenuType([ name: "Comida", startTime: "11:00", endTime: "16:00" ]).save(flush:true)
+            new MenuType([ name: "Especiales", startTime: "11:00", endTime: "18:00" ]).save(flush:true)
+            new MenuType([ name: "Menu del dia", startTime: "11:00", endTime: "18:00" ]).save(flush:true)
+            new MenuType([ name: "Postres" ]).save(flush:true) // Disponible todo el día
+            new MenuType([ name: "Bebidas" ]).save(flush:true) // Disponible todo el día
             println "MenuType cargados."
         }
 
@@ -37,10 +54,10 @@ class BootStrap {
             def financeRole = Role.findOrSaveByAuthority('ROLE_FINANCE')
             def userRole = Role.findOrSaveByAuthority('ROLE_USER')
 
-            def adminUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('admin', 'admin','admin@ordenaris.com',"zaseck","Cruz")
-            def chefUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('chef', 'chef','chef@ordenaris.com',"Carlos","Aranda")
-            def financeUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('finance', 'finance','finance@ordenaris.com',"Edgar","Cruz")
-            def userUser = User.findOrSaveByUsernameAndPasswordAndEmailAndNamesAndLastNames('user', 'user','user@ordenaris.com',"Raul","Reyes")
+            def adminUser = User.findOrSaveByUsernameAndCrdAndEmailAndNamesAndLastNames('admin', 'admin','admin@ordenaris.com',"zaseck","Cruz")
+            def chefUser = User.findOrSaveByUsernameAndCrdAndEmailAndNamesAndLastNames('chef', 'chef','chef@ordenaris.com',"Carlos","Aranda")
+            def financeUser = User.findOrSaveByUsernameAndCrdAndEmailAndNamesAndLastNames('finance', 'finance','finance@ordenaris.com',"Edgar","Cruz")
+            def userUser = User.findOrSaveByUsernameAndCrdAndEmailAndNamesAndLastNames('user', 'user','user@ordenaris.com',"Raul","Reyes")
 
             UserRole.create adminUser, adminRole
             UserRole.create chefUser, chefRole
@@ -66,7 +83,6 @@ class BootStrap {
         }
 
         if (Dish.count() == 0) {
-            println "Iniciando carga de Dish..."
             
             def mtDesayuno = MenuType.findByName("Desayuno")
             def mtComida = MenuType.findByName("Comida")
@@ -173,6 +189,34 @@ class BootStrap {
             ).save(failOnError: true)
                 
             println "Dish cargados."
+        }
+
+        if (MenuDelDia.count() == 0) {
+            println "Iniciando carga de MenuDelDia..."
+            def today = new Date().clearTime()
+            
+            def comidaPlato = Dish.findByName("Tacos al Pastor")
+            def bebidaPlato = Dish.findByName("Agua de Horchata 1L")
+            def postrePlato = Dish.findByName("Flan Napolitano")
+            def mtMenuDelDia = MenuType.findByName("Menu del dia")
+            
+            if (comidaPlato && bebidaPlato && postrePlato && mtMenuDelDia) {
+                def existing = MenuDelDia.findByFecha(today)
+                if (!existing) {
+                    new MenuDelDia(
+                        fecha: today,
+                        menuType: mtMenuDelDia,
+                        comida: comidaPlato,
+                        bebida: bebidaPlato,
+                        postre: postrePlato
+                    ).save(failOnError: true)
+                    println "MenuDelDia cargado."
+                } else {
+                    println "MenuDelDia ya existe para hoy"
+                }
+            } else {
+                println "No se pudo crear MenuDelDia: faltan platos o MenuType necesarios"
+            }
         }
 
     }

@@ -3,11 +3,11 @@ package com.ordenaris.schedule
 import com.ordenaris.security.User
 import grails.compiler.GrailsCompileStatic
 import java.sql.Time
+import java.util.UUID
 
 @GrailsCompileStatic
 class Schedule {
-    User user
-    
+    String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
     Time entryTime
     Time exitTime
     boolean isWorking = true
@@ -21,9 +21,10 @@ class Schedule {
     }
 
     static mapping = {
-        entryTime column: 'entry_time', sqlType: 'TIME' 
+        entryTime column: 'entry_time', sqlType: 'TIME'
         exitTime  column: 'exit_time',  sqlType: 'TIME'
         
-        isWorking column: 'is_working', type: 'boolean' 
+        isWorking column: 'is_working'
+        version false
     }
 }

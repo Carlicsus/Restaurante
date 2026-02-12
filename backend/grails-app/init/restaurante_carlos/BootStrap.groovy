@@ -9,6 +9,7 @@ import java.time.LocalTime
 import java.sql.Time
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.restaurant.MenuType
+import com.ordenaris.restaurant.MenuDelDia
 import java.time.LocalTime
 import java.sql.Time
 class BootStrap {
@@ -22,11 +23,12 @@ class BootStrap {
         }
     if (MenuType.count() == 0) {
             println "Iniciando carga de MenuType..."
-            new MenuType([ name: "Desayuno" ]).save(flush:true)
-            new MenuType([ name: "Comida" ]).save(flush:true)
-            new MenuType([ name: "Especiales" ]).save(flush:true)
-            new MenuType([ name: "Postres" ]).save(flush:true)
-            new MenuType([ name: "Bebidas" ]).save(flush:true)
+            new MenuType([ name: "Desayuno", startTime: "09:00", endTime: "11:00" ]).save(flush:true)
+            new MenuType([ name: "Comida", startTime: "11:00", endTime: "16:00" ]).save(flush:true)
+            new MenuType([ name: "Especiales", startTime: "11:00", endTime: "18:00" ]).save(flush:true)
+            new MenuType([ name: "Menu del dia", startTime: "11:00", endTime: "18:00" ]).save(flush:true)
+            new MenuType([ name: "Postres" ]).save(flush:true) // Disponible todo el día
+            new MenuType([ name: "Bebidas" ]).save(flush:true) // Disponible todo el día
             println "MenuType cargados."
         }
 
@@ -173,6 +175,34 @@ class BootStrap {
             ).save(failOnError: true)
                 
             println "Dish cargados."
+        }
+
+        if (MenuDelDia.count() == 0) {
+            println "Iniciando carga de MenuDelDia..."
+            def today = new Date().clearTime()
+            
+            def comidaPlato = Dish.findByName("Tacos al Pastor")
+            def bebidaPlato = Dish.findByName("Agua de Horchata 1L")
+            def postrePlato = Dish.findByName("Flan Napolitano")
+            def mtMenuDelDia = MenuType.findByName("Menu del dia")
+            
+            if (comidaPlato && bebidaPlato && postrePlato && mtMenuDelDia) {
+                def existing = MenuDelDia.findByFecha(today)
+                if (!existing) {
+                    new MenuDelDia(
+                        fecha: today,
+                        menuType: mtMenuDelDia,
+                        comida: comidaPlato,
+                        bebida: bebidaPlato,
+                        postre: postrePlato
+                    ).save(failOnError: true)
+                    println "MenuDelDia cargado."
+                } else {
+                    println "MenuDelDia ya existe para hoy"
+                }
+            } else {
+                println "No se pudo crear MenuDelDia: faltan platos o MenuType necesarios"
+            }
         }
 
     }

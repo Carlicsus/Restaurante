@@ -1,12 +1,44 @@
 package com.ordenaris.shoppingCart
 import com.ordenaris.restaurant.Dish
+import com.ordenaris.restaurant.MenuType
 import com.ordenaris.security.User
 import com.ordenaris.order.CustomerOrder
 import com.ordenaris.order.OrderItem
 import grails.gorm.transactions.Transactional
 import com.ordenaris.finance.Sale
+import java.text.SimpleDateFormat
+
+
 @Transactional
 class ShoppingCartService {
+    // Método para validar si el platillo se puede ordenar en el horario actual
+    def isMenuAvailableNow(MenuType menuType) {
+        if (!menuType.startTime || !menuType.endTime) {
+            return [available: true] // Si no tiene horarios configurados, está disponible
+        }
+        
+        def now = new Date()
+        def calendar = Calendar.getInstance()
+        calendar.setTime(now)
+        
+        def currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+        def currentMinute = calendar.get(Calendar.MINUTE)
+        def currentTimeInMinutes = currentHour * 60 + currentMinute
+        
+        // Parsear horarios de inicio y fin
+        def startParts = menuType.startTime.split(':')
+        def endParts = menuType.endTime.split(':')
+        
+        def startTimeInMinutes = Integer.parseInt(startParts[0]) * 60 + Integer.parseInt(startParts[1])
+        def endTimeInMinutes = Integer.parseInt(endParts[0]) * 60 + Integer.parseInt(endParts[1])
+        
+        if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes <= endTimeInMinutes) {
+            return [available: true]
+        } else {
+            return [available: false, menuName: menuType.name, startTime: menuType.startTime, endTime: menuType.endTime]
+        }
+    }
+    
     def mapShoppingCart = { ShoppingCart cart ->
     def obj = [
         id: cart.id,
@@ -70,6 +102,20 @@ class ShoppingCartService {
                 //println dish
                 if (!dish) {
                     return [resp: [success: false, message: "Platillo no encontrado"], status: 404]
+                }
+                // Validar horarios del menú
+                def menuType = dish.menuType
+                def availability = isMenuAvailableNow(menuType)
+                if (!availability.available) {
+                    // Eliminar el carrito creado si hay error de horario
+                    shoppingCart.delete(flush: true)
+                    return [
+                        resp: [
+                            success: false, 
+                            message: "El platillo '${dish.name}' pertenece al menú '${availability.menuName}' que solo está disponible de ${availability.startTime} a ${availability.endTime}"
+                        ], 
+                        status: 409
+                    ]
                 }
                 
                 def shoppingCartItemEntry = new ShoppingCartItem([
@@ -170,7 +216,19 @@ class ShoppingCartService {
             if (!dish) {
                 return [resp: [success: false, message: "Platillo no encontrado"], status: 404]
             }
-            println dish
+            // Validar horarios del menú
+            def menuType = dish.menuType
+            def availability = isMenuAvailableNow(menuType)
+            if (!availability.available) {
+                return [
+                    resp: [
+                        success: false, 
+                        message: "El platillo '${dish.name}' pertenece al menú '${availability.menuName}' que solo está disponible de ${availability.startTime} a ${availability.endTime}"
+                    ], 
+                    status: 409
+                ]
+            }
+
             def shoppingCartItemEntry = new ShoppingCartItem([
                 userId: shoppingCart.user.id,
                 dish: dish.id,
@@ -183,7 +241,7 @@ class ShoppingCartService {
         catch (e) {
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }
-           
+    
     }
     def deleteItemShoppingCart(data) {
             try{

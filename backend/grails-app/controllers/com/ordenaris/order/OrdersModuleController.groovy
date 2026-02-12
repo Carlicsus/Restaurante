@@ -92,6 +92,7 @@ class OrdersModuleController {
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
+    @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
     def editOrderStatus(){
         def data = params
         if (!data.uuidOrder) {
@@ -195,5 +196,16 @@ class OrdersModuleController {
             def serviceResponse = orderModuleService.orderInfo(uuid)
             return respond(serviceResponse.resp, status: serviceResponse.status)
         }
+
+    @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
+    def listOrderByChef() {
+        def auth = springSecurityService.principal
+        if (!auth || !auth.id) {
+            return respond([success: false, message: "Usuario no autenticado"], status: 401)
+        }
         
+        def serviceResponse = orderModuleService.listOrderByChef(auth)
+        return respond(serviceResponse.resp, status: serviceResponse.status)
+    }
+    
     }

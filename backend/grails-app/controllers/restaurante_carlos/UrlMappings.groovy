@@ -26,9 +26,18 @@ class UrlMappings {
                     }
                 }
             }
+            group "/menu-del-dia", {
+                post "/new"(controller: "menuDelDia", action: "create")
+                get "/list"(controller: "menuDelDia", action: "list")
+                get "/today"(controller: "menuDelDia", action: "getToday")
+                post "/order/today"(controller: "menuDelDia", action: "orderToday")
+                get "/date/$fecha"(controller: "menuDelDia", action: "getByDate")
+                patch "/date/$fecha"(controller: "menuDelDia", action: "updateByDate")
+            }
             group "/dish", {  
                 post "/new"(controller: "platillo", action: "newDish")  
                 get "/list"(controller: "platillo", action: "listDishes")
+                get "/list-all"(controller: "platillo", action: "listAllDishes")  // Chef/Admin: todos los platillos
                 get "/view"(controller: "platillo", action: "paginateDishes")
                 get "/ranking/rating"(controller: "platillo", action: "dishRankingByRating")
                 get "/ranking/topselling"(controller: "platillo", action: "topSellingDishes")
@@ -52,6 +61,7 @@ class UrlMappings {
                     delete "/delete"(controller: "platillo", action: "editDishStatus") {
                         status = 2
                     }
+                    patch "/add-stock"(controller: "platillo", action: "addStock")
                     // Imagen: subida y borrado (protegidos) 
                     post "/upload-image"(controller: "platillo", action: "uploadDishImage")
                     delete "/image"(controller: "platillo", action: "deleteDishImage")
@@ -136,6 +146,7 @@ class UrlMappings {
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
                 get "/listOrdersByUser/$userId"(controller: "ordersModule", action: "listOrdersByUser")
                 get "/myOrders"(controller: "ordersModule", action: "getMyOrders")
+                get "/listOrderByChef"(controller: "ordersModule", action: "listOrderByChef")
                 get "/rejections"(controller: "ordersModule", action: "listRejections")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")

@@ -240,14 +240,14 @@ class ShoppingCartService {
     def deleteItemShoppingCart(data) {
             try{
             def shoppingCart = ShoppingCart.findByUuid(data.uuidSC)
-            def dishId = ShoppingCartItem.findByUuid(data.uuidDish)
+            def dish = ShoppingCartItem.findByUuid(data.uuidItem)
             if (!shoppingCart) {
                 return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
             }
-            if (!dishId) {
+            if (!dish) {
                 return [resp: [success: false, message: "Platillo no encontrado en el carrito de compras"], status: 404]
             }
-            dishId.delete(flush: true, failOnError: true)
+            dish.delete(flush: true, failOnError: true)
             return [resp: [success: true, message: "Platillo eliminado al carrito de compras"], status: 201]
         }
         catch (e) {

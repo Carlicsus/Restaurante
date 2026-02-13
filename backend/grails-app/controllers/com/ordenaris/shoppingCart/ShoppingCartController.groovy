@@ -8,7 +8,7 @@ class ShoppingCartController {
 	static responseFormats = ['json']
     def shoppingCartService
     SpringSecurityService springSecurityService
-    private getAuth() { springSecurityService.principal }
+    private getAuth() { springSecurityService.currentUser }
     def listOrderShoppingCart(){
         def serviceResponse = shoppingCartService.listOrderShoppingCart() 
         return respond(serviceResponse.resp, status: serviceResponse.status)
@@ -20,7 +20,7 @@ class ShoppingCartController {
     def newOrderShoppingCart(){
         def data = request.JSON
         for (item in data){
-                if (!item.dishId) {
+                if (!item.dishUuid) {
                     return respond([success: false, message: "Falta el ID del platillo"], status: 400)
                 }
                 if (!item.quantityDish || item.quantityDish <= 0) {
@@ -50,9 +50,6 @@ class ShoppingCartController {
         def dataP = params
         for (item in dataR){
             if(!dataR){
-                if (!dataR.user_id) {
-                    return respond([success: false, message: "Falta el ID del usuario"], status: 400)
-                }
                 if (!dataR.dishUuid) {
                     return respond([success: false, message: "Falta el ID del platillo"], status: 400)
                 }
@@ -73,7 +70,7 @@ class ShoppingCartController {
             if (!data.uuidSP) {
                 return respond([success: false, message: "Falta el UUID del carrito de compras"], status: 400)
             }
-            if (!data.dishId) {
+            if (!data.uuidItem) {
                 return respond([success: false, message: "Falta el ID del platillo"], status: 400)
             }
             return respond([success: false, message: "Faltan los datos para eliminar el platillo del carrito de compras"], status: 400)

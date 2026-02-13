@@ -114,7 +114,6 @@ class UserController {
                 params.order,
                 params.enabled,
                 params.locked,
-                params.requestChangeCrd,
                 params.query
         )
 
@@ -129,7 +128,17 @@ class UserController {
 
     @Secured(['isAuthenticated()'])
     def uploadMyPhoto() {
-        def file = request.getFile('file')
+        
+        if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
+            return respond([success: false, message: "No es un MultipartHttpServletRequest"], status: 400)
+        }
+
+        def file = request.getFile("file")
+
+        if (!file) {
+            return respond([success: false, message: "Falta la imagen a cargar"], status: 400)
+        }
+
         def response = userService.saveMyProfileImage(file)
         return respond(response.resp, status: response.status)
     }
@@ -183,12 +192,6 @@ class UserController {
 
         def response = userService.adminChangeCrd(params.uuid, request.JSON.newCrd)
 
-        return respond(response.resp, status: response.status)
-    }
-    
-    @Secured(['isAuthenticated()'])
-    def requestChangeCrd(){
-        def response = userService.requestChangeCrd()
         return respond(response.resp, status: response.status)
     }
 

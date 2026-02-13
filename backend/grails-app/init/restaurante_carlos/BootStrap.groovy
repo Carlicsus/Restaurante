@@ -1,5 +1,6 @@
 package restaurante_carlos
 
+import groovy.json.JsonBuilder;
 import java.util.regex.*
 import com.ordenaris.security.Role
 import com.ordenaris.security.User
@@ -33,6 +34,14 @@ class BootStrap {
             def pattern = Pattern.compile(expresion)
             def matcher = pattern.matcher(delegate)
             return matcher.matches()
+        }
+
+        Object.metaClass.toPrettyString = {
+            try {
+                return new JsonBuilder(delegate).toPrettyString().replaceAll('\n', '').replaceAll('    ', '')
+            }catch(e) {
+                return '{ERROR-AL-GENERAL-JSON}'
+            }
         }
 
     if (MenuType.count() == 0) {

@@ -70,7 +70,7 @@ class ShoppingCartController {
             if (!data.uuidSP) {
                 return respond([success: false, message: "Falta el UUID del carrito de compras"], status: 400)
             }
-            if (!data.dishId) {
+            if (!data.uuidItem) {
                 return respond([success: false, message: "Falta el ID del platillo"], status: 400)
             }
             return respond([success: false, message: "Faltan los datos para eliminar el platillo del carrito de compras"], status: 400)

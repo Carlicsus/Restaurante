@@ -221,7 +221,7 @@ class UrlMappings {
                 group "/$uuidSC", {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
                     post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
-                    delete "/deleteItem/$uuidDish"(controller: "shoppingCart", action: "deleteItemShoppingCart")
+                    delete "/deleteItem/$uuidItem"(controller: "shoppingCart", action: "deleteItemShoppingCart")
                     patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
                         status = "Finished"
                     }

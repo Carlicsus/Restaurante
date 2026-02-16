@@ -180,6 +180,8 @@ class UrlMappings {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
                     post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
                     delete "/deleteItem/$uuidItem"(controller: "shoppingCart", action: "deleteItemShoppingCart")
+                    put "/addNumberDish/$uuidItem"(controller:"shoppingCart", action:"addNumberDish")
+                    put "/restNumberDish/$uuidItem"(controller:"shoppingCart", action:"restNumberDish")
                     patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
                         status = "Finished"
                     }

@@ -142,20 +142,18 @@ class UrlMappings {
             group "/order", {
                 post "/newOrder"(controller: "ordersModule", action: "newOrder")
                 get "/listOrders"(controller: "ordersModule", action: "listOrders")
-                get "/listOrdersByUser/$userId"(controller: "ordersModule", action: "listOrdersByUser")
-                get "/myOrders"(controller: "ordersModule", action: "getMyOrders")
+                get "/myOrders"(controller: "ordersModule", action: "listOrdersByUser")
                 get "/rejections"(controller: "ordersModule", action: "listRejections")
                 group "/$uuidOrder", {
                     get "/info"(controller: "ordersModule", action: "orderInfo")
-                    group "/edit/$uuidDish",{
+                    group "/edit/$uuidItem",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
                         patch "/reject"(controller: "ordersModule", action: "rejectDish")
                     }
-                    patch "/edit"(controller: "ordersModule", action: "editOrder")
-                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {status = "Cancelled"}
-                    /*patch "'/cancel/comment'"(controller: "ordersModule", action: "cancelOrder") {
+                    patch "/addDish"(controller: "ordersModule", action: "addDishOrder")
+                    patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
                         status = "Cancelled"
-                    }*/
+                    }
                     patch "/prepare"(controller: "ordersModule", action: "editOrderStatus") {
                         status = "Preparing"
                     }

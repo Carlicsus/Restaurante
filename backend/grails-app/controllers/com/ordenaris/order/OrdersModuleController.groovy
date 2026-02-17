@@ -60,7 +60,7 @@ class OrdersModuleController {
     def addDishOrder(){
         def dataP = params
         def dataR = request.JSON
-
+        def auth = springSecurityService.principal   
         if (!dataP.uuidOrder) {
             return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
         }
@@ -73,7 +73,7 @@ class OrdersModuleController {
         if (dataR.quantityDish > 5) {
             return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
         }
-        def serviceResponse = orderModuleService.addDishOrder(dataP, dataR)
+        def serviceResponse = orderModuleService.addDishOrder(dataP, dataR, auth)
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 

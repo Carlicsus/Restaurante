@@ -13,7 +13,7 @@ beans = {
     userIdClaimProvider(UserIdClaimProvider)
 
     oauthUserDetailsService(DefaultOauthUserDetailsService) {
-        authManagerService = ref('authManagerService')
+        userDetailsService = ref('userDetailsService')
     }
 
     restAuthenticationFailureHandler(CustomRestAuthenticationFailureHandler)

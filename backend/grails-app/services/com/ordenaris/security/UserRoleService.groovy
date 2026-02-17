@@ -5,15 +5,15 @@ import grails.gorm.transactions.Transactional
 @Transactional
 class UserRoleService {
 
-    def getRolesByUser(String uuid) {
-        def user = User.findByUuid(uuid)
+    def getRolesByUser(Long userId) {
+        def user = User.get(userId)
         if (!user) {
-            return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+            return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
         }
 
         def roles = UserRole.findAllByUser(user).collect {
             [
-                uuid       : it.role.uuid,
+                id       : it.role.id,
                 authority: it.role.authority
             ]
         }
@@ -24,37 +24,37 @@ class UserRoleService {
         ]
     }
 
-    def assignRole(String uuidUser, String uuidRole) {
-        def user = User.findByUuid(uuidUser)
-        def role = Role.findByUuid(uuidRole)
+    def assignRole(Long userId, Long roleId) {
+        def user = User.get(userId)
+        def role = Role.get(roleId)
 
         if (!user || !role) {
-            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 412]
+            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 404]
         }
 
         if (UserRole.exists(user.id, role.id)) {
-            return [resp: [success: false, message: "El usuario ya cuenta con este rol"], status: 409]
+            return [resp: [success: false, message: "El usuario ya tiene este rol"], status: 409]
         }
 
         UserRole.create(user, role, true)
 
         return [
-            resp  : [success: true, data: [message: "Rol asignado correctamente"]],
+            resp  : [success: true, message: "Rol asignado correctamente"],
             status: 201
         ]
     }
 
-    def changeRole(String uuidUser, String uuidRole, String uuidNewRole) {
-        def user = User.findByUuid(uuidUser)
-        def oldRole = Role.findByUuid(uuidRole)
-        def newRole = Role.findByUuid(uuidNewRole)
+    def updateRole(Long userId, Long oldRoleId, Long newRoleId) {
+        def user = User.get(userId)
+        def oldRole = Role.get(oldRoleId)
+        def newRole = Role.get(newRoleId)
 
         if (!user || !oldRole || !newRole) {
-            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 412]
+            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 404]
         }
 
         if (!UserRole.exists(user.id, oldRole.id)) {
-            return [resp: [success: false, message: "El usuario no tiene el rol a reemplazar"], status: 412]
+            return [resp: [success: false, message: "El usuario no tiene el rol a reemplazar"], status: 400]
         }
 
         if (UserRole.exists(user.id, newRole.id)) {
@@ -65,27 +65,27 @@ class UserRoleService {
         UserRole.create(user, newRole, true)
 
         return [
-            resp  : [success: true, data: [message: "Rol actualizado correctamente"]],
+            resp  : [success: true, message: "Rol actualizado correctamente"],
             status: 200
         ]
     }
 
-    def removeRole(String uuidUser, String uuidRole) {
-        def user = User.findByUuid(uuidUser)
-        def role = Role.findByUuid(uuidRole)
+    def removeRole(Long userId, Long roleId) {
+        def user = User.get(userId)
+        def role = Role.get(roleId)
 
         if (!user || !role) {
-            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 412]
+            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 404]
         }
 
         if (!UserRole.exists(user.id, role.id)) {
-            return [resp: [success: false, message: "El usuario no tiene este rol"], status: 412]
+            return [resp: [success: false, message: "El usuario no tiene este rol"], status: 400]
         }
 
         UserRole.remove(user, role)
 
         return [
-            resp  : [success: true, data: [message: "Rol eliminado correctamente"]],
+            resp  : [success: true, message: "Rol eliminado correctamente"],
             status: 200
         ]
     }

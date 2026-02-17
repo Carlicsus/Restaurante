@@ -12,18 +12,14 @@ import java.nio.file.Paths
 @Transactional
 class DishService {
 
-def listDishes(isChef = false) {
+def listDishes() {
     try {
         // Buscar tipos de menú principales que tengan platillos
         def list = MenuType.findAllByStatusNotEqualsAndParentTypeIsNull(2)
 
         def lista = list.collect { type ->
             // Buscar platillos DIRECTAMENTE en este tipo de menú
-            def dishQuery = isChef ? 
-                Dish.findAllByStatusNotEqualsAndMenuType(2, type) : 
-                Dish.findAllByStatusAndMenuType(1, type)
-            
-            def dishes = dishQuery.collect { dish ->
+            def dishes = Dish.findAllByStatusNotEqualsAndMenuType(2, type).collect { dish ->
                 return [
                     uuid: dish.uuid,
                     id:dish.id,
@@ -42,19 +38,13 @@ def listDishes(isChef = false) {
                 return [
                     uuid: type.uuid,
                     name: type.name,
-                    startTime: type.startTime,
-                    endTime: type.endTime,
                     dishes: dishes
                 ]
             }
             
             // Si no tiene platillos directos, buscar en subtipos
             def submenu = MenuType.findAllByStatusNotEqualsAndParentType(2, type).collect { subtype ->
-                def subdishQuery = isChef ? 
-                    Dish.findAllByStatusNotEqualsAndMenuType(2, subtype) : 
-                    Dish.findAllByStatusAndMenuType(1, subtype)
-                
-                def subdishes = subdishQuery.collect { dish ->
+                def subdishes = Dish.findAllByStatusNotEqualsAndMenuType(2, subtype).collect { dish ->
                     return [
                         uuid: dish.uuid,
                         name: dish.name,
@@ -71,8 +61,6 @@ def listDishes(isChef = false) {
                     return [
                         uuid: subtype.uuid,
                         name: subtype.name,
-                        startTime: subtype.startTime,
-                        endTime: subtype.endTime,
                         dishes: subdishes
                     ]
                 }
@@ -83,8 +71,6 @@ def listDishes(isChef = false) {
                 return [
                     uuid: type.uuid,
                     name: type.name,
-                    startTime: type.startTime,
-                    endTime: type.endTime,
                     submenu: submenu
                 ]
             }
@@ -566,72 +552,5 @@ def listDishes(isChef = false) {
 
         return dishDir.resolve("default.jpg").toFile()
     }
-
-    def addStock(uuid, quantityToAdd) {
-        try {
-            def dish = Dish.findByUuid(uuid)
-            
-            if (!dish) {
-                return [
-                    resp: [success: false, message: "El platillo no existe"],
-                    status: 404
-                ]
-            }
-            
-            if (dish.status == 2) {
-                return [
-                    resp: [success: false, message: "No se puede agregar stock a un platillo eliminado"],
-                    status: 409
-                ]
-            }
-            
-            if (dish.status == 0) {
-                return [
-                    resp: [success: false, message: "No se puede agregar stock a un platillo desactivado"],
-                    status: 409
-                ]
-            }
-            
-            // Si el platillo tiene stock ilimitado (-1), no permitir agregar
-            if (dish.availableDishes == -1) {
-                return [
-                    resp: [success: false, message: "Este platillo tiene stock ilimitado, no es necesario agregar más"],
-                    status: 400
-                ]
-            }
-            
-            def currentStock = dish.availableDishes
-            def newStock = currentStock + quantityToAdd
-            
-            if (newStock > 50) {
-                return [
-                    resp: [success: false, message: "El stock total no puede exceder 50 unidades. Stock actual: ${currentStock}, intentando agregar: ${quantityToAdd}"],
-                    status: 400
-                ]
-            }
-            
-            dish.availableDishes = newStock
-            dish.save(flush: true, failOnError: true)
-            
-            return [
-                resp: [
-                    success: true, 
-                    message: "Stock agregado exitosamente",
-                    data: [
-                        previousStock: currentStock,
-                        addedQuantity: quantityToAdd,
-                        newStock: newStock
-                    ]
-                ],
-                status: 200
-            ]
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.getMessage()],
-                status: 500
-            ]
-        }
-    }
-
 
 }

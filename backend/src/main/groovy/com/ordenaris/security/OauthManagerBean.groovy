@@ -10,12 +10,12 @@ class OauthManagerBean extends OauthUser {
 
     OauthManagerBean(
         String username,
-        String crd,
+        String password,
         Collection<GrantedAuthority> authorities,
         OAuth20Profile profile,
         Long id
     ) {
-        super(username, crd, authorities, profile)
-        this.id=id
+        super(username, password, authorities, profile)
+        this.id = id
     }
 }

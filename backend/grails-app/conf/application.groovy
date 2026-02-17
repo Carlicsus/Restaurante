@@ -71,14 +71,14 @@ grails.plugin.springsecurity.rest.login.active=true
 grails.plugin.springsecurity.rest.login.endpointUrl="/api/login"
 grails.plugin.springsecurity.rest.login.useJsonCredentials=true
 grails.plugin.springsecurity.rest.login.usernamePropertyName="username"
-grails.plugin.springsecurity.rest.login.passwordPropertyName="crd"
+grails.plugin.springsecurity.rest.login.passwordPropertyName="password"
 grails.plugin.springsecurity.rest.login.failureStatusCode = 401
 
 //Login por google
 String serverUrl = System.getenv('SERVER_URL') ?: System.getProperty('SERVER_URL') ?: 'http://localhost:3050/backend'
 grails.serverURL = serverUrl
 grails.plugin.springsecurity.rest.oauth.frontendCallbackUrl = { String token ->
-    "${frontendHost}/auth-success?token=${token}"
+    "http://localhost:3050/auth-success?token=${token}"
 }
 
 grails.plugin.springsecurity.rest.oauth.google.client = org.pac4j.oauth.client.Google2Client
@@ -93,4 +93,5 @@ grails.plugin.springsecurity.providerNames = [
 		'anonymousAuthenticationProvider',
 		'rememberMeAuthenticationProvider'
 ]
+
 app.upload.basePath = System.getenv('UPLOAD_PATH') ?: System.getProperty('UPLOAD_PATH') ?: "${System.getProperty('user.home')}"

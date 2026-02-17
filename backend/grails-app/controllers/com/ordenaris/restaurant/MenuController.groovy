@@ -48,16 +48,6 @@ class MenuController {
         if (data.parentType && data.parentType.size() != 32) {
             return respond([success: false, message: "El parentType es invalido"], status: 400)
         }
-        // Validar horarios si se proporcionan
-        if (data.startTime && !(data.startTime ==~ /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
-            return respond([success: false, message: "El formato de startTime debe ser HH:mm (ej: 07:00)"], status: 400)
-        }
-        if (data.endTime && !(data.endTime ==~ /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
-            return respond([success: false, message: "El formato de endTime debe ser HH:mm (ej: 14:00)"], status: 400)
-        }
-        if ((data.startTime && !data.endTime) || (!data.startTime && data.endTime)) {
-            return respond([success: false, message: "Debe proporcionar tanto startTime como endTime, o ninguno"], status: 400)
-        }
 
         def count = MenuType.createCriteria().count{
             ilike("name", data.name)
@@ -66,65 +56,39 @@ class MenuController {
         if  (count > 0){
             return respond([success: false, message: "El nombre ya existe"], status: 409)
         }
-        def response = MenuService.newType(data.name, data.parentType, data.startTime, data.endTime)
+        def response = MenuService.newType(data.name, data.parentType)
         return respond(response.resp, status: response.status)
     }
 
     def editType() {
-        def response = MenuService.editType(data.name, params.uuid)
-        def data = request.JSON
-        data.name = data.name?.trim()
+    def response = MenuService.editType(data.name, params.uuid)
+    def data = request.JSON
+    data.name = data.name?.trim()
 
-        if (params.uuid?.size() != 32) {
-            return respond([success: false, message: "El uuid es inválido"], status: 400)
-        }
-
-        def type = MenuType.findByUuid(params.uuid)
-
-        if (!type) {
-            return respond([success: false, message: "El tipo no existe"], status: 404)
-        }
-
-        if (!data.name) {
-            return respond([success: false, message: "El nombre es obligatorio"], status: 400)
-        }
-
-        if (data.name.size() > 80) {
-            return respond([success: false, message: "El nombre no puede ser tan largo"], status: 400)
-        }
-
-        if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)) {
-            return respond([success: false, message: "El nombre no debe contener números ni caracteres especiales"], status: 400)
-        }
-        return respond(response.resp, status: response.status)
+    if (params.uuid?.size() != 32) {
+        return respond([success: false, message: "El uuid es inválido"], status: 400)
     }
 
-    def updateSchedule() {
-        def data = request.JSON
-        
-        if (params.uuid?.size() != 32) {
-            return respond([success: false, message: "El uuid es inválido"], status: 400)
-        }
-        
-        def type = MenuType.findByUuid(params.uuid)
-        if (!type) {
-            return respond([success: false, message: "El tipo de menú no existe"], status: 404)
-        }
-        
-        // Validar horarios
-        if (data.startTime && !(data.startTime ==~ /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
-            return respond([success: false, message: "El formato de startTime debe ser HH:mm (ej: 07:00)"], status: 400)
-        }
-        if (data.endTime && !(data.endTime ==~ /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
-            return respond([success: false, message: "El formato de endTime debe ser HH:mm (ej: 14:00)"], status: 400)
-        }
-        if ((data.startTime && !data.endTime) || (!data.startTime && data.endTime)) {
-            return respond([success: false, message: "Debe proporcionar tanto startTime como endTime, o ninguno"], status: 400)
-        }
-        
-        def response = MenuService.updateSchedule(params.uuid, data.startTime, data.endTime)
-        return respond(response.resp, status: response.status)
+    def type = MenuType.findByUuid(params.uuid)
+
+    if (!type) {
+        return respond([success: false, message: "El tipo no existe"], status: 404)
     }
+
+    if (!data.name) {
+        return respond([success: false, message: "El nombre es obligatorio"], status: 400)
+    }
+
+    if (data.name.size() > 80) {
+        return respond([success: false, message: "El nombre no puede ser tan largo"], status: 400)
+    }
+
+    if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)) {
+        return respond([success: false, message: "El nombre no debe contener números ni caracteres especiales"], status: 400)
+    }
+    return respond(response.resp, status: response.status)
+}
+
 
     def typeInfo() {
         if (params.uuid.size() != 32) {

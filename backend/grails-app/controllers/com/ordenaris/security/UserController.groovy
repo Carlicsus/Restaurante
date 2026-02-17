@@ -14,72 +14,48 @@ import org.springframework.web.multipart.MultipartHttpServletRequest
 class UserController {
 	static responseFormats = ['json', 'xml']
 	
+    def springSecurityService
     UserService userService
 
     @Secured(['permitAll'])
     def register() {
+        def username = request.JSON?.username
+        def password = request.JSON?.password
+        def email = request.JSON?.email
+        def names = request.JSON?.names
+        def lastNames = request.JSON?.lastNames
 
-        if (!request.JSON.username) {
-            return respond([success: false, message: "El campo nombre de usuario no puede estar vacio"], status: 400)
-        }
-        if (!request.JSON.crd) {
-            return respond([success: false, message: "El campo contraseña no puede estar vacia"], status: 400)
-        }
-        if (!request.JSON.email) {
-            return respond([success: false, message: "El campo correo no puede estar vacio"], status: 400)
-        }
-        if (!request.JSON.names) {
-            return respond([success: false, message: "El campo nombre no puede estar vacio"], status: 400)
-        }
-        if (!request.JSON.lastNames) {
-            return respond([success: false, message: "El campo apellido no pueden estar vacio"], status: 400)
+        if (!(username instanceof String) || !(password instanceof String) || !(email instanceof String) || !(names instanceof String) || !(lastNames instanceof String)) {
+            return respond([success: false, mensaje: "El nombre de usuario, contraseña, correo, nombre y apellidos son obligatorios y deben de ser cadenas de texto"], status: 400)
         }
 
-        if (!(request.JSON.username instanceof String)) {
-            return respond([success: false, message: "El campo nombre de usuario tiene que ser una cadena de texto"], status: 400)
+        if (!username  || !password || !email || !names || !lastNames) {
+            return respond([success: false, mensaje: "El nombre de usuario, contraseña, correo, nombre y apellidos no pueden estar vacios"], status: 400)
         }
 
-        if (!(request.JSON.crd instanceof String)) {
-            return respond([success: false, message: "El campo nombre de contraseña tiene que ser una cadena de texto"], status: 400)
-        }
-
-        if (!(request.JSON.email instanceof String)) {
-            return respond([success: false, message: "El campo correo tiene que ser una cadena de texto"], status: 400)
-        }
-
-        if (!(request.JSON.names instanceof String)) {
-            return respond([success: false, message: "El campo nombre tiene que ser una cadena de texto"], status: 400)
-        }
-
-        if (!(request.JSON.lastNames instanceof String)) {
-            return respond([success: false, message: "El campo apellido tiene que ser cadenas de texto"], status: 400)
-        }
-
-        if (request.JSON.username.trim() != request.JSON.username) {
+        if (username.trim() != username) {
             return respond([success: false, message: "El nombre de usuario no puede tener espacios vacios al principio ni al final"],status: 400)
         }
 
-        if (request.JSON.crd.trim() != request.JSON.crd) {
+        if (password.trim() != password) {
             return respond([success: false, message: "La contraseña no puede tener espacios vacios al principio ni al final"],status: 400)
         }
 
-        if (request.JSON.names.trim() != request.JSON.names) {
-            return respond([success: false, message: "El campo nombres no puede tener espacios vacios al inicio o al final"], status: 400)
+        if (names.trim() != names || lastNames.trim() != lastNames) {
+            return respond([success: false, mensaje: "Los nombres y apellidos no pueden tener espacios vacios al inicio o al final"], status: 400)
         }
 
-        if (request.JSON.lastNames.trim() != request.JSON.lastNames) {
-            return respond([success: false, message: "El campo apellidos no puede tener espacios vacios al inicio o al final"], status: 400)
+        if (!email.endsWith('@utxicotepec.edu.mx')) {
+            return respond([success: false, mensaje: "Solo se permiten correos institucionales"], status: 400)
         }
 
-        if (!request.JSON.email.endsWith('@utxicotepec.edu.mx')) {
-            return respond([success: false, message: "Solo se permiten correos institucionales"], status: 400)
+        def passwordRegex = ~/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&\/])[A-Za-z\d$@!%*?&\/]{8,15}$/
+
+        if (!(password ==~ passwordRegex)) {
+            return respond([success: false,mensaje: "La contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]"], status: 400)
         }
 
-        if (!(request.JSON.crd.securePassword())) {
-            return respond([success: false,message: "La contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]"], status: 400)
-        }
-
-        def response = userService.registerUser(request.JSON.username, request.JSON.crd, request.JSON.email, request.JSON.names, request.JSON.lastNames)
+        def response = userService.register(username, password, email, names, lastNames)
 
         return respond(response.resp, status: response.status)
     }
@@ -114,86 +90,112 @@ class UserController {
                 params.order,
                 params.enabled,
                 params.locked,
-                params.requestChangeCrd,
                 params.query
         )
 
         return respond(response.resp, status: response.status)
     }
 
-    @Secured(['ROLE_ADMIN'])
-    def changeStatus() {
-        def response = userService.changeStatus(params)
+    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
+    def setEnabled() {
+        def response = userService.setEnabled(params.username, params.enable.toBoolean())
+        return respond(response.resp, status: response.status)
+    }
+
+    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
+    def setLocked() {
+        def response = userService.setLocked(params.username, params.lock.toBoolean())
         return respond(response.resp, status: response.status)
     }
 
     @Secured(['isAuthenticated()'])
-    def uploadMyPhoto() {
+    def uploadPhoto() {
+        
         def file = request.getFile('file')
-        def response = userService.saveMyProfileImage(file)
-        return respond(response.resp, status: response.status)
+        GrailsUser principal =
+                springSecurityService.principal as GrailsUser
+
+        User user = User.get(principal.id)
+
+        userService.saveProfileImage(user, file)
+
+        respond([success: true])
     }
 
     @Secured(['isAuthenticated()'])
-    def getMyPhoto() {
-        def image = userService.resolveMyProfileImage()
+    def myPhoto() {
 
-        response.contentType = Files.probeContentType(image.toPath())
+        GrailsUser principal =
+                springSecurityService.principal as GrailsUser
+
+        User user = User.get(principal.id)
+        File image = userService.resolveProfileImage(user)
+
+        response.contentType =
+                Files.probeContentType(image.toPath())
 
         response.outputStream << image.bytes
         response.outputStream.flush()
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
-    def getUserInfo() {
-        def response = userService.getUserInfo(params.uuid)
+    def getUserInfo(String username) {
+        def response = userService.getUserInfo(params.username)
         return respond(response.resp, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def changeUserCrd() {
+    def changeUserPassword(Long id) {
 
-        if (!request.JSON.newCrd) {
+        def newPassword = request.JSON?.newPassword
+
+        if (!id) {
             return respond(
-                [success: false, message: "El campo nueva contraseña es obligatorio"],
+                [success: false, message: "El id del usuario es obligatorio"],
                 status: 400
             )
         }
 
-        if (!(request.JSON.newCrd instanceof String)) {
+        if (!(newPassword instanceof String) || !newPassword) {
             return respond(
-                [success: false, message: "La nueva contraseña debe de ser una cadena de texto"],
+                [success: false, message: "La nueva contraseña es obligatoria"],
                 status: 400
             )
         }
 
-        if (request.JSON.newCrd.contains(" ")) {
+        if (newPassword.trim() != newPassword) {
             return respond(
-                [success: false, message: "La nueva contraseña no puede contener espacios"],
+                [success: false, message: "La contraseña no puede contener espacios"],
                 status: 400
             )
         }
 
-        if (!(request.JSON.newCrd.securePassword())) {
+        def passwordRegex =
+            ~/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&\/])[A-Za-z\d$@!%*?&\/]{8,15}$/
+
+        if (!(newPassword ==~ passwordRegex)) {
             return respond(
-                [success: false, message: "La nueva contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial [@!%*?&/]"],
+                [success: false, message:
+                    "La contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial [@!%*?&/]"],
                 status: 400
             )
         }
 
-        def response = userService.adminChangeCrd(params.uuid, request.JSON.newCrd)
+        def response =
+            userService.adminChangePassword(id, newPassword)
 
-        return respond(response.resp, status: response.status)
-    }
-    
-    @Secured(['isAuthenticated()'])
-    def requestChangeCrd(){
-        def response = userService.requestChangeCrd()
         return respond(response.resp, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def uploadUserPhoto() {
+    def uploadUserPhoto(Long id) {
+
+        if (!id) {
+            return respond(
+                [success: false, message: "El id del usuario es obligatorio"],
+                status: 400
+            )
+        }
 
         def file = request.getFile('file')
 
@@ -204,17 +206,46 @@ class UserController {
             )
         }
 
-        def response = userService.saveUserProfileImage(params.uuid, file)
+        User user = User.get(id)
 
-        return respond(response.resp, status: response.status)
+        if (!user) {
+            return respond(
+                [success: false, message: "Usuario no encontrado"],
+                status: 404
+            )
+        }
+
+        userService.saveProfileImage(user, file)
+
+        respond([
+            success: true,
+            message: "Foto de perfil actualizada correctamente"
+        ])
     }
 
     @Secured(['ROLE_ADMIN'])
-    def getUserPhoto() {
+    def getUserPhoto(Long id) {
 
-        File image = userService.resolveUserProfileImage(params.uuid)
+        if (!id) {
+            return respond(
+                [success: false, message: "El id del usuario es obligatorio"],
+                status: 400
+            )
+        }
 
-        response.contentType = Files.probeContentType(image.toPath())
+        User user = User.get(id)
+
+        if (!user) {
+            return respond(
+                [success: false, message: "Usuario no encontrado"],
+                status: 404
+            )
+        }
+
+        File image = userService.resolveProfileImage(user)
+
+        response.contentType =
+            Files.probeContentType(image.toPath())
 
         response.outputStream << image.bytes
         response.outputStream.flush()

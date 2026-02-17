@@ -32,16 +32,17 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder()
 
         String username = authentication.name
-        String crd = authentication.credentials.toString()
+        String password = authentication.credentials.toString()
 
-        UserDetails user = authManagerService.loadUserByUsername(username)
+        UserDetails user =
+                authManagerService.loadUserByUsername(username)
 
-        if (!passwordEncoder.matches(crd, user.password)) {
+        if (!passwordEncoder.matches(password, user.password)) {
             throw new BadCredentialsException("Credenciales inválidas")
         }
 
-        if (!user.accountNonLocked) {
-            throw new DisabledException("Tu cuenta debe ser desbloqueada por un administrador")
+        if (!user.enabled) {
+            throw new DisabledException("Tu cuenta debe ser activada por un administrador")
         }
 
         if (!user.authorities || user.authorities.isEmpty()) {

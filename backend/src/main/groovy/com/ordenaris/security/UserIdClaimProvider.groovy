@@ -17,7 +17,7 @@ class UserIdClaimProvider implements CustomClaimProvider {
         }
 
         if(details instanceof AuthManagerBean) {
-            builder.claim("id",details.id)
+            builder.claim("id", details.id)
         }
     }
 }

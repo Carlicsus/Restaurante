@@ -3,8 +3,6 @@ package com.ordenaris.security
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import grails.compiler.GrailsCompileStatic
-import java.util.UUID
-import com.ordenaris.RegisterTypeUser
 
 @GrailsCompileStatic
 @EqualsAndHashCode(includes='username')
@@ -13,28 +11,24 @@ class User implements Serializable {
 
     private static final long serialVersionUID = 1
 
-    String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
     String username
-    String crd
+    String password
     String email
     String names
     String lastNames
     String profileImagePath   
-    RegisterTypeUser registerType = RegisterTypeUser.CREDENTIALS
     boolean enabled = true
     boolean accountExpired
     boolean accountLocked
     boolean passwordExpired
-    boolean requestChangeCrd = false
 
-    User(String username, String crd, String email, String names, String lastNames, RegisterTypeUser registerType) {
+    User(String username, String password, String email, String names, String lastNames) {
 		this()
 		this.username = username
-		this.crd = crd
+		this.password = password
 		this.email = email
 		this.names = names
 		this.lastNames = lastNames
-		this.registerType = registerType
 	}
 
     Set<Role> getAuthorities() {
@@ -42,7 +36,7 @@ class User implements Serializable {
     }
 
     static constraints = {
-        crd nullable: false, blank: false, password: true
+        password nullable: false, blank: false, password: true
         username nullable: false, blank: false, unique: true
         email nullable: false, blank: false, unique: true
         names nullable: false, blank: false
@@ -51,8 +45,6 @@ class User implements Serializable {
     }
 
     static mapping = {
-	    crd column: '`crd`'
-        registerType enumType: 'string', length: 14
-        version false
+	    password column: '`password`'
     }
 }

@@ -167,13 +167,20 @@ class OrderModuleService {
         }
     }
     
-    def addDishOrder(dataP, dataR){
+    def addDishOrder(dataP, dataR, auth){
         try{
+            def user = User.get(auth.id)
+            def i = 0
+            if (!user) {
+                return [resp:[success: false, message: "Usuario no encontrado"], status: 404]
+            }
             def order = CustomerOrder.findByUuid(dataP.uuidOrder)
             if (!order) {
                 return [resp:[success: false, message: "Orden no encontrada"], status: 404]
             }
-            def orderItem = OrderItem.findById(order.id)
+            def orderItem = OrderItem.findAllByCustomerOrder(order)
+            def list = orderItem.dish.uuid
+            def searchDish = dataR.uuidDish
             def dish = Dish.findByUuid(dataR.uuidDish)
             if (!dish){return [resp: [success: false, message: "No existe ese platillo"],status: 404]
             }
@@ -181,26 +188,39 @@ class OrderModuleService {
             if(now <= order.completedTime){
                 return [resp: [success: false, message: "No se pueden agregar platillos a la orden 30 minutos antes de su horario que usted puso."], status: 404]
             }
-            for(item in orderItem ){
-                if(item.dish.uuid == dataR.uuidDish){
-                    newQuantityDish = item.quantity + dataR.quantityDish
-                    if(newQuantityDish > 5){
-                        return [resp: [success: false, message: "No se pueden agregar mas platillos a la orden."], status: 404]
+            if(searchDish in list){
+                for(item in orderItem){
+                    if(item.dish.uuid == dish.uuid ){                        
+                        newQuantityDish = item.quantity + dataR.quantityDish
+                        if(newQuantityDish > 5){
+                            return [resp: [success: false, message: "No se pueden agregar mas platillos al carrito, excede el maximo de 5 por carrito."], status: 404]
+                        }
+                        if(dish.availableDishes != -1){
+                            if(item.dish.availableDishes < newQuantityDish){
+                                return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
+                            }
+                        }
+                        item.quantity = newQuantityDish
+                        item.save()
                     }
-                    if(item.dish.availableDishes < newQuantityDish){
-                        return [resp: [success: false, message: "No hay suficientes platillos para la orden."], status: 404]
-                    }
-                    item.quantity = newQuantityDish
-                    item.save()
-                    return [resp: [success: true, message: "Se agrego la nueva cantidad del platillo a tu orden."], status: 201]
                 }
+            }else{
+                if(dataR.quantityDish==null){
+                    return [resp: [success: true, message: "Orden agregada al carrito de compras"], status: 201]
+                }
+                dish = Dish.findByUuid(dataR.uuidDish)
+                if(dish.availableDishes != -1){
+                    if(dish.availableDishes < newQuantityDish){
+                        return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
+                    }
+                }
+                orderItem = new OrderItem([
+                    unitPrice: dish.cost, 
+                    dish: dish.id, 
+                    quantity: dataR.quantityDish, 
+                    customerOrder:order.id
+                ]).save(flush: true, failOnError: true)
             }
-            def orderItems = new OrderItem([
-                unitPrice: dish.cost,
-                dish: dish.id,
-                quantity: dataR.quantityDish,
-                customerOrder: order.id
-            ]).save(flush: true, failOnError: true)
             return [
                 resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
                 status: 200

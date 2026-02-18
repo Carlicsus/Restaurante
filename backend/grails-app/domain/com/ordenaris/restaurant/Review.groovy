@@ -20,7 +20,7 @@ class Review {
         comment nullable: true, maxSize: 500
         rating range: 0.0..5.0
         lastUpdated nullable: true
-        status nullable: false
+        status nullable: false, inList: [0, 1, 2]
     }
 
     static mapping = {

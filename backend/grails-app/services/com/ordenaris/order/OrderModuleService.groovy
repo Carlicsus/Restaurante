@@ -20,15 +20,15 @@ class OrderModuleService {
             dateCreated: order.dateCreated,
             lastUpdated: order.lastUpdated,
             user: [
-                uuid: order.user?.id,
-                username: order.user?.username,
+                names: order.user?.names,
+                lastNames: order.user?.lastNames,
             ],
             items: order.orderItems.collect { item ->
                 [
                     uuid: item.uuid,
                     quantityDish: item.quantity,
                     unitPrice: item.unitPrice / 100,
-                    payed: item.payed,
+                    paid: item.payed,
                     dish: [
                         uuid: item.dish?.uuid,
                         name: item.dish?.name

@@ -266,31 +266,77 @@ class ShoppingCartService {
         }
     }
 
-    def addItemShoppingCart(dataR, dataP) {
+    def addItemShoppingCart(dataR, dataP, auth, logId) {
         try{
+            Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "Llega al servicio.", "json: $dataR, params: $dataP")
             if (!dataR) {
+                Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "No viene nada en el json.", "json: $dataR, params: $dataP")
                 return [resp: [success: false, message: "Datos invalidos"], status: 400]
             }
             def shoppingCart = ShoppingCart.findByUuid(dataP.uuidSC)
             if (!shoppingCart) {
+                Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "No se encontro el carrito de compras para añadir los items.", "json: $dataR, params: $dataP")
                 return [resp: [success: false, message: "Carrito de compras no encontrado"], status: 404]
             }
             def shoppingCartItem = ShoppingCartItem.findAllByShoppingCart(shoppingCart)
+            def list = shoppingCartItem.dish.uuid
+            def searchDish = dataR.dishUuid
+            def i = 0
             def dish = Dish.findByUuid(dataR.dishUuid)
             if (!dish) {
+                Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "No existe el platillo que viene del usuario.", "json: $dataR, params: $dataP")
                 return [resp: [success: false, message: "Platillo no encontrado"], status: 404]
             } 
-
-            def shoppingCartItemEntry = new ShoppingCartItem([
-                userId: shoppingCart.user.id,
-                dish: dish.id,
-                quantity: dataR.quantityDish,
-                unitPrice: dish.cost,
-                shoppingCart: shoppingCart.id
-            ]).save(flush: true, failOnError: true)
-            return [resp: [success: true, message: "Platillo agregado al carrito de compras"], status: 201]
+            if(searchDish in list){
+                for (item in shoppingCartItem){
+                    Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Se verifica si el platillo de la orden y platillo enviado son iguales.", "json: $dataR, params: $dataP")
+                    if(item.dish.uuid == dataR.dishUuid){
+                        Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Son iguales, se agregara la cantidad del platillo.", "json: $dataR, params: $dataP")
+                        dish = Dish.findByUuid(dataR.dishUuid)
+                        def newQuantityDish = item.quantity + dataR.quantityDish
+                        if(newQuantityDish > 5){
+                            Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Son iguales, se agregara la cantidad del platillo.", "json: $dataR, params: $dataP")
+                            return [resp: [success: false, message: "No se pueden agregar mas platillos al carrito, excede el maximo de 5 por carrito."], status: 404]
+                        }
+                        if(dish.availableDishes != -1){
+                            Log.logger(Log.INFO, logId, "Crear carrito de compras.", "El platillo tiene una cantidad fija en la base de datos.", "json: $dataR, params: $dataP")
+                            if(item.dish.availableDishes < newQuantityDish){
+                                Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Se verifica que haya suficientes productos para agregarlos al carrito de compras.", "json: $dataR, params: $dataP")
+                                return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
+                            }
+                        }
+                        Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Se sumara la cantidad del producto al que esta en la base de datos.", "json: $dataR, params: $dataP")
+                        item.quantity = newQuantityDish
+                        item.save()
+                    }
+                }
+            }
+            else{
+                if(dataR.quantityDish==null){
+                    Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Fin de la solicitud, ya no hay mas platillos para agregar.", "json: $dataR, params: $dataP")
+                    return [resp: [success: true, message: "Orden agregada al carrito de compras"], status: 201]
+                }
+                dish = Dish.findByUuid(dataR.dishUuid)
+                if(dish.availableDishes != -1){
+                    Log.logger(Log.INFO, logId, "Crear carrito de compras.", "El platillo tiene una cantidad fija en la base de datos.", "json: $dataR, params: $dataP")
+                    if(dish.availableDishes < dataR.quantityDish){
+                        Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Se verifica que haya suficientes productos para agregarlos al carrito de compras.", "json: $dataR, params: $dataP")
+                        return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
+                    }
+                }
+                Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Se crean los productos en el carrito de compras.", "json: $dataR, params: $dataP")
+                def shoppingCartItemEntry = new ShoppingCartItem([
+                    userId: auth.id,
+                    dish: dish.id,
+                    quantity: dataR.quantityDish,
+                    unitPrice: dish.cost,
+                    shoppingCart: shoppingCart.id
+                    ]).save(flush: true, failOnError: true)   
+            }
+        return [resp: [success: true, message: "Platillo agregado al carrito de compras"], status: 201]
         }
         catch (e) {
+            Log.logger(Log.ERROR, logId, "Listado de resenias.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return [resp: [success:false, message: e.getMessage()], status: 500]
         }      
     }

@@ -63,18 +63,24 @@ class ShoppingCartController {
         def auth = springSecurityService.principal
         def dataR = request.JSON
         def dataP = params
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "Inicia Solicitud.", "json: $dataR")
         if (!dataR.dishUuid) {
+            Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "No se ha enviado el uuid del platillo.", "json: $dataR")
             return respond([success: false, message: "Falta el ID del platillo"], status: 400)
         }
         if (!dataR.quantityDish || dataR.quantityDish <= 0) {
+            Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "No se puede agregar ese numero de platillos.", "json: $dataR")
             return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
         }
         if (dataR.quantityDish > 5) {
+            Log.logger(Log.INFO, logId, "Agregar nuevo platillo.", "No se puede pedir una mayor a 5 platillos por orden.", "json: $dataR")
             return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
         }
-        def serviceResponse = shoppingCartService.addItemShoppingCart(dataR, dataP) 
+        def serviceResponse = shoppingCartService.addItemShoppingCart(dataR, dataP, auth, logId) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
+
 
     def addNumberDish(){
         def auth = springSecurityService.principal

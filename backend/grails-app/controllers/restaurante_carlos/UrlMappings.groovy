@@ -127,7 +127,7 @@ class UrlMappings {
                 get "/pending"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 1
                 }
-                get "/payed"(controller: "sale", action: "getSalesByUser") {
+                get "/paid"(controller: "sale", action: "getSalesByUser") {
                     typeSale = 2
                 }
                 get "/all"(controller: "sale", action: "getSalesByUser") {

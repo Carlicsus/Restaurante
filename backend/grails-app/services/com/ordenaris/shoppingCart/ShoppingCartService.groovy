@@ -78,6 +78,7 @@ class ShoppingCartService {
             def searchDish = data.dishUuid
             for(item in data){
                 dish = Dish.findByUuid(item.dishUuid)
+                
                 if(!dish){
                     return [resp: [success: false, message: "El platillo no existe"], status: 400]
                 }

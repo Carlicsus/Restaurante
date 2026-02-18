@@ -288,6 +288,7 @@ class SaleService {
             orderStatus: sale.customerOrder.status,
             dateCreated: sale.dateCreated,
             daysPending: calculateDaysSince(sale.dateCreated),
+            status: sale.status,
             items: orderItems.collect { item ->
                 [
                     dishName: item.dish?.name ?: "Plato desconocido",

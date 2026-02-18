@@ -1,253 +1,280 @@
 package com.ordenaris.security
 
-
 import grails.rest.*
 import grails.converters.*
-
 import grails.plugin.springsecurity.annotation.Secured
-
 import grails.plugin.springsecurity.userdetails.GrailsUser
-
 import java.nio.file.Files
 import org.springframework.web.multipart.MultipartHttpServletRequest
+import com.ordenaris.Constants
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 class UserController {
 	static responseFormats = ['json', 'xml']
 	
+    def userService
     def springSecurityService
-    UserService userService
 
     @Secured(['permitAll'])
     def register() {
-        def username = request.JSON?.username
-        def password = request.JSON?.password
-        def email = request.JSON?.email
-        def names = request.JSON?.names
-        def lastNames = request.JSON?.lastNames
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Iniciando la solicitud.", "params: ${params}")
 
-        if (!(username instanceof String) || !(password instanceof String) || !(email instanceof String) || !(names instanceof String) || !(lastNames instanceof String)) {
-            return respond([success: false, mensaje: "El nombre de usuario, contraseña, correo, nombre y apellidos son obligatorios y deben de ser cadenas de texto"], status: 400)
+        if (!request.JSON.username) {
+            return respond(TypeError.missingParameter("nombre de usuario", logId, response))
+        }
+        if (!request.JSON.crd) {
+            return respond(TypeError.missingParameter("crd", logId, response))
+        }
+        if (!request.JSON.email) {
+            return respond(TypeError.missingParameter("correo", logId, response))
+        }
+        if (!request.JSON.names) {
+            return respond(TypeError.missingParameter("nombres", logId, response))
+        }
+        if (!request.JSON.lastNames) {
+            return respond(TypeError.missingParameter("apellido", logId, response))
         }
 
-        if (!username  || !password || !email || !names || !lastNames) {
-            return respond([success: false, mensaje: "El nombre de usuario, contraseña, correo, nombre y apellidos no pueden estar vacios"], status: 400)
+        if (!(request.JSON.username instanceof String)) {
+            return respond(TypeError.incorrectFormat("nombre de usuario", "una cadena de texto", logId, response))
         }
 
-        if (username.trim() != username) {
-            return respond([success: false, message: "El nombre de usuario no puede tener espacios vacios al principio ni al final"],status: 400)
+        if (!(request.JSON.crd instanceof String)) {
+            return respond(TypeError.incorrectFormat("crd", "una cadena de texto", logId, response))
         }
 
-        if (password.trim() != password) {
-            return respond([success: false, message: "La contraseña no puede tener espacios vacios al principio ni al final"],status: 400)
+        if (!(request.JSON.email instanceof String)) {
+            return respond(TypeError.incorrectFormat("correo", "una cadena de texto", logId, response))
         }
 
-        if (names.trim() != names || lastNames.trim() != lastNames) {
-            return respond([success: false, mensaje: "Los nombres y apellidos no pueden tener espacios vacios al inicio o al final"], status: 400)
+        if (!(request.JSON.names instanceof String)) {
+            return respond(TypeError.incorrectFormat("nombres", "una cadena de texto", logId, response))
         }
 
-        if (!email.endsWith('@utxicotepec.edu.mx')) {
-            return respond([success: false, mensaje: "Solo se permiten correos institucionales"], status: 400)
+        if (!(request.JSON.lastNames instanceof String)) {
+            return respond(TypeError.incorrectFormat("apellido", "una cadena de texto", logId, response))
         }
 
-        def passwordRegex = ~/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&\/])[A-Za-z\d$@!%*?&\/]{8,15}$/
-
-        if (!(password ==~ passwordRegex)) {
-            return respond([success: false,mensaje: "La contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]"], status: 400)
+        if (request.JSON.username.trim() != request.JSON.username) {
+            return respond(TypeError.incorrectFormat("nombre de usuario", "sin espacios al principio ni al final", logId, response))
         }
 
-        def response = userService.register(username, password, email, names, lastNames)
+        if (request.JSON.names.trim() != request.JSON.names) {
+            return respond(TypeError.incorrectFormat("nombres", "sin espacios al principio ni al final", logId, response))
+        }
 
-        return respond(response.resp, status: response.status)
+        if (request.JSON.lastNames.trim() != request.JSON.lastNames) {
+            return respond(TypeError.incorrectFormat("apellidos", "sin espacios al principio ni al final", logId, response))
+        }
+
+        if (!request.JSON.email.endsWith('@utxicotepec.edu.mx')) {
+            return respond(TypeError.invalidData("email", logId, response))
+        }
+
+        if (!(request.JSON.crd.securePassword())) {
+            return respond(TypeError.incorrectFormat("crd", "un crd sin espacios, tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]", logId, response))
+        }
+
+        def response = userService.registerUser(request.JSON, logId)
+
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
     def paginateUsers() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Paginar usuarios.", "Iniciando la solicitud.", "params: ${params}")
 
-        if (!params.page || !params.page.soloNumeros()) {
-            return respond([success: false, message: "La pagina es obligatoria"], status: 400)
+        if (!params.page) {
+            return respond(TypeError.missingParameter("pagina", logId, response))
         }
 
-        if (!params.max || !params.max.soloNumeros()) {
-            return respond([success: false, message: "El max es obligatorio"], status: 400)
+        if (!params.max) {
+            return respond(TypeError.missingParameter("maximo", logId, response))
+        }
+
+        if (!params.page.soloNumeros()) {
+            return respond(TypeError.incorrectFormat("pagina", "numeros", logId, response))
+        }
+
+        if (!params.max.soloNumeros()) {
+            return respond(TypeError.incorrectFormat("maximo", "numeros", logId, response))
         }
 
         if (!(params.max.toInteger() in [5, 10, 20, 50, 100])) {
-            return respond([success: false, message: "El max no es valido"], status: 400)
+            return respond(TypeError.incorrectFormat("maximo", "[5,10,20,50,100]", logId, response))
         }
 
-        if (!params.orderColumn || !(params.orderColumn in ["username", "email"])) {
-            return respond([success: false, message: "orderColumn invalido"], status: 400)
+        if (params.orderColumn && !(params.orderColumn in ["username", "email"])) {
+            return respond(TypeError.incorrectFormat("ordenar por columna", "[username, email]", logId, response))
         }
 
-        if (!params.order || !(params.order in ["asc", "desc"])) {
-            return respond([success: false, message: "order invalido"], status: 400)
+        if (params.order && !(params.order in ["asc", "desc"])) {
+            return respond(TypeError.incorrectFormat("orden", "[asc, desc]", logId, response))
         }
 
-        def response = userService.paginateUsers(
-                params.page.toInteger(),
-                params.max.toInteger(),
-                params.orderColumn,
-                params.order,
-                params.enabled,
-                params.locked,
-                params.query
-        )
+        def response = userService.paginateUsers(params, logId)
 
-        return respond(response.resp, status: response.status)
+        return respond(response.data, status: response.status)
+    }
+
+    @Secured(['ROLE_ADMIN'])
+    def changeStatus() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Cambiar status.", "Iniciando la solicitud.", "params: ${params}")
+
+        def response = userService.changeStatus(params, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
-    def setEnabled() {
-        def response = userService.setEnabled(params.username, params.enable.toBoolean())
-        return respond(response.resp, status: response.status)
+    def getUserInfo() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Obtener información de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+
+        def response = userService.getUserInfo(params.uuid, logId)
+        return respond(response.data, status: response.status)
     }
 
-    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
-    def setLocked() {
-        def response = userService.setLocked(params.username, params.lock.toBoolean())
-        return respond(response.resp, status: response.status)
+    @Secured(['ROLE_ADMIN'])
+    def changeUserCrd() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+
+        if (!request.JSON.newCrd) {
+            return respond(TypeError.missingParameter("nueva crd", logId, response))
+        }
+
+        if (!(request.JSON.newCrd instanceof String)) {
+            return respond(TypeError.incorrectFormat("nueva crd", "una cadena de texto", logId, response))
+        }
+
+        if (!(request.JSON.newCrd.securePassword())) {
+            return respond(TypeError.incorrectFormat("nueva crd", "un crd sin espacios, tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]", logId, response))
+        }
+
+        def response = userService.adminChangeCrd(params.uuid, request.JSON.newCrd, logId)
+
+        return respond(response.data, status: response.status)
+    }
+    
+    @Secured(['isAuthenticated()'])
+    def updateChangeCrdRequest(){
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Iniciando la solicitud.", "params: ${params}")
+
+        def user = springSecurityService.currentUser
+
+        def response = userService.updateChangeCrdRequest(user, params, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['isAuthenticated()'])
-    def uploadPhoto() {
+    def changeProfilePicture() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Iniciando la solicitud.", "params: ${params}")
         
-        def file = request.getFile('file')
-        GrailsUser principal =
-                springSecurityService.principal as GrailsUser
+        if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
+            return respond(TypeError.incorrectFormat("request", "un form-data", logId, response))
+        }
 
-        User user = User.get(principal.id)
+        if (request.postSizeExceeded) {
+            return respond(TypeError.contentTooLarge(logId, response))
+        }
 
-        userService.saveProfileImage(user, file)
+        if (!request.getFileMap().file) {
+            return respond(TypeError.missingParameter("archivo", logId, response))
+        }
 
-        respond([success: true])
+        def file = request.getFile("file")
+
+        if (file.empty) {
+            return respond(TypeError.incorrectFormat("archivo", "algun tipo de archivo digital", logId, response))
+        }
+
+        if (!Constants.ALLOWED_TYPES.contains(file.contentType)) {
+            return respond(TypeError.incorrectFormat("archivo", "[image/jpeg, image/png, image/webp]", logId, response))
+        }
+
+        if (file.size > Constants.MAX_SIZE) {
+            return respond(TypeError.incorrectFormat("archivo", "una imagen no mayor a 2MB", logId, response))
+        }
+        
+        def user = springSecurityService.currentUser
+
+        def response = userService.changeProfilePicture(user, file, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['isAuthenticated()'])
-    def myPhoto() {
+    def getProfilePicture() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Iniciando la solicitud.", "params: ${params}")
 
-        GrailsUser principal =
-                springSecurityService.principal as GrailsUser
+        def user = springSecurityService.currentUser
 
-        User user = User.get(principal.id)
-        File image = userService.resolveProfileImage(user)
+        def responseService = userService.getProfilePicture(user, logId)
+        if( responseService.status != 200 ) {
+            return respond(responseService.data, status: responseService.status)
+        }
 
-        response.contentType =
-                Files.probeContentType(image.toPath())
+        response.contentType = Files.probeContentType(responseService.data.data.image.toPath())
 
-        response.outputStream << image.bytes
+        response.outputStream << responseService.data.data.image.bytes
         response.outputStream.flush()
     }
 
-    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
-    def getUserInfo(String username) {
-        def response = userService.getUserInfo(params.username)
-        return respond(response.resp, status: response.status)
+    @Secured(['ROLE_ADMIN'])
+    def changeUserProfilePicture() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+
+        if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
+            return respond(TypeError.incorrectFormat("request", "un form-data", logId, response))
+        }
+
+        if (request.postSizeExceeded) {
+            return respond(TypeError.contentTooLarge(logId, response))
+        }
+
+        if (!request.getFileMap().file) {
+            return respond(TypeError.missingParameter("archivo", logId, response))
+        }
+
+        def file = request.getFile("file")
+
+        if (file.empty) {
+            return respond(TypeError.incorrectFormat("archivo", "algun tipo de archivo digital", logId, response))
+        }
+
+        if (!Constants.ALLOWED_TYPES.contains(file.contentType)) {
+            return respond(TypeError.incorrectFormat("archivo", "[image/jpeg, image/png, image/webp]", logId, response))
+        }
+
+        if (file.size > Constants.MAX_SIZE) {
+            return respond(TypeError.incorrectFormat("archivo", "una imagen no mayor a 2MB", logId, response))
+        }
+
+        def response = userService.changeUserProfilePicture(params.uuid, file, logId)
+
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def changeUserPassword(Long id) {
+    def getUserProfilePicture() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}")
 
-        def newPassword = request.JSON?.newPassword
-
-        if (!id) {
-            return respond(
-                [success: false, message: "El id del usuario es obligatorio"],
-                status: 400
-            )
+        def responseService = userService.getUserProfilePicture(params.uuid, logId)
+        if( responseService.status != 200 ) {
+            return respond(responseService.data, status: responseService.status)
         }
 
-        if (!(newPassword instanceof String) || !newPassword) {
-            return respond(
-                [success: false, message: "La nueva contraseña es obligatoria"],
-                status: 400
-            )
-        }
+        response.contentType = Files.probeContentType(responseService.data.data.image.toPath())
 
-        if (newPassword.trim() != newPassword) {
-            return respond(
-                [success: false, message: "La contraseña no puede contener espacios"],
-                status: 400
-            )
-        }
-
-        def passwordRegex =
-            ~/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&\/])[A-Za-z\d$@!%*?&\/]{8,15}$/
-
-        if (!(newPassword ==~ passwordRegex)) {
-            return respond(
-                [success: false, message:
-                    "La contraseña debe tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial [@!%*?&/]"],
-                status: 400
-            )
-        }
-
-        def response =
-            userService.adminChangePassword(id, newPassword)
-
-        return respond(response.resp, status: response.status)
-    }
-
-    @Secured(['ROLE_ADMIN'])
-    def uploadUserPhoto(Long id) {
-
-        if (!id) {
-            return respond(
-                [success: false, message: "El id del usuario es obligatorio"],
-                status: 400
-            )
-        }
-
-        def file = request.getFile('file')
-
-        if (!file || file.empty) {
-            return respond(
-                [success: false, message: "El archivo es obligatorio"],
-                status: 400
-            )
-        }
-
-        User user = User.get(id)
-
-        if (!user) {
-            return respond(
-                [success: false, message: "Usuario no encontrado"],
-                status: 404
-            )
-        }
-
-        userService.saveProfileImage(user, file)
-
-        respond([
-            success: true,
-            message: "Foto de perfil actualizada correctamente"
-        ])
-    }
-
-    @Secured(['ROLE_ADMIN'])
-    def getUserPhoto(Long id) {
-
-        if (!id) {
-            return respond(
-                [success: false, message: "El id del usuario es obligatorio"],
-                status: 400
-            )
-        }
-
-        User user = User.get(id)
-
-        if (!user) {
-            return respond(
-                [success: false, message: "Usuario no encontrado"],
-                status: 404
-            )
-        }
-
-        File image = userService.resolveProfileImage(user)
-
-        response.contentType =
-            Files.probeContentType(image.toPath())
-
-        response.outputStream << image.bytes
+        response.outputStream << responseService.data.data.image.bytes
         response.outputStream.flush()
     }
 

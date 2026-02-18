@@ -45,14 +45,14 @@ class ReviewService {
             if(reviews.isEmpty()) {
                 Log.logger(Log.INFO, logId, "Listado de resenias.", "Platillo sin resenias.", "params: { dish: ${dishUuid}, rating: ${rating} }")
                 return [
-                    resp: [success: true, data: [dish: [message: 'No hay reseñas para listar', dishName: dish.name, dishUuid: dish.uuid], reviews: []]],
+                    data: [success: true, data: [dish: [message: 'No hay reseñas para listar', dishName: dish.name, dishUuid: dish.uuid], reviews: []]],
                     status: 200
                 ]
             }else {
                 def reviewsMapper = reviews.collect { review -> mapReview(review) }
                 Log.logger(Log.INFO, logId, "Listado de resenias.", "Resenias devueltas de manera exitosa.", "params: { dish: ${dishUuid}, rating: ${rating} }", "Reseñas: ${reviews.size()}")
                 return [
-                    resp: [success: true, data: [dish: [message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid], reviews: reviewsMapper]],
+                    data: [success: true, data: [dish: [message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid], reviews: reviewsMapper]],
                     status: 200
                 ]
             }
@@ -61,7 +61,7 @@ class ReviewService {
             return TypeError.internalError(logId)
         }
     }
-    def statisticsDish(dishUuid) {
+    def statisticsDish(dishUuid, logId) {
         try {
             def totalReviews = Review.createCriteria().count {
                 dish {
@@ -90,7 +90,7 @@ class ReviewService {
                 }
             }
             return [
-                resp: [
+                data: [
                     success: true,
                     data: [
                         message: 'Reseñas obtenidas correctamente',
@@ -107,7 +107,7 @@ class ReviewService {
             return TypeError.internalError(logId)
         }
     }
-    def createReview(data, auth) {
+    def createReview(data, auth, logId) {
         try {
             if (!auth) {
                 return TypeError.noPermissions(logId)
@@ -145,12 +145,12 @@ class ReviewService {
                 rating: data.rating
             ]).save(flush: true, failOnError: true)
             
-            return [resp: [success: true, data: [message: 'Reseña creada', review: mapReview(newReview)]], status: 201]
+            return [data: [success: true, data: [message: 'Reseña creada', review: mapReview(newReview)]], status: 201]
         } catch (Exception e) {
             return TypeError.internalError(logId)
         }
     }
-    def statusReview(reviewUuid, status, auth) {
+    def statusReview(reviewUuid, status, auth, logId) {
         try {
             def review = Review.findByUuid(reviewUuid)
             if (!review) {
@@ -174,12 +174,12 @@ class ReviewService {
             }
             review.status = status
             review.save()
-            return [resp: [success: true, data: [message: "Estado de la reseña actualizado.", review: review.uuid]], status: 200]
+            return [data: [success: true, data: [message: "Estado de la reseña actualizado.", review: review.uuid]], status: 200]
         } catch (e) {
             return TypeError.internalError(logId)
         }
     }
-    def editReview(reviewUuid, data, auth) {
+    def editReview(reviewUuid, data, auth, logId) {
         try {            
             def review = Review.findByUuid(reviewUuid)
             if (!review) {
@@ -191,10 +191,10 @@ class ReviewService {
             if (review.user.id != auth.id) {
                 return TypeError.noPermissions(logId)
             }
-            review.comment = data.comment
+            review.comment = (data.comment != null) ? data.comment : review.comment
             review.rating = data.rating as Float
             review.save(flush: true, failOnError: true)
-            return [resp: [success: true, data: [message: 'Reseña actualizada', review: mapReview(review)]], status: 200]
+            return [data: [success: true, data: [message: 'Reseña actualizada', review: mapReview(review)]], status: 200]
         } catch (e) {
             return TypeError.internalError(logId)
         }

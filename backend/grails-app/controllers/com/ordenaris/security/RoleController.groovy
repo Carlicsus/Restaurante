@@ -2,76 +2,81 @@ package com.ordenaris.security
 
 import grails.rest.*
 import grails.plugin.springsecurity.annotation.Secured
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 class RoleController {
 
     static responseFormats = ['json', 'xml']
 
-    RoleService roleService
+    def roleService
 
     @Secured(['ROLE_ADMIN'])
-    def index() {
-        def response = roleService.getAllRoles()
-        return respond(response.resp, status: response.status)
+    def listAllRoles() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Listar todos los roles.", "Iniciando la solicitud.", "params: ${params}")
+
+        def response = roleService.listAllRoles(logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def show(Long id) {
-        def response = roleService.getRoleById(id)
-        return respond(response.resp, status: response.status)
+    def getRoleInfo() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener informacion de un rol.", "Iniciando la solicitud.", "params: ${params}")
+
+        def response = roleService.getRoleInfo(params.uuid, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def save() {
-        def authority = request.JSON?.authority
+    def createNewRole() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Crear un nuevo rol.", "Iniciando la solicitud.", "params: ${params}")
 
-        if (!(authority instanceof String)) {
-            return respond([success: false, message: "El rol es obligatorio y debe ser texto"],status: 400)
+        if (!request.JSON.authority) {
+            return respond(TypeError.missingParameter("autoridad", logId, response))
         }
 
-        if (!authority) {
-            return respond([success: false, message: "El rol no puede ir vacio"],status: 400)
+        if (!(request.JSON.authority instanceof String)) {
+            return respond(TypeError.incorrectFormat("autoridad", "una cadena de texto", logId, response))
         }
 
-        if (authority.trim() != authority) {
-            return respond([success: false, message: "El rol no puede tener espacios vacios al principio ni al final"],status: 400)
+        if (!(request.JSON.authority.roleFormat())) {
+            return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empieze con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
         }
 
-        if (!(authority ==~ /^ROLE_[A-Z_]+$/)) {
-            return respond([success: false,message: "El rol debe iniciar con la palabra 'ROLE_', solo tener mayúsculas y usar '_' en lugar de espacios"],status: 400)
-        }
-
-        def response = roleService.createRole(authority)
-        return respond(response.resp, status: response.status)
+        def response = roleService.createNewRole(request.JSON.authority, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def update(Long id) {
-        def authority = request.JSON?.authority
+    def changeAuthority() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Cambiar la autoridad de un rol.", "Iniciando la solicitud.", "params: ${params}")
 
-        if (!(authority instanceof String)) {
-            return respond([success: false, message: "El rol es obligatorio y debe ser texto"],status: 400)
+        if (!request.JSON.authority) {
+            return respond(TypeError.missingParameter("autoridad", logId, response))
         }
 
-        if (!authority) {
-            return respond([success: false, message: "El rol no puede ir vacio"],status: 400)
+        if (!(request.JSON.authority instanceof String)) {
+            return respond(TypeError.incorrectFormat("autoridad", "una cadena de texto", logId, response))
         }
 
-        if (authority.trim() != authority) {
-            return respond([success: false, message: "El rol no puede tener espacios vacios al principio ni al final"],status: 400)
+        if (!(request.JSON.authority.roleFormat())) {
+            return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empieze con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
         }
 
-        if (!(authority ==~ /^ROLE_[A-Z_]+$/)) {
-            return respond([success: false,message: "El rol debe iniciar con la palabra 'ROLE_', solo tener mayúsculas y usar '_' en lugar de espacios"],status: 400)
-        }
-
-        def response = roleService.updateRole(id, authority)
-        return respond(response.resp, status: response.status)
+        def response = roleService.changeAuthority(params.uuid, request.JSON.authority, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
-    def delete(Long id) {
-        def response = roleService.deleteRole(id)
-        return respond(response.resp, status: response.status)
+    def deleteRole() {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Eliminar un rol.", "Iniciando la solicitud.", "params: ${params}")
+
+        def response = roleService.deleteRole(params.uuid, logId)
+        return respond(response.data, status: response.status)
     }
 }

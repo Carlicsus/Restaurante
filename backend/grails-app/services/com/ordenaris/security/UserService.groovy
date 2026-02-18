@@ -3,9 +3,13 @@ package com.ordenaris.security
 import grails.gorm.transactions.Transactional
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.beans.factory.annotation.Autowired
+import grails.plugin.springsecurity.userdetails.GrailsUser
 
 import org.springframework.web.multipart.MultipartFile
 import grails.util.Holders
+import com.ordenaris.RegisterTypeUser
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -14,255 +18,335 @@ import java.nio.file.Paths
 @Transactional
 class UserService {
 
-    String basePath =
-            Holders.config.app.upload.basePath as String
+    String basePath = Holders.config.app.upload.basePath as String
 
-    private static final List<String> ALLOWED_TYPES =
-            ['image/jpeg', 'image/png', 'image/webp']
-
-    private static final long MAX_SIZE = 2 * 1024 * 1024 // 2MB
-
-    Map register(String username, String rawPassword, String email, String names, String lastNames) {
-
-        if (User.findByUsername(username)) {
-            return [
-                resp:[ success: false, message: "Ya existe un usuario con el usuario " + username],
-                status:400
-            ]
+    def users = { params, orderColumn = null, sort = null ->
+        if (params.enabled) {
+            eq("enabled", enabled.toBoolean())
         }
 
-        if (User.findByEmail(email)) {
-            return [
-                resp:[ success: false, message: "Ya existe un usuario con el correo " + email],
-                status:400
-            ]
+        if (params.locked) {
+            eq("accountLocked", locked.toBoolean())
         }
 
-        User user = new User(
-                username,
-                rawPassword,
-                email,
-                names,
-                lastNames
-        )
-
-        user.enabled = false 
-
-        try{
-            user.save(flush: true)
-        }catch(e){
-            return [
-                resp:[ success: false, message: "No se pudo registrar el usuario, intentelo de nuevo."],
-                status:500
-            ]
+        if (params.query) {
+            or {
+                like("username", "%${query}%")
+                like("email", "%${query}%")
+            }
         }
 
-        return [
-            resp:[success: true,data: [username: user.username,enabled: user.enabled]],
-            status:200
-        ]
+        if(sort && orderColumn){
+            order(orderColumn, sort)
+        }
     }
 
-    def paginateUsers(page, max, orderColumn, sortOrder, enabled, locked, query) {
+    def registerUser(data, logId) {
         try {
-            def offset = page * max - max
+            Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Servicio para registrar un nuevo usuario.", "data: ${Log.sanitize(data)}")
 
-            def list = User.createCriteria().list {
-                if (enabled != null) {
-                    println "Filtering by enabled: ${enabled.toBoolean()}"
-                    eq("enabled", enabled.toBoolean())
-                }
+            if (User.findByUsername(data.username)) {
+                Log.logger( Log.WARN, logId, "Registrar nuevo usuario.", "Ya existe un usuario con el mismo nombre de usuario.", "data: ${Log.sanitize(data)}" )     
+                return TypeError.existingRegister(logId)
+            }
 
-                if (locked != null) {
-                    eq("accountLocked", locked.toBoolean())
-                }
+            if (User.findByEmail(data.email)) {
+                Log.logger( Log.WARN, logId, "Registrar nuevo usuario.", "Ya existe un usuario con el mismo correo electronico.", "data: ${Log.sanitize(data)}" )     
+                return TypeError.existingRegister(logId)
+            }
 
-                if (query) {
-                    or {
-                        like("username", "%${query}%")
-                        like("email", "%${query}%")
-                    }
-                }
+            def user = new User(
+                data.username,
+                data.crd,
+                data.email,
+                data.names,
+                data.lastNames,
+                RegisterTypeUser.CREDENTIALS
+            )
 
-                firstResult(offset)
-                maxResults(max)
-                order(orderColumn, sortOrder)
-            }.collect { user ->
+            user.accountLocked = false 
+            user.save(flush: true)
+
+            Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Usuario registrado correctamente.", "data: ${Log.sanitize(data)}", "Nuevo usuario: ${user}")
+            return [ data: [success: true], status:201 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Registrar nuevo usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def paginateUsers(params, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Paginar usuarios.", "Servicio para listar usuarios.", "params: ${params}")
+            
+            def page = params.page.toInteger()
+            def max = params.max.toInteger()
+            def offset = page * max
+
+            def listUsers = User.createCriteria().list(max: max, offset: offset, users.curry(params, params.orderColumn, params.order))
+            .collect { user ->
                 mapUser(user)
             }
 
+            def totalUsers = User.createCriteria().count(users.curry(params))
+
+            Log.logger( Log.INFO, logId, "Paginar usuarios.", "Listado completado.", "params: ${params}", "returnInformation: ${listUsers.size()}" )
+            return [ data: [success: true, data: [list: listUsers, total: totalUsers]], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Paginar usuarios.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def changeStatus(params, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Cambiar status.", "Servicio para cambiar status de usuarios.", "params: ${params}")
+
+            def user = User.findByUuid(params.uuid)
+            if (!user) {
+                Log.logger( Log.WARN, logId, "Cambiar status.", "Usuario no encontrado.", "params: ${params}")
+                return TypeError.informationNotFound(logId)
+            } 
+
+            if (params.status.equals("active") || params.status.equals("deactivate")) {
+
+                def status = params.status.equals("active")
+
+                if (user.enabled == status) {
+                    Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene la cuenta ${(user.enabled ? "activada" : "desactivada")}", "params: ${params}" )     
+                    return TypeError.existingRegister(logId)
+                } 
+                
+                user.enabled = status
+                user.save(flush: true)
+
+                Log.logger( Log.INFO, logId, "Cambiar status.", "Se ${(user.enabled ? "activo" : "desactivo")} la cuenta con exito", "params: ${params}", "user: [uuid: ${user.uuid}, username: ${user.username}]" )
+                return [ data: [success: true, data: [message:"La cuenta de ${user.names} ${user.lastNames} ha sido ${(user.enabled ? "activada" : "desactivada")}"]], status: 200 ]
+            }
+
+            def status = params.status.equals("block")
+
+            if (user.accountLocked == status) {
+                Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene la cuenta ${(user.accountLocked ? "bloqueada" : "desbloqueada")}", "params: ${params}" )     
+                return TypeError.existingRegister(logId)
+            } 
+
+            user.accountLocked = status
+            user.save(flush: true)
+
+            Log.logger( Log.INFO, logId, "Cambiar status.", "Se ${(user.accountLocked ? "bloqueo" : "desbloqueo")} la cuenta con exito", "params: ${params}", "user: [uuid: ${user.uuid}, username: ${user.username}]" )
+            return [ data: [success: true, data: [message:"La cuenta de ${user.names} ${user.lastNames} ha sido ${(user.accountLocked ? "bloqueada" : "desbloqueada")}"]], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Cambiar status.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def getUserInfo(uuid, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Obtener información de un usuario.", "Servicio para obtener la informacion de un usuario.", "uuid: ${uuid}")
+
+            def user = User.findByUuid(uuid)
+            if (!user) {
+                Log.logger( Log.WARN, logId, "Obtener información de un usuario.", "Usuario no encontrado.", "uuid: ${uuid}")
+                return TypeError.informationNotFound(logId)
+            }
+
+            Log.logger( Log.INFO, logId, "Obtener información de un usuario.", "Se consulto la información del usuario exitosamente.", "uuid: ${uuid}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
             return [
-                resp: [success: true, data: list],
-                status: 200
+                data: [success: true, data: mapUser(user)], status: 200
             ]
 
-        } catch (e) {
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Obtener información de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
     }
 
-    def setEnabled(String username, boolean enabled) {
-        def user = User.findByUsername(username)
-        if (!user) {
-            return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+    def adminChangeCrd(uuid, rawCrd, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Servicio para cambiar crd de un usuario.", "uuid: ${uuid}")
+
+            def user = User.findByUuid(uuid)
+            if (!user) {
+                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "Usuario no encontrado.", "uuid: ${uuid}")
+                return TypeError.informationNotFound(logId)
+            }
+
+            if (user.registerType == RegisterTypeUser.GOOGLE) {
+                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible cambiar su contraseña.", "uuid: ${uuid}")
+                return TypeError.accessDeniedByRegisterType(logId)
+            }
+
+            if (!user.requestChangeCrd) {
+                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta no ha solicitado un cambio de contraseña.", "uuid: ${uuid}")
+                return TypeError.preconditionRequired(logId)
+            }
+
+            user.crd = rawCrd
+            user.requestChangeCrd = false
+
+            user.save(flush: true, failOnError: true)
+
+            Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Se cambio la contraseña con exito.", "uuid: ${uuid}")
+            return [ data: [success: true], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Cambiar crd de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
-
-        if(user.enabled == enabled){
-            return [resp: [success: true, message: "Usuario ya " + (user.enabled ? "activado" : "desactivado")], status: 200]
-        } 
-
-        user.enabled = enabled
-        user.save(flush: true)
-
-        return [
-            resp: [success: true, enabled: enabled],
-            status: 200
-        ]
     }
 
-    def setLocked(String username, boolean locked) {
-        def user = User.findByUsername(username)
-        if (!user) {
-            return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
+    def changeProfilePicture(user, file, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Servicio para cambiar foto de perfil personal.", "user: [uuid: ${user.uuid}, username: ${user.username}], fileExtension: ${extractExtension(file.originalFilename)}")
+
+            def profileDir = Paths.get(basePath, 'profile')
+            Files.createDirectories(profileDir)
+
+            def extension = extractExtension(file.originalFilename)
+            def filename = "user_${user.uuid}${extension}"
+
+            def targetPath = profileDir.resolve(filename)
+
+            file.transferTo(targetPath.toFile())
+
+            user.profileImagePath = "profile/${filename}"
+            user.save(flush: true)
+
+            Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Se cambio la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}], fileExtension: ${extractExtension(file.originalFilename)}")
+            return [ data: [success: true, data: [message:"Se guardo con exito la foto de perfil"]], status: 200 ]
+            
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Cambiar foto de perfil.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
-
-        if(user.accountLocked == locked){
-            return [resp: [success: true, message: "Usuario ya " + (user.enabled ? "bloqueado" : "desbloqueado")], status: 200]
-        } 
-
-        user.accountLocked = locked
-        user.save(flush: true)
-
-        return [
-            resp: [success: true, accountLocked: locked],
-            status: 200
-        ]
     }
 
-    private mapUser(User user) {
+    def getProfilePicture(user, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Servicio para obtener foto de perfil personal.", "user: [uuid: ${user.uuid}, username: ${user.username}]")
+
+            if (user.profileImagePath) {
+                def pathImage = Paths.get(basePath, user.profileImagePath)
+                if (Files.exists(pathImage)) {
+                    Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Se consulto la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}]", "fileExtension: ${extractExtension(pathImage.toString())}")
+                    return [ data: [success: true, data: [image: pathImage.toFile()]], status: 200 ]
+                }
+            }
+
+            def pathDefaultImage = Paths.get(basePath, 'profile', 'default.png')
+
+            Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "El usuario no cuenta con una foto de perfil personal, se regreso la imagen base.", "user: [uuid: ${user.uuid}, username: ${user.username}]", "fileExtension: ${extractExtension(pathDefaultImage.toString())}")
+            return [ data: [success: true, data: [image: pathDefaultImage.toFile()]], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Cambiar foto de perfil.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def changeUserProfilePicture(uuid, file, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Servicio para cambiar la foto de perfil de un usuario.", "uuid: ${uuid}, fileExtension: ${extractExtension(file.originalFilename)}")
+
+            def user = User.findByUuid(uuid)
+            if (!user) {
+                Log.logger( Log.WARN, logId, "Cambiar foto de perfil de un usuario.", "Usuario no encontrado.", "uuid: ${uuid}, fileExtension: ${extractExtension(file.originalFilename)}")
+                return TypeError.informationNotFound(logId)
+            }
+
+            def profileDir = Paths.get(basePath, 'profile')
+            Files.createDirectories(profileDir)
+
+            def extension = extractExtension(file.originalFilename)
+            def filename = "user_${user.uuid}${extension}"
+
+            def targetPath = profileDir.resolve(filename)
+
+            file.transferTo(targetPath.toFile())
+
+            user.profileImagePath = "profile/${filename}"
+            user.save(flush: true)
+
+            Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Se cambio la foto de perfil de un usuario con exito.", "uuid: ${uuid}, fileExtension: ${extractExtension(file.originalFilename)}")
+            return [ data: [success: true, data: [message:"Se guardó con éxito la foto de perfil."]], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Cambiar foto de perfil de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def getUserProfilePicture(uuid, logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Servicio para obtener la foto de perfil de un usuario.", "uuid: ${uuid}")
+
+            def user = User.findByUuid(uuid)
+            if (!user) {
+                Log.logger( Log.WARN, logId, "Obtener foto de perfil de un usuario.", "Usuario no encontrado.", "uuid: ${uuid}")
+                return TypeError.informationNotFound(logId)
+            }
+
+            if (user.profileImagePath) {
+                def pathImage = Paths.get(basePath, user.profileImagePath)
+                if (Files.exists(pathImage)) {
+                    Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Se consulto la foto de perfil del usurio con exito.", "uuid: ${uuid}", "fileExtension: ${extractExtension(pathImage.toString())}")
+                    return [ data: [success: true, data: [image: pathImage.toFile()]], status: 200 ]
+                }
+            }
+
+            def pathDefaultImage = Paths.get(basePath, 'profile', 'default.png')
+
+            Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "El usuario no cuenta con una foto de perfil, se regreso la imagen base.", "uuid: ${uuid}", "fileExtension: ${extractExtension(pathDefaultImage.toString())}")
+            return [ data: [success: true, data: [image: pathDefaultImage.toFile()]], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Cambiar foto de perfil de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def updateChangeCrdRequest(user, params, logId){
+        try {
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Servicio para actulizar la solicitud de cambio de crd personal.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
+
+            def status = params.status.equals("request")
+
+            if (user.requestChangeCrd == status) {
+                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "El usuario ya realizo la ${(user.accountLocked ? "solicitud" : "cancelacion")} de su cambio de crd", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")     
+                return TypeError.existingRegister(logId)
+            } 
+
+            user.requestChangeCrd = status
+            user.save(flush: true)
+
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Se ${(user.requestChangeCrd ? "solicito" : "cancelo")} el cambio de crd con exito", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}", "requestChangeCrd: ${user.requestChangeCrd}")
+            return [ data: [success: true, data: [message: (user.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " tu cambio de contraseña"]], status: 200 ]
+
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Actualizar la solicitud de cambio de crd personal.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
+        }
+    }
+
+    def mapUser(user) {
         return [
-            id            : user.id,
+            uuid          : user.uuid,
             username      : user.username,
             email         : user.email,
             names         : user.names,
             lastNames     : user.lastNames,
             enabled       : user.enabled,
             accountLocked : user.accountLocked,
+            registerType  : user.registerType
         ]
     }
 
-    void saveProfileImage(User user, MultipartFile file) {
-
-        validateFile(file)
-
-        Path profileDir = Paths.get(basePath, 'profile')
-        Files.createDirectories(profileDir)
-
-        String extension = extractExtension(file.originalFilename)
-        String filename = "user_${user.id}${extension}"
-
-        Path targetPath = profileDir.resolve(filename)
-
-        file.transferTo(targetPath.toFile())
-
-        user.profileImagePath = "profile/${filename}"
-        user.save(flush: true)
+    def extractExtension(filename) {
+        return filename.substring(filename.lastIndexOf('.')).toLowerCase()
     }
-
-    File resolveProfileImage(User user) {
-
-        if (user.profileImagePath) {
-            Path p = Paths.get(basePath, user.profileImagePath)
-            if (Files.exists(p)) {
-                return p.toFile()
-            }
-        }
-
-        // Imagen por defecto
-        return Paths.get(basePath, 'profile', 'default.png').toFile()
-    }
-
-
-    private void validateFile(MultipartFile file) {
-
-        if (!file || file.empty) {
-            throw new IllegalArgumentException("Archivo requerido")
-        }
-
-        if (!ALLOWED_TYPES.contains(file.contentType)) {
-            throw new IllegalArgumentException("Tipo de imagen no permitido")
-        }
-
-        if (file.size > MAX_SIZE) {
-            throw new IllegalArgumentException("La imagen excede 2MB")
-        }
-    }
-
-    private String extractExtension(String filename) {
-        filename.substring(filename.lastIndexOf('.')).toLowerCase()
-    }
-
-    Map getUserInfo(String username) {
-
-        User user = User.findByUsername(username)
-
-        if (!user) {
-            return [
-                resp: [success: false, message: "Usuario no encontrado"],
-                status: 404
-            ]
-        }
-
-        return [
-            resp: [
-                success: true,
-                data: [
-                    id            : user.id,
-                    username      : user.username,
-                    email         : user.email,
-                    names         : user.names,
-                    lastNames     : user.lastNames,
-                    enabled       : user.enabled,
-                    accountLocked : user.accountLocked,
-                    profileImage  : user.profileImagePath
-                ]
-            ],
-            status: 200
-        ]
-    }
-
-    Map adminChangePassword(Long userId, String rawPassword) {
-
-        User user = User.get(userId)
-
-        if (!user) {
-            return [
-                resp: [success: false, message: "Usuario no encontrado"],
-                status: 404
-            ]
-        }
-
-        user.password = rawPassword
-        user.passwordExpired = false
-
-        user.save(flush: true, failOnError: true)
-
-        return [
-            resp: [
-                success: true,
-                message: "Contraseña actualizada correctamente",
-                data: [
-                    id: user.id,
-                    username: user.username,
-                    email: user.email
-                ]
-            ],
-            status: 200
-        ]
-    }
-
-    
 }

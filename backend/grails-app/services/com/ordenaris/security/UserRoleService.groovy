@@ -5,88 +5,136 @@ import grails.gorm.transactions.Transactional
 @Transactional
 class UserRoleService {
 
-    def getRolesByUser(Long userId) {
-        def user = User.get(userId)
-        if (!user) {
-            return [resp: [success: false, message: "Usuario no encontrado"], status: 404]
-        }
+    def getRolesByUser(uuid) {
+        try {
+            def user = User.findByUuid(uuid)
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+            }
 
-        def roles = UserRole.findAllByUser(user).collect {
-            [
-                id       : it.role.id,
-                authority: it.role.authority
+            def roles = UserRole.findAllByUser(user).collect {
+                [
+                    uuid       : it.role.uuid,
+                    authority: it.role.authority
+                ]
+            }
+
+            return [
+                resp  : [success: true, data: roles],
+                status: 200
+            ]
+
+        } catch(e) {
+            return [
+                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
+                status:500
             ]
         }
-
-        return [
-            resp  : [success: true, data: roles],
-            status: 200
-        ]
     }
 
-    def assignRole(Long userId, Long roleId) {
-        def user = User.get(userId)
-        def role = Role.get(roleId)
+    def assignRole(uuidUser, uuidRole) {
+        try {
+            def user = User.findByUuid(uuidUser)
+            def role = Role.findByUuid(uuidRole)
 
-        if (!user || !role) {
-            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 404]
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+            }
+
+            if (!role) {
+                return [resp: [success: false, message: "Rol no encontrado"], status: 412]
+            }
+
+            if (UserRole.exists(user.id, role.id)) {
+                return [resp: [success: false, message: "El usuario ya cuenta con este rol"], status: 409]
+            }
+
+            UserRole.create(user, role, true)
+
+            return [
+                resp  : [success: true],
+                status: 201
+            ]
+
+        } catch(e) {
+            return [
+                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
+                status:500
+            ]
         }
-
-        if (UserRole.exists(user.id, role.id)) {
-            return [resp: [success: false, message: "El usuario ya tiene este rol"], status: 409]
-        }
-
-        UserRole.create(user, role, true)
-
-        return [
-            resp  : [success: true, message: "Rol asignado correctamente"],
-            status: 201
-        ]
     }
 
-    def updateRole(Long userId, Long oldRoleId, Long newRoleId) {
-        def user = User.get(userId)
-        def oldRole = Role.get(oldRoleId)
-        def newRole = Role.get(newRoleId)
+    def changeRole(uuidUser, uuidRole, uuidNewRole) {
+        try {
+            def user = User.findByUuid(uuidUser)
+            def oldRole = Role.findByUuid(uuidRole)
+            def newRole = Role.findByUuid(uuidNewRole)
 
-        if (!user || !oldRole || !newRole) {
-            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 404]
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+            }
+
+            if (!oldRole) {
+                return [resp: [success: false, message: "Rol actual no encontrado"], status: 412]
+            }
+
+            if (!newRole) {
+                return [resp: [success: false, message: "Nuevo rol no encontrado"], status: 412]
+            }
+
+            if (!UserRole.exists(user.id, oldRole.id)) {
+                return [resp: [success: false, message: "El usuario no cuenta con el rol a reemplazar"], status: 412]
+            }
+
+            if (UserRole.exists(user.id, newRole.id)) {
+                return [resp: [success: false, message: "El usuario ya tiene el nuevo rol"], status: 409]
+            }
+
+            UserRole.remove(user, oldRole)
+            UserRole.create(user, newRole, true)
+
+            return [
+                resp  : [success: true],
+                status: 200
+            ]
+
+        } catch(e) {
+            return [
+                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
+                status:500
+            ]
         }
-
-        if (!UserRole.exists(user.id, oldRole.id)) {
-            return [resp: [success: false, message: "El usuario no tiene el rol a reemplazar"], status: 400]
-        }
-
-        if (UserRole.exists(user.id, newRole.id)) {
-            return [resp: [success: false, message: "El usuario ya tiene el rol nuevo"], status: 409]
-        }
-
-        UserRole.remove(user, oldRole)
-        UserRole.create(user, newRole, true)
-
-        return [
-            resp  : [success: true, message: "Rol actualizado correctamente"],
-            status: 200
-        ]
     }
 
-    def removeRole(Long userId, Long roleId) {
-        def user = User.get(userId)
-        def role = Role.get(roleId)
+    def removeRole(uuidUser, uuidRole) {
+        try {
+            def user = User.findByUuid(uuidUser)
+            def role = Role.findByUuid(uuidRole)
 
-        if (!user || !role) {
-            return [resp: [success: false, message: "Usuario o rol no encontrado"], status: 404]
+            if (!user) {
+                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+            }
+
+            if (!role) {
+                return [resp: [success: false, message: "Rol no encontrado"], status: 412]
+            }
+
+            if (!UserRole.exists(user.id, role.id)) {
+                return [resp: [success: false, message: "El usuario no tiene este rol"], status: 412]
+            }
+
+            UserRole.remove(user, role)
+
+            return [
+                resp  : [success: true],
+                status: 200
+            ]
+
+        } catch(e) {
+            return [
+                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
+                status:500
+            ]
         }
-
-        if (!UserRole.exists(user.id, role.id)) {
-            return [resp: [success: false, message: "El usuario no tiene este rol"], status: 400]
-        }
-
-        UserRole.remove(user, role)
-
-        return [
-            resp  : [success: true, message: "Rol eliminado correctamente"],
-            status: 200
-        ]
     }
 }

@@ -5,6 +5,7 @@ import grails.plugin.springsecurity.userdetails.GrailsUserDetailsService
 import grails.plugin.springsecurity.userdetails.NoStackUsernameNotFoundException
 import grails.transaction.Transactional
 import org.springframework.dao.DataAccessException
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -33,13 +34,13 @@ class AuthManagerService implements GrailsUserDetailsService{
 
     @Override
     @Transactional(readOnly = true)
-    UserDetails loadUserByUsername(String identifier)
+    AuthManagerBean loadUserByUsername(String identifier)
             throws UsernameNotFoundException {
 
 
         User user = findUserByUsernameOrEmail(identifier)
         if (!user) {
-            throw new NoStackUsernameNotFoundException()
+            throw new BadCredentialsException("Credenciales inválidas")
         }
 
 
@@ -51,14 +52,13 @@ class AuthManagerService implements GrailsUserDetailsService{
 
         return new AuthManagerBean(
             user.username,     
-            user.password,
+            user.crd,
             user.enabled,
             !user.accountExpired,
             !user.passwordExpired,
             !user.accountLocked,
             authorities,
-            user.id,
-            "Armando Montoya"
+            user.id
         )
     }
 

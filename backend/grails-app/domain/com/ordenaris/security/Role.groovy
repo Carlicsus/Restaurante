@@ -11,6 +11,7 @@ class Role implements Serializable {
 
 	private static final long serialVersionUID = 1
 
+	String uuid = UUID.randomUUID().toString().replaceAll('\\-', '')
 	String authority
 
 	static constraints = {
@@ -19,6 +20,7 @@ class Role implements Serializable {
 
 	static mapping = {
 		cache true
+		version false
 	}
 
 	Role(String authority) {

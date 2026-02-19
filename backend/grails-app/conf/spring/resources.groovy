@@ -4,6 +4,7 @@ import com.ordenaris.security.DefaultOauthUserDetailsService
 import com.ordenaris.security.AuthManagerService
 import com.ordenaris.security.CustomAuthenticationProvider
 import com.ordenaris.security.CustomRestAuthenticationFailureHandler
+import com.ordenaris.security.MaxFileUploadSizeResolver
 import org.springframework.web.multipart.commons.CommonsMultipartResolver
 
 // Place your Spring DSL code here
@@ -12,8 +13,11 @@ beans = {
 
     userIdClaimProvider(UserIdClaimProvider)
 
+    multipartResolver(MaxFileUploadSizeResolver) {
+    }
+
     oauthUserDetailsService(DefaultOauthUserDetailsService) {
-        userDetailsService = ref('userDetailsService')
+        authManagerService = ref('authManagerService')
     }
 
     restAuthenticationFailureHandler(CustomRestAuthenticationFailureHandler)

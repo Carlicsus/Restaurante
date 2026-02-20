@@ -1,15 +1,20 @@
 package com.ordenaris.security
 
 import grails.gorm.transactions.Transactional
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Transactional
 class UserRoleService {
 
-    def getRolesByUser(uuid) {
+    def getRolesByUser(uuid, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Obtener todos los roles de un usuario.", "Servicio para obtener todos los roles de un usuario.", "uuid: ${uuid}")
+
             def user = User.findByUuid(uuid)
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+                Log.logger( Log.WARN, logId, "Obtener todos los roles de un usuario.", "Usuario no encontrado.", "uuid: ${uuid}")
+                return TypeError.informationNotFound(logId)
             }
 
             def roles = UserRole.findAllByUser(user).collect {
@@ -19,122 +24,120 @@ class UserRoleService {
                 ]
             }
 
-            return [
-                resp  : [success: true, data: roles],
-                status: 200
-            ]
+            Log.logger( Log.INFO, logId, "Obtener todos los roles de un usuario.", "Se consulto los roles del usuario exitosamente.", "uuid: ${uuid}", "returnInformation: ${roles.size()}")
+            return [ data: [success: true, data: roles], status: 200 ]
 
         } catch(e) {
-            return [
-                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
-                status:500
-            ]
+            Log.logger( Log.ERROR, logId, "Obtener todos los roles de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
     }
 
-    def assignRole(uuidUser, uuidRole) {
+    def assignRole(uuidUser, uuidRole, logId) {
         try {
-            def user = User.findByUuid(uuidUser)
-            def role = Role.findByUuid(uuidRole)
+            Log.logger(Log.INFO, logId, "Asignar un rol a un usuario.", "Servicio para asignar un rol a un usuario.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
 
+            def user = User.findByUuid(uuidUser)
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Asignar un rol a un usuario.", "Usuario no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
+                return TypeError.informationNotFound(logId)
             }
 
+            def role = Role.findByUuid(uuidRole)
             if (!role) {
-                return [resp: [success: false, message: "Rol no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Asignar un rol a un usuario.", "Rol no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
+                return TypeError.informationNotFound(logId)
             }
 
             if (UserRole.exists(user.id, role.id)) {
-                return [resp: [success: false, message: "El usuario ya cuenta con este rol"], status: 409]
+                Log.logger(Log.WARN, logId, "Asignar un rol a un usuario.", "El usuario ya cuenta con este rol", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
+                return TypeError.existingRegister(logId)
             }
 
             UserRole.create(user, role, true)
 
-            return [
-                resp  : [success: true],
-                status: 201
-            ]
+            Log.logger(Log.INFO, logId, "Asignar un rol a un usuario.", "Se asigno el rol correctamente al usuario", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}", "user: [username: ${user.username}, roles: ${user.getAuthorities()*.authority}]")
+            return [ data: [success: true], status: 201 ]
 
         } catch(e) {
-            return [
-                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
-                status:500
-            ]
+            Log.logger( Log.ERROR, logId, "Asignar un rol a un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
     }
 
-    def changeRole(uuidUser, uuidRole, uuidNewRole) {
+    def changeRole(uuidUser, uuidRole, uuidNewRole, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Cambiar un rol de un usuario.", "Servicio para cambiar un rol de un usuario.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}")
+
             def user = User.findByUuid(uuidUser)
-            def oldRole = Role.findByUuid(uuidRole)
-            def newRole = Role.findByUuid(uuidNewRole)
-
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Cambiar un rol de un usuario.", "Usuario no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}")
+                return TypeError.informationNotFound(logId)
             }
 
+            def oldRole = Role.findByUuid(uuidRole)
             if (!oldRole) {
-                return [resp: [success: false, message: "Rol actual no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Cambiar un rol de un usuario.", "Rol no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}")
+                return TypeError.informationNotFound(logId)
             }
 
+            def newRole = Role.findByUuid(uuidNewRole)
             if (!newRole) {
-                return [resp: [success: false, message: "Nuevo rol no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Cambiar un rol de un usuario.", "Nuevo rol no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}")
+                return TypeError.informationNotFound(logId)
             }
 
             if (!UserRole.exists(user.id, oldRole.id)) {
-                return [resp: [success: false, message: "El usuario no cuenta con el rol a reemplazar"], status: 412]
+                Log.logger(Log.WARN, logId, "Cambiar un rol de un usuario.", "El usuario no cuenta con el rol a reemplazar.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}")
+                return TypeError.informationNotFound(logId)
             }
 
             if (UserRole.exists(user.id, newRole.id)) {
-                return [resp: [success: false, message: "El usuario ya tiene el nuevo rol"], status: 409]
+                Log.logger(Log.WARN, logId, "Cambiar un rol de un usuario.", "El usuario ya tiene el nuevo rol.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}")
+                return TypeError.existingRegister(logId)
             }
 
             UserRole.remove(user, oldRole)
             UserRole.create(user, newRole, true)
 
-            return [
-                resp  : [success: true],
-                status: 200
-            ]
+            Log.logger(Log.INFO, logId, "Cambiar un rol de un usuario.", "Se remplazaron los roles del usuario con exito.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}, uuidNewRole: ${uuidNewRole}", "user: [username: ${user.username}, roles: ${user.getAuthorities()*.authority}]")
+            return [ data: [success: true], status: 200 ]
 
         } catch(e) {
-            return [
-                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
-                status:500
-            ]
+            Log.logger( Log.ERROR, logId, "Cambiar un rol de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
     }
 
-    def removeRole(uuidUser, uuidRole) {
+    def removeRole(uuidUser, uuidRole, logId) {
         try {
-            def user = User.findByUuid(uuidUser)
-            def role = Role.findByUuid(uuidRole)
+            Log.logger(Log.INFO, logId, "Remover un rol a un usuario.", "Servicio para remover un rol a un usuario.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
 
+            def user = User.findByUuid(uuidUser)
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Remover un rol a un usuario.", "Usuario no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
+                return TypeError.informationNotFound(logId)
             }
 
+            def role = Role.findByUuid(uuidRole)
             if (!role) {
-                return [resp: [success: false, message: "Rol no encontrado"], status: 412]
+                Log.logger(Log.WARN, logId, "Remover un rol a un usuario.", "Rol no encontrado.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
+                return TypeError.informationNotFound(logId)
             }
 
             if (!UserRole.exists(user.id, role.id)) {
-                return [resp: [success: false, message: "El usuario no tiene este rol"], status: 412]
+                Log.logger(Log.WARN, logId, "Remover un rol a un usuario.", "El usuario no cuenta con el rol a remover.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}")
+                return TypeError.informationNotFound(logId)
             }
 
             UserRole.remove(user, role)
 
-            return [
-                resp  : [success: true],
-                status: 200
-            ]
+            Log.logger(Log.INFO, logId, "Remover un rol a un usuario.", "Se removio el rol exitosamente.", "uuidUser: ${uuidUser}, uuidRole: ${uuidRole}", "user: [username: ${user.username}, roles: ${user.getAuthorities()*.authority}]")
+            return [ data: [success: true], status: 200 ]
 
         } catch(e) {
-            return [
-                resp:[ success: false, message: "Se ha producido un error interno. Inténtelo de nuevo más tarde."],
-                status:500
-            ]
+            Log.logger( Log.ERROR, logId, "Remover un rol a un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            return TypeError.internalError(logId)
         }
     }
 }

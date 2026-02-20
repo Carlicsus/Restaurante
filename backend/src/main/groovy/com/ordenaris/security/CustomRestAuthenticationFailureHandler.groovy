@@ -11,11 +11,11 @@ class CustomRestAuthenticationFailureHandler extends RestAuthenticationFailureHa
     void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
         response.setContentType("application/json;charset=UTF-8")
 
-        def errorMessage = exception?.message ?: "Authentication failed"
+        def errorMessage = exception?.message ?: "Error de autenticación"
 
         response.status = super.statusCode ?: HttpServletResponse.SC_UNAUTHORIZED
         response.writer.write(
-                '{"success": false, "error": "Authentication failed", "message": "' + errorMessage + '"}'
+                '{"success": false, "error": "Error de autenticación", "message": "' + errorMessage + '"}'
         )
         response.writer.flush()
     }

@@ -84,6 +84,7 @@ class RoleService {
             role.authority = authority
             role.save(flush: true)
 
+            Log.logger( Log.INFO, logId, "Cambiar la autoridad de un rol.", "Se cambio la autoridad correctamente.", "uuid: ${uuid}, authority: ${authority}", "role: [uuid: ${role.uuid}, authority: ${role.authority}]")
             return [ data  : [success: true, data: mapRole(role)], status: 200 ]
 
         } catch(e) {

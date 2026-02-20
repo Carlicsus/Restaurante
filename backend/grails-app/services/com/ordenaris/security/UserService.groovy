@@ -1,11 +1,7 @@
 package com.ordenaris.security
 
 import grails.gorm.transactions.Transactional
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.beans.factory.annotation.Autowired
-import grails.plugin.springsecurity.userdetails.GrailsUser
 
-import org.springframework.web.multipart.MultipartFile
 import grails.util.Holders
 import com.ordenaris.RegisterTypeUser
 import com.ordenaris.Log
@@ -18,7 +14,7 @@ import java.nio.file.Paths
 @Transactional
 class UserService {
 
-    String basePath = Holders.config.app.upload.basePath as String
+    def grailsApplication = Holders.grailsApplication
 
     def users = { params, orderColumn = null, sort = null ->
         if (params.enabled) {
@@ -64,7 +60,7 @@ class UserService {
                 RegisterTypeUser.CREDENTIALS
             )
 
-            user.accountLocked = false 
+            user.accountLocked = true
             user.save(flush: true)
 
             Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Usuario registrado correctamente.", "data: ${Log.sanitize(data)}", "Nuevo usuario: ${user}")
@@ -177,12 +173,12 @@ class UserService {
             }
 
             if (user.registerType == RegisterTypeUser.GOOGLE) {
-                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible cambiar su contraseña.", "uuid: ${uuid}")
-                return TypeError.accessDeniedByRegisterType(logId)
+                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible cambiar su crd.", "uuid: ${uuid}")
+                return TypeError.conflictByRegisterType(logId)
             }
 
             if (!user.requestChangeCrd) {
-                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta no ha solicitado un cambio de contraseña.", "uuid: ${uuid}")
+                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta no ha solicitado un cambio de crd.", "uuid: ${uuid}")
                 return TypeError.preconditionRequired(logId)
             }
 
@@ -191,7 +187,7 @@ class UserService {
 
             user.save(flush: true, failOnError: true)
 
-            Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Se cambio la contraseña con exito.", "uuid: ${uuid}")
+            Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Se cambio el crd con exito.", "uuid: ${uuid}")
             return [ data: [success: true], status: 200 ]
 
         } catch(e) {
@@ -204,7 +200,7 @@ class UserService {
         try {
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Servicio para cambiar foto de perfil personal.", "user: [uuid: ${user.uuid}, username: ${user.username}], fileExtension: ${extractExtension(file.originalFilename)}")
 
-            def profileDir = Paths.get(basePath, 'profile')
+            def profileDir = Paths.get(grailsApplication.config.repository, 'uploads/profile')
             Files.createDirectories(profileDir)
 
             def extension = extractExtension(file.originalFilename)
@@ -214,7 +210,7 @@ class UserService {
 
             file.transferTo(targetPath.toFile())
 
-            user.profileImagePath = "profile/${filename}"
+            user.profileImagePath = "uploads/profile/${filename}"
             user.save(flush: true)
 
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Se cambio la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}], fileExtension: ${extractExtension(file.originalFilename)}")
@@ -231,14 +227,15 @@ class UserService {
             Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Servicio para obtener foto de perfil personal.", "user: [uuid: ${user.uuid}, username: ${user.username}]")
 
             if (user.profileImagePath) {
-                def pathImage = Paths.get(basePath, user.profileImagePath)
+                println user.profileImagePath
+                def pathImage = Paths.get(grailsApplication.config.repository, user.profileImagePath)
                 if (Files.exists(pathImage)) {
                     Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Se consulto la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}]", "fileExtension: ${extractExtension(pathImage.toString())}")
                     return [ data: [success: true, data: [image: pathImage.toFile()]], status: 200 ]
                 }
             }
 
-            def pathDefaultImage = Paths.get(basePath, 'profile', 'default.png')
+            def pathDefaultImage = Paths.get(grailsApplication.config.repository, 'uploads/profile/default.png')
 
             Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "El usuario no cuenta con una foto de perfil personal, se regreso la imagen base.", "user: [uuid: ${user.uuid}, username: ${user.username}]", "fileExtension: ${extractExtension(pathDefaultImage.toString())}")
             return [ data: [success: true, data: [image: pathDefaultImage.toFile()]], status: 200 ]
@@ -259,7 +256,7 @@ class UserService {
                 return TypeError.informationNotFound(logId)
             }
 
-            def profileDir = Paths.get(basePath, 'profile')
+            def profileDir = Paths.get(grailsApplication.config.repository, 'uploads/profile')
             Files.createDirectories(profileDir)
 
             def extension = extractExtension(file.originalFilename)
@@ -269,7 +266,7 @@ class UserService {
 
             file.transferTo(targetPath.toFile())
 
-            user.profileImagePath = "profile/${filename}"
+            user.profileImagePath = "uploads/profile/${filename}"
             user.save(flush: true)
 
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Se cambio la foto de perfil de un usuario con exito.", "uuid: ${uuid}, fileExtension: ${extractExtension(file.originalFilename)}")
@@ -292,14 +289,14 @@ class UserService {
             }
 
             if (user.profileImagePath) {
-                def pathImage = Paths.get(basePath, user.profileImagePath)
+                def pathImage = Paths.get(grailsApplication.config.repository, user.profileImagePath)
                 if (Files.exists(pathImage)) {
                     Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Se consulto la foto de perfil del usurio con exito.", "uuid: ${uuid}", "fileExtension: ${extractExtension(pathImage.toString())}")
                     return [ data: [success: true, data: [image: pathImage.toFile()]], status: 200 ]
                 }
             }
 
-            def pathDefaultImage = Paths.get(basePath, 'profile', 'default.png')
+            def pathDefaultImage = Paths.get(grailsApplication.config.repository, 'uploads/profile/default.png')
 
             Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "El usuario no cuenta con una foto de perfil, se regreso la imagen base.", "uuid: ${uuid}", "fileExtension: ${extractExtension(pathDefaultImage.toString())}")
             return [ data: [success: true, data: [image: pathDefaultImage.toFile()]], status: 200 ]
@@ -316,10 +313,15 @@ class UserService {
 
             def status = params.status.equals("request")
 
+            if (user.registerType == RegisterTypeUser.GOOGLE) {
+                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible solicitar el cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
+                return TypeError.conflictByRegisterType(logId)
+            }
+
             if (user.requestChangeCrd == status) {
                 Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "El usuario ya realizo la ${(user.accountLocked ? "solicitud" : "cancelacion")} de su cambio de crd", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")     
                 return TypeError.existingRegister(logId)
-            } 
+            }
 
             user.requestChangeCrd = status
             user.save(flush: true)

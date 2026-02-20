@@ -91,4 +91,8 @@ public class TypeError {
     static HashMap relationshipConflict(String logId) {
         return [data: [success:false, message: String.format("No se puede realizar esta accion debido a que cuenta con registros asociados."), id:logId], status: 409];
     }
+
+    static HashMap permissionMissing(String data, String logId) {
+        return [data: [success:false, message: String.format("Solo usuarios con rol %s pueden acceder a este recurso.", data), id:logId], status: 403];
+    }
 }

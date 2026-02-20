@@ -91,6 +91,7 @@ class ReviewController {
         def auth = springSecurityService.currentUser
         def reviewUuid = params.reviewUuid
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Actualizar Status de Reseña.", "Inicia Solicitud.", "data: { review: ${reviewUuid}, status: ${params.status} }")
         if (!reviewUuid) {
             return respond(TypeError.missingParameter("review", logId, response))
         }
@@ -108,6 +109,7 @@ class ReviewController {
         def data = request.JSON
         def reviewUuid = params.reviewUuid
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Editar Reseña.", "Inicia Solicitud.", "data: ${data}")
         if (!reviewUuid) {
             return respond(TypeError.missingParameter("review", logId, response))
         }

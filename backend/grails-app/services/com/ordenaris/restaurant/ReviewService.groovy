@@ -18,7 +18,7 @@ class ReviewService {
             ],
             comment: review.comment,
             rating: review.rating,
-            dateCreated: review.dateCreated,
+            dateCreated: review.dateCreated.getTime(),
         ]
         
     }
@@ -177,40 +177,50 @@ class ReviewService {
             }
             if (status in [0, 1]) {
                 if (!auth.authorities*.authority.contains('ROLE_ADMIN')) {
-                    Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "No se cuenta con .", "data: { review: ${reviewUuid}, status: ${status} }")
-                    return TypeError.noPermissions(logId)
+                    Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "Solo usuarios con 'ROLE_ADMIN' puden activar/desactivar reseñas.", "data: { review: ${reviewUuid}, status: ${status} }")
+                    return TypeError.permissionMissing("[ROLE_ADMIN]", logId)
                 }
             }
             if (review.status == 2) {
+                Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "La reseña ha sido eliminada.", "data: { review: ${reviewUuid}, status: ${status} }")
                 return TypeError.informationNotFound(logId)
             }
             if (review.status == status) {
+                Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "La reseña ya cuenta con este status.", "data: { review: ${reviewUuid}, status: ${status} }")
                 return TypeError.existingRegister(logId)
             }
             review.status = status
             review.save()
+            Log.logger(Log.INFO, logId, "Actualizar Status de Reseña.", "Reseña actualizada correctamente.", "data: { review: ${reviewUuid}, status: ${status} }", "review : ${review}")
             return [data: [success: true, data: [message: "Estado de la reseña actualizado.", review: review.uuid]], status: 200]
         } catch (e) {
+            Log.logger(Log.ERROR, logId, "Actualizar Status de Reseña.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }
     def editReview(reviewUuid, data, auth, logId) {
-        try {            
+        try {
+            Log.logger(Log.INFO, logId, "Editar Reseña.", "Llegada al servicio.", "data: ${data}")
             def review = Review.findByUuid(reviewUuid)
             if (!review) {
+                Log.logger(Log.WARN, logId, "Editar Reseña.", "No se encontro la reseña.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             if (review.status !=1) {
+                Log.logger(Log.WARN, logId, "Editar Reseña.", "La reseña no esta disponible.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             if (review.user.id != auth.id) {
+                Log.logger(Log.WARN, logId, "Editar Reseña.", "No se cuenta con permisos para editar la reseña.", "data: ${data}")
                 return TypeError.noPermissions(logId)
             }
             review.comment = (data.comment != null) ? data.comment : review.comment
             review.rating = data.rating as Float
             review.save(flush: true, failOnError: true)
+            Log.logger(Log.INFO, logId, "Editar Reseña.", "Reseña editada correctamente.", "data: ${data}")
             return [data: [success: true, data: [message: 'Reseña actualizada', review: mapReview(review)]], status: 200]
         } catch (e) {
+            Log.logger(Log.ERROR, logId, "Editar Reseña.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }

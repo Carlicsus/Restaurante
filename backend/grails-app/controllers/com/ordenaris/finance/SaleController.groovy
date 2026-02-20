@@ -4,6 +4,8 @@ import grails.rest.*
 import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Secured(['isAuthenticated()'])
 class SaleController {
@@ -13,106 +15,160 @@ class SaleController {
 
     @Secured(['ROLE_FINANCE','ROLE_ADMIN'])
     def listDebtors() {
-        def response = saleService.listDebtors()
-        return respond(response.resp, status: response.status)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Listado de deudores.", "Inicia Solicitud.")
+        def response = saleService.listDebtors(logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_FINANCE','ROLE_ADMIN'])
     def getDetailsByUser() {
-        if (!params.userUuid || params.userUuid.size() != 32) {
-            return respond([success: false, message: "El UUID de usuario es obligatorio"], status: 400)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener detalles de deudor.", "Inicia Solicitud.", "usuario: ${params.userUuid}")
+        if (!params.userUuid) {
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
-        def response = saleService.getDetailsByUser(params.userUuid)
-        return respond(response.resp, status: response.status)
+        if (params.userUuid.size() != 32) {
+            return respond(TypeError.incorrectFormat("usuario", "UUID de 32 caracteres", logId, response))
+        }
+        def response = saleService.getDetailsByUser(params.userUuid, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_FINANCE'])
     def paySingleSale() {
         def saleUuid = params.saleUuid
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Pago de venta.", "Inicia Solicitud.", "sale: ${saleUuid}")
         if (!saleUuid) {
-            return respond([success: false, message: "El UUID de la venta es obligatorio"], status: 400)
+            return respond(TypeError.missingParameter("venta", logId, response))
         }
         if (saleUuid.size() != 32) {
-            return respond([success: false, message: "El UUID de la venta es inválido"], status: 400)
+            return respond(TypeError.incorrectFormat("venta", "UUID de 32 caracteres", logId, response))
         }
-        def response = saleService.paySingleSale(saleUuid)
-        return respond(response.resp, status: response.status)
+        def response = saleService.paySingleSale(saleUuid, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_FINANCE'])
     def paySingleDish() {
         def data = request.JSON
-        if (!data.saleUuid || data.saleUuid.size() != 32) {
-            return respond([success: false, message: "Se requiere un UUID válido para la venta"], status: 400)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Pago de platillo.", "Inicia Solicitud.", "data: ${data}")
+        if (!data.saleUuid) {
+            return respond(TypeError.missingParameter("venta", logId, response))
         }
-        if (!data.orderItemUuid || data.orderItemUuid.size() != 32) {
-            return respond([success: false, message: "Se requiere un UUID válido para el platillo"], status: 400)
+        if (data.saleUuid.size() != 32) {
+            return respond(TypeError.incorrectFormat("venta", "UUID de 32 caracteres", logId, response))
         }
-        def response = saleService.paySingleDish(data.saleUuid, data.orderItemUuid)
-        return respond(response.resp, status: response.status)
+        if (!data.orderItemUuid) {
+            return respond(TypeError.missingParameter("platillo", logId, response))
+        }
+        if (data.orderItemUuid.size() != 32) {
+            return respond(TypeError.incorrectFormat("platillo", "UUID de 32 caracteres", logId, response))
+        }
+        def response = saleService.paySingleDish(data, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_FINANCE'])
     def payAllSalesForUser() {
-        if (!params.userUuid || params.userUuid.size() != 32) {
-            return respond([success: false, message: "El UUID de usuario es obligatorio"], status: 400)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Inicia Solicitud.", "usuario: ${params.userUuid}")
+        if (!params.userUuid) {
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
-        def response = saleService.payAllSalesForUser(params.userUuid)
-        return respond(response.resp, status: response.status)
+        if (params.userUuid.size() != 32) {
+            return respond(TypeError.incorrectFormat("usuario", "UUID de 32 caracteres", logId, response))
+        }
+        def response = saleService.payAllSalesForUser(params.userUuid, logId)
+        return respond(response.data, status: response.status)
     }
 
     def getOneSaleInfo() {  
-        if (!params.saleUuid || params.saleUuid.size() != 32) {
-            return respond([success: false, message: "El UUID es inválido"], status: 400)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener informacion de venta.", "Inicia Solicitud.", "venta: ${params.saleUuid}")
+        if (!params.saleUuid) {
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
-        def response = saleService.getOneSaleInfo(params.saleUuid)  
-        return respond(response.resp, status: response.status)
+        if (params.saleUuid.size() != 32) {
+            return respond(TypeError.incorrectFormat("usuario", "UUID de 32 caracteres", logId, response))
+        }
+        def response = saleService.getOneSaleInfo(params.saleUuid, logId)  
+        return respond(response.data, status: response.status)
     }
 
     def getUserSalesByDateRange() {
         def auth = springSecurityService.currentUser
         def data = request.JSON
-        if (!auth.id) {
-            return respond([success: false, message: "Se requiere un identificador de usuario válido"], status: 400)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener compras en un rango de fechas.", "Inicia Solicitud.", "data: ${data}")
+        if (!auth) {
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
         if (!data.startDate) {
-            return respond([success: false, message: "La fecha de inicio es obligatoria"], status: 400)
+            return respond(TypeError.missingParameter("Fecha de inicio", logId, response))
+        }
+        if (!data.startDate.isLong() || data.startDate.size() != 13) {
+            return respond(TypeError.incorrectFormat("Fecha de inicio", "valor numérico (milisegundos)", logId, response))
         }
         if (!data.endDate) {
-            return respond([success: false, message: "La fecha de fin es obligatoria"], status: 400)
+            return respond(TypeError.missingParameter("Fecha de inicio", logId, response))
+        }
+        if (!data.endDate.isLong() || data.endDate.size() != 13) {
+            return respond(TypeError.incorrectFormat("Fecha de inicio", "valor numérico (milisegundos)", logId, response))
+        }
+        if (new Date(data.endDate as long).before(new Date(data.startDate as long))) {
+            return respond(TypeError.invalidData("fechas inicio/fin", logId, response))
         }
 
-        def response = saleService.getUserSalesByDateRange(data.startDate, data.endDate, auth)
-        return respond(response.resp, status: response.status)
+        def response = saleService.getUserSalesByDateRange(data, auth, logId)
+        return respond(response.data, status: response.status)
     }
 
     def getSalesByUser() {
         def auth = springSecurityService.currentUser
-        if (!auth.id ) {
-            return respond([success: false, message: "Se necesita un usuario"], status: 400)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener compras de un usuario.", "Inicia Solicitud.", "type: ${params.typeSale}")
+        if (!auth) {
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
         if (!params.typeSale) {
-            return respond([success: false, message: "Es necesario incluir el tipo"], status: 400)
+            return respond(TypeError.missingParameter("tipo de venta", logId, response))
         } 
-        def response = saleService.getSalesByUser(auth, params.typeSale)
-        return respond(response.resp, status: response.status)
+        if (!(params.typeSale in ["Pending", "Paid", "all"])) {
+            return respond(TypeError.incorrectFormat("tipo de venta", "[Pending, Paid, all]", logId, response))
+        }
+        def response = saleService.getSalesByUser(auth, params.typeSale, logId)
+        return respond(response.data, status: response.status)
     }
 
     def getUserSpendingChart() {
         def auth = springSecurityService.currentUser
         def data = request.JSON
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener gastos de usuario.", "Inicia Solicitud.", "data: ${data}")
         
-        if (!auth.id) {
-            return respond([success: false, message: "Se requiere un identificador de usuario valido"], status: 400)
+        if (!auth) {
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
         if (!data.startDate) {
-            return respond([success: false, message: "La fecha de inicio es obligatoria"], status: 400)
+            return respond(TypeError.missingParameter("Fecha de inicio", logId, response))
+        }
+        if (!data.startDate.isLong() || data.startDate.size() != 13) {
+            return respond(TypeError.incorrectFormat("Fecha de inicio", "valor numérico (milisegundos)", logId, response))
         }
         if (!data.endDate) {
-            return respond([success: false, message: "La fecha de fin es obligatoria"], status: 400)
+            return respond(TypeError.missingParameter("Fecha de inicio", logId, response))
+        }
+        if (!data.endDate.isLong() || data.endDate.size() != 13) {
+            return respond(TypeError.incorrectFormat("Fecha de inicio", "valor numérico (milisegundos)", logId, response))
+        }
+        if (new Date(data.endDate as long).before(new Date(data.startDate as long))) {
+            return respond(TypeError.invalidData("fechas inicio/fin", logId, response))
         }
 
-        def response = saleService.getUserSpendingChart(data.startDate, data.endDate, auth)
-        return respond(response.resp, status: response.status)
+        def response = saleService.getUserSpendingChart(data, auth, logId)
+        return respond(response.data, status: response.status)
     }
 }

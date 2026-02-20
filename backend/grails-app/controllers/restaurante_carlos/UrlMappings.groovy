@@ -175,13 +175,13 @@ class UrlMappings {
                 get "/date"(controller: "sale", action: "getUserSalesByDateRange")
                 post "/user-expenses-chart"(controller: "sale", action: "getUserSpendingChart")
                 get "/pending"(controller: "sale", action: "getSalesByUser") {
-                    typeSale = 1
+                    typeSale = "Pending"
                 }
                 get "/paid"(controller: "sale", action: "getSalesByUser") {
-                    typeSale = 2
+                    typeSale = "Paid"
                 }
                 get "/all"(controller: "sale", action: "getSalesByUser") {
-                    typeSale = 3
+                    typeSale = "all"
                 }
                 get "/$saleUuid"(controller: "sale", action: "getOneSaleInfo"){
                     constraints {

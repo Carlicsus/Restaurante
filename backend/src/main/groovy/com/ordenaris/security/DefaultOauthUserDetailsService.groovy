@@ -3,30 +3,21 @@ package com.ordenaris.security
 import groovy.transform.CompileStatic
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
-
-import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.rest.oauth.OauthUser
 import grails.plugin.springsecurity.rest.oauth.OauthUserDetailsService
-
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oauth.profile.OAuth20Profile
-
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsChecker
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
-
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.authentication.LockedException
-import org.springframework.security.authentication.DisabledException
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import com.ordenaris.RegisterTypeUser
-
+import org.springframework.security.authentication.InsufficientAuthenticationException
+import org.springframework.security.authentication.InternalAuthenticationServiceException
 import java.security.SecureRandom
-
+import com.ordenaris.RegisterTypeUser
 import com.ordenaris.security.User
-import com.ordenaris.security.UserRole
-import com.ordenaris.security.Role
+import com.ordenaris.Log
+
 @Slf4j
 @CompileStatic
 class DefaultOauthUserDetailsService implements OauthUserDetailsService {
@@ -40,92 +31,61 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
     @Override
     OauthUser loadUserByUserProfile(CommonProfile profile, Collection<GrantedAuthority> defaultRoles) throws UsernameNotFoundException {
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger( Log.INFO, logId, "Loggin por Google.", "Iniciando la solicitud.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
 
-        OAuth20Profile oauthProfile = validateProfile(profile)
-        String email = validateEmail(oauthProfile.email)
-
-        try {
-            return loadExistingUser(email, oauthProfile)
-        } catch (UsernameNotFoundException e) {
-            log.info "Creando usuario OAuth pendiente de autorización: ${email}"
-            createPendingOauthUser(email, oauthProfile)
-            throw new LockedException(
-                "Usuario pendiente de autorizacion por administrador"
-            )
-        }
-    }
-
-    protected OauthUser loadExistingUser(String email, OAuth20Profile profile) {
-        User domainUser = findUserByEmail(email)
-        if (!domainUser) {
-            throw new UsernameNotFoundException(
-                "Usuario no encontrado por email"
-            )
-        }
-
-        UserDetails userDetails = authManagerService.loadUserByUsername(domainUser.username)
-
-        validateUserIsEnabled(userDetails)
-
-        Collection<GrantedAuthority> roles = validateAndExtractRoles(userDetails)
-
-        new OauthManagerBean(
-                userDetails.username,
-                domainUser.crd,
-                roles,
-                profile,
-                domainUser.id
-        )
-    }
-
-
-    protected OAuth20Profile validateProfile(CommonProfile profile) {
         if (!(profile instanceof OAuth20Profile)) {
-            throw new UsernameNotFoundException("Unsupported OAuth profile")
+            throw new UsernameNotFoundException("Perfil OAuth no compatible")
         }
-        (OAuth20Profile) profile
-    }
 
-    protected String validateEmail(String email) {
-        if (!email) {
+        OAuth20Profile oauthProfile = (OAuth20Profile) profile
+
+        if (!oauthProfile.email) {
             throw new UsernameNotFoundException("Google no regreso un email")
         }
 
-        if (!email.endsWith('@utxicotepec.edu.mx')) {
-            throw new UsernameNotFoundException(
-                "Solo se permiten cuentas institucionales"
-            )
+        if (!oauthProfile.email.endsWith('@utxicotepec.edu.mx')) {
+            throw new UsernameNotFoundException("Solo se permiten cuentas institucionales")
         }
-        email
+
+        return validateUser(oauthProfile, logId)
     }
 
-    protected void validateUserIsEnabled(UserDetails userDetails) {
-        if (!userDetails.accountNonLocked) {
-            throw new DisabledException(
-                "Tu cuenta debe ser desbloqueada por un administrador"
-            )
-        }
-    }
+    protected OauthUser validateUser(OAuth20Profile profile, String logId) {
+        try {
+            Log.logger( Log.INFO, logId, "Loggin por Google.", "Servicio para validar a un usuario de google.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+            
+            User domainUser = findUserByEmail(profile.email)
+            if (domainUser) {
 
-    protected Collection<GrantedAuthority> validateAndExtractRoles( UserDetails userDetails) {
-        Collection<GrantedAuthority> roles = userDetails.authorities
-            .findAll { it.authority != 'ROLE_NO_ROLES' }
-            .collect { (GrantedAuthority) it }
+                if (domainUser.accountLocked) {
+                    Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuenta se encuentra bloqueada", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                    throw new LockedException("Tu cuenta debe ser desbloqueada por un administrador")
+                }
 
-        if (!roles) {
-            throw new InsufficientAuthenticationException(
-                "Tu cuenta no tiene roles asignados por un administrador"
-            )
-        }
-        roles
-    }
+                Collection<GrantedAuthority> roles = domainUser.authorities
+                    .findAll { it.authority != 'ROLE_NO_ROLES' }
+                    .collect { (GrantedAuthority) new SimpleGrantedAuthority(it.authority) }
 
-    protected void createPendingOauthUser(String email, OAuth20Profile profile) {
+                if (!roles) {
+                    Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuenta no cuenta con roles asignados por un administrador.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                    throw new InsufficientAuthenticationException("Tu cuenta no tiene roles asignados por un administrador")
+                }
 
-        User user = new User(
-                username: extractUsername(email),
+                Log.logger( Log.INFO, logId, "Loggin por Google.", "Logeo exitoso", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${domainUser.uuid}, username: ${domainUser.username}]")
+                return new OauthManagerBean(
+                    domainUser.username,
+                    domainUser.crd,
+                    roles,
+                    profile,
+                    domainUser.id
+                )  
+            }
+
+            User user = new User(
+                username: extractUsername(profile.email),
                 crd: generateSecureCrd(),
-                email: email,
+                email: profile.email,
                 names: profile.firstName ?: "",
                 lastNames: profile.familyName ?: "",
                 registerType: RegisterTypeUser.GOOGLE,
@@ -133,18 +93,26 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
                 accountLocked: true,
                 accountExpired: false,
                 passwordExpired: false
-        )
+            )
 
-        user.save(flush: true, failOnError: true)
+            user.save(flush: true, failOnError: true)
+
+            Log.logger( Log.INFO, logId, "Loggin por Google.", "Se registro un nuevo usuario de google en espera de autorización por admin", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
+            throw new LockedException("Usuario pendiente de autorizacion por administrador")
+            
+        } catch(LockedException | InsufficientAuthenticationException e) {
+            throw e
+        } catch(e) {
+            Log.logger( Log.ERROR, logId, "Loggin por Google.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            throw new InternalAuthenticationServiceException("Se ha producido un error interno. Inténtelo de nuevo más tarde.")
+        }
     }
 
-
     protected String extractUsername(String email) {
-        email.substring(0, email.indexOf('@'))
+        return email.substring(0, email.indexOf('@'))
     }
 
     protected String generateSecureCrd(int length = 24) {
-
         StringBuilder crd = new StringBuilder(length)
         for (int i = 0; i < length; i++) {
             int index = secureRandom.nextInt(CRD_CHARS.length())

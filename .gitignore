@@ -5,6 +5,7 @@ Thumbs.db
 
 # BACKEND (grails)
 .gradle
+bin/
 build/
 out/
 .idea

@@ -3,7 +3,6 @@ package com.ordenaris.security
 import grails.plugin.springsecurity.rest.token.generation.jwt.CustomClaimProvider
 import com.nimbusds.jwt.JWTClaimsSet
 import org.springframework.security.core.userdetails.UserDetails
-import grails.plugin.springsecurity.userdetails.GrailsUser
 import grails.plugin.springsecurity.rest.oauth.OauthUser
 import com.ordenaris.security.AuthManagerBean
 

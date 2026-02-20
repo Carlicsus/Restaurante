@@ -13,14 +13,16 @@ class ShoppingCartController {
     
     def listOrderShoppingCart(){
         def auth = springSecurityService.principal
-        def serviceResponse = shoppingCartService.listOrderShoppingCart(params) 
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Carritos de compras.", "Inicia Solicitud.", "params: $params")
+        def serviceResponse = shoppingCartService.listOrderShoppingCart(params, logId) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }
 
     def getCartByUser(){
         def auth = springSecurityService.principal
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger(Log.INFO, logId, "Consultar carrito de compras.", "Inicia Solicitud.", ":D")
+        Log.logger(Log.INFO, logId, "Consultar carrito de compras.", "Inicia Solicitud.", "params: $params")
         def serviceResponse = shoppingCartService.getCartByUser(params, auth, logId) 
         return respond(serviceResponse.resp, status: serviceResponse.status)
     }

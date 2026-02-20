@@ -80,8 +80,8 @@ public class TypeError {
         return [data: [success:false, message: String.format("Se ha alcanzado el número máximo de registros permitidos para este recurso."), id:logId], status: 409];
     }
     
-    static HashMap accessDeniedByRegisterType(String logId) {
-        return [data: [success:false, message: String.format("La cuenta fue registrada con una cuenta de google, por lo cual no es posible acceder a este recurso."), id:logId], status: 403];
+    static HashMap conflictByRegisterType(String logId) {
+        return [data: [success:false, message: String.format("La cuenta fue registrada con una cuenta de google, por lo cual no es posible realizar esta acción."), id:logId], status: 409];
     }
  
     static HashMap preconditionRequired(String logId) {
@@ -90,5 +90,9 @@ public class TypeError {
  
     static HashMap relationshipConflict(String logId) {
         return [data: [success:false, message: String.format("No se puede realizar esta accion debido a que cuenta con registros asociados."), id:logId], status: 409];
+    }
+ 
+    static HashMap externalPermissionMissing(String logId, String data) {
+        return [data: [success:false, message: String.format("Solo es posible realizar esta acción sobre usuarios con %s.", data), id:logId], status: 412];
     }
 }

@@ -6,14 +6,11 @@ import com.ordenaris.security.Role
 import com.ordenaris.security.User
 import com.ordenaris.security.UserRole
 import com.ordenaris.schedule.Schedule
-import java.time.LocalTime
-import java.sql.Time
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.restaurant.MenuType
 import java.time.LocalTime
 import java.sql.Time
 class BootStrap {
-
     def init = { servletContext ->
         String.metaClass.soloNumeros = {
             def expresion = '^[0-9]*$' 
@@ -43,7 +40,7 @@ class BootStrap {
             return matcher.matches()
         }
 
-    if (MenuType.count() == 0) {
+        if (MenuType.count() == 0) {
             new MenuType([ name: "Desayuno" ]).save(flush:true)
             new MenuType([ name: "Comida" ]).save(flush:true)
             new MenuType([ name: "Especiales" ]).save(flush:true)

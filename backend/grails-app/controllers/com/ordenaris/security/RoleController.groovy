@@ -1,6 +1,5 @@
 package com.ordenaris.security
 
-import grails.rest.*
 import grails.plugin.springsecurity.annotation.Secured
 import com.ordenaris.Log
 import com.ordenaris.TypeError
@@ -14,7 +13,7 @@ class RoleController {
     @Secured(['ROLE_ADMIN'])
     def listAllRoles() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger(Log.INFO, logId, "Listar todos los roles.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger(Log.INFO, logId, "Listar todos los roles.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def response = roleService.listAllRoles(logId)
         return respond(response.data, status: response.status)
@@ -23,7 +22,7 @@ class RoleController {
     @Secured(['ROLE_ADMIN'])
     def getRoleInfo() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger(Log.INFO, logId, "Obtener informacion de un rol.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger(Log.INFO, logId, "Obtener informacion de un rol.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def response = roleService.getRoleInfo(params.uuid, logId)
         return respond(response.data, status: response.status)
@@ -32,7 +31,7 @@ class RoleController {
     @Secured(['ROLE_ADMIN'])
     def createNewRole() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger(Log.INFO, logId, "Crear un nuevo rol.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger(Log.INFO, logId, "Crear un nuevo rol.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         if (!request.JSON.authority) {
             return respond(TypeError.missingParameter("autoridad", logId, response))
@@ -53,7 +52,7 @@ class RoleController {
     @Secured(['ROLE_ADMIN'])
     def changeAuthority() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger(Log.INFO, logId, "Cambiar la autoridad de un rol.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger(Log.INFO, logId, "Cambiar la autoridad de un rol.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         if (!request.JSON.authority) {
             return respond(TypeError.missingParameter("autoridad", logId, response))
@@ -74,7 +73,7 @@ class RoleController {
     @Secured(['ROLE_ADMIN'])
     def deleteRole() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger(Log.INFO, logId, "Eliminar un rol.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger(Log.INFO, logId, "Eliminar un rol.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def response = roleService.deleteRole(params.uuid, logId)
         return respond(response.data, status: response.status)

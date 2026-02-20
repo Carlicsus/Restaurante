@@ -148,7 +148,7 @@ class UrlMappings {
                         uuid(matches: /^[a-fA-F0-9]{32}/)
                     }
                     get "/get-user-schedule"(controller: "schedule", action: "getScheduleInfo")
-                    post "/create-schedule"(controller: "schedule", action: "createSchedule")
+                    post "/create-schedule"(controller: "schedule", action: "createUserSchedule")
                     patch "/change-working-hours"(controller: "schedule", action: "changeWorkingHours")
                     patch "/change-availability/$status"(controller: "schedule", action: "changeAvailability"){
                         constraints {

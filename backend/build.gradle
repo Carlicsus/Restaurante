@@ -10,11 +10,6 @@ buildscript {
     }
 }
 
-plugins {
-    id 'org.asciidoctor.convert' version '1.5.3'
-}
-
-
 version "0.1"
 group "restaurante_carlos"
 
@@ -91,6 +86,3 @@ bootRun {
     String springProfilesActive = 'spring.profiles.active'
     systemProperty springProfilesActive, System.getProperty(springProfilesActive)
 }
-
-apply from: "gradle/env.gradle"
-apply from: 'gradle/restdocs.gradle'

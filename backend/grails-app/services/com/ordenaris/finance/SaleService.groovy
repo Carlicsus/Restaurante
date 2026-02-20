@@ -153,7 +153,7 @@ class SaleService {
             sale.save(flush: true)
 
             def orderItems = OrderItem.createCriteria().list {
-                eq("customerOrder.id", sale.customerOrder.id)
+                eq("customerOrder", sale.customerOrder)
                 eq("status", true)
             }
 
@@ -223,7 +223,7 @@ class SaleService {
                 data: [
                     success: true,
                     message: "Platillo pagado exitosamente",
-                    data: orderItems.collect { item ->
+                    data: orderItem.collect { item ->
                         [
                             dishName: item.dish?.name ?: "Plato desconocido",
                             quantity: item.quantity,
@@ -242,10 +242,10 @@ class SaleService {
 
     def payAllSalesForUser(userUuid, logId) {
         try {
-            Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Llegada al servicio.", "usuario: ${params.userUuid}")
+            Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Llegada al servicio.", "usuario: ${userUuid}")
             def user = User.findByUuid(userUuid)
             if (!user) {
-                Log.logger(Log.WARN, logId, "Pago de todas las ventas.", "No se encontro al usuario solicitado.", "usuario: ${params.userUuid}")
+                Log.logger(Log.WARN, logId, "Pago de todas las ventas.", "No se encontro al usuario solicitado.", "usuario: ${userUuid}")
                 return TypeError.informationNotFound(logId)
             }
 
@@ -257,7 +257,7 @@ class SaleService {
             }
 
             if (!pendingSales) {
-                Log.logger(Log.WARN, logId, "Pago de todas las ventas.", "No hay ventas pendientes para este usuario.", "usuario: ${params.userUuid}")
+                Log.logger(Log.WARN, logId, "Pago de todas las ventas.", "No hay ventas pendientes para este usuario.", "usuario: ${userUuid}")
                 return TypeError.informationNotFound(logId)
             }
 
@@ -267,9 +267,19 @@ class SaleService {
             pendingSales.each { sale ->
                 sale.status = 'Paid'
                 sale.save(flush: true)
+
+                def orderItems = OrderItem.createCriteria().list {
+                    eq("customerOrder", sale.customerOrder)
+                    eq("status", true)
+                }
+
+                orderItems.each { item ->
+                    item.payed = true
+                    item.save(flush: true)
+                }
             }
 
-            Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Ventas pagadas exitosamente", "usuario: ${params.userUuid}")
+            Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Ventas pagadas exitosamente", "usuario: ${userUuid}")
             return [
                 data: [
                     success: true,
@@ -317,7 +327,7 @@ class SaleService {
 
     def getOneSaleInfo(uuid, logId) {
         try {
-            Log.logger(Log.INFO, logId, "Obtener información de venta.", "Inicia Solicitud.", "venta: ${uuid}")
+            Log.logger(Log.INFO, logId, "Obtener información de venta.", "Llegada al servicio.", "venta: ${uuid}")
             def sale = Sale.findByUuid(uuid)
             
             if (!sale) {
@@ -349,7 +359,7 @@ class SaleService {
             }.collect { sale -> mapOrder(sale) }
             Log.logger(Log.INFO, logId, "Obtener compras en un rango de fechas.", "compras obtenidas exitosamente.", "data: ${data}")
             return [
-                data: [success: true, message: "Ventas del rango de ${start} a ${end} obtenidas correctamente", data: list],
+                data: [success: true, message: "Ventas del rango especifico obtenidas exitosamente", data: list],
                 status: 200
             ]
         } catch (e) {

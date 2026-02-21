@@ -6,12 +6,47 @@ import com.ordenaris.order.*
 import com.ordenaris.finance.Sale
 import org.hibernate.FetchMode
 import java.text.SimpleDateFormat
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Transactional
 class SaleService {
+    def mapUser(User user) {
+        [
+            uuid: user.uuid,
+            username: user.username
+        ]
+    }
 
-    def listDebtors() {
+    def mapOrder(Sale sale) {
+        def orderItems = OrderItem.findAllByCustomerOrder(sale.customerOrder)
+        [
+            saleUuid: sale.uuid,
+            orderUuid: sale.customerOrder.uuid,
+            amount: sale.total,
+            orderStatus: sale.customerOrder.status,
+            dateCreated: sale.dateCreated.getTime(),
+            daysPending: calculateDaysSince(sale.dateCreated),
+            status: sale.status,
+            items: orderItems.collect { item ->
+                [
+                    dishName: item.dish?.name ?: "Plato desconocido",
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    subtotal: item.quantity * item.unitPrice
+                ]
+            }
+        ]
+    }
+
+    def calculateDaysSince(Date date) {
+        if (!date) return 0
+        return ((new Date().time - date.time) / (1000 * 60 * 60 * 24)).intValue()
+    }
+
+    def listDebtors(logId) {
         try {
+            Log.logger(Log.INFO, logId, "Listado de deudores.", "Llegada al servicio.")
             def pendingSales = Sale.createCriteria().list {
                 customerOrder {
                     orderItems {
@@ -34,6 +69,7 @@ class SaleService {
                 def totalDebt = orderItems.sum { (it.unitPrice ?: 0) * (it.quantity ?: 0) } ?: 0
 
                 [
+                    uuid: u.uuid,
                     username: u.username,
                     pendingOrdersCount: sales.size(),
                     totalPendingAmount: totalDebt
@@ -42,8 +78,9 @@ class SaleService {
 
             debtorsData = debtorsData.sort { -it.totalPendingAmount }
 
+            Log.logger(Log.INFO, logId, "Listado de deudores.", "Deudores obtenidos correctamente.", "deudores: ${debtorsData}")
             return [
-                resp: [
+                data: [
                     success: true,
                     data: [
                         debtors: debtorsData,
@@ -57,21 +94,18 @@ class SaleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al obtener deudores."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Listado de deudores.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def getDetailsByUser(userUuid) {
+    def getDetailsByUser(userUuid, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Obtener detalles de deudor.", "Llegada al servicio.", "usuario: ${userUuid}")
             def user = User.findByUuid(userUuid)
             if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
+                Log.logger(Log.WARN, logId, "Obtener detalles de deudor.", "No se encontro al usuario solicitado.", "usuario: ${userUuid}")
+                return TypeError.informationNotFound(logId)
             }
             def pendingSales = Sale.createCriteria().list {
                 eq("status", "Pending")
@@ -91,39 +125,35 @@ class SaleService {
                 ]
             ]
 
+            Log.logger(Log.INFO, logId, "Obtener detalles de deudor.", "Información obtenida de manera exitosa.", "usuario: ${userUuid}", "debtorDetails: ${debtorDetails}")
             return [
-                resp: [success: true, data: debtorDetails, message: "Detalles del deudor obtenidos exitosamente"],
+                data: [success: true, data: debtorDetails, message: "Detalles del deudor obtenidos exitosamente"],
                 status: 200
             ]
-        }catch (e) {
-            return [
-                resp: [success: false, message: "Error al obtener deudores."],
-                status: 500
-            ]
+        } catch (e) {
+            Log.logger(Log.ERROR, logId, "Obtener detalles de deudor.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def paySingleSale(saleUuid) {
+    def paySingleSale(saleUuid, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Pago de venta.", "Llegada al servicio.", "sale: ${saleUuid}")
             def sale = Sale.findByUuid(saleUuid)
             if (!sale) {
-                return [
-                    resp: [success: false, message: "Venta no encontrada"],
-                    status: 404
-                ]
+                Log.logger(Log.WARN, logId, "Pago de venta.", "No se encontro la venta solicitada.", "sale: ${saleUuid}")
+                return TypeError.informationNotFound(logId)
             }
             if (sale.status != 'Pending') {
-                return [
-                    resp: [success: false, message: "Esta venta ya ha sido pagada"],
-                    status: 400
-                ]
+                Log.logger(Log.WARN, logId, "Pago de venta.", "La venta ya ha sido pagada.", "sale: ${saleUuid}")
+                return TypeError.existingRegister(logId)
             }
 
             sale.status = 'Paid'
             sale.save(flush: true)
 
             def orderItems = OrderItem.createCriteria().list {
-                eq("customerOrder.id", sale.customerOrder.id)
+                eq("customerOrder", sale.customerOrder)
                 eq("status", true)
             }
 
@@ -132,8 +162,9 @@ class SaleService {
                 item.save(flush: true)
             }
 
+            Log.logger(Log.INFO, logId, "Pago de venta.", "Venta pagada exitosamente.", "sale: ${saleUuid}")
             return [
-                resp: [
+                data: [
                     success: true,
                     message: "Orden pagada exitosamente",
                     data: mapOrder(sale) + [paidDate: new Date()]
@@ -141,46 +172,36 @@ class SaleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al procesar el pago."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Pago de venta.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def paySingleDish(saleUuid,orderItemUuid) {
+    def paySingleDish(data, logId) {
         try {
-            def sale = Sale.findByUuid(saleUuid)
+            Log.logger(Log.INFO, logId, "Pago de platillo.", "Llegada al servicio.", "data: ${data}")
+            def sale = Sale.findByUuid(data.saleUuid)
             if (!sale) {
-                return [
-                    resp: [success: false, message: "Venta no encontrada"],
-                    status: 404
-                ]
+                Log.logger(Log.WARN, logId, "Pago de platillo.", "No se encontro la venta solicitada.", "data: ${data}")
+                return TypeError.informationNotFound(logId)
             }
             if (sale.status != 'Pending') {
-                return [
-                    resp: [success: false, message: "Esta venta ya ha sido pagada"],
-                    status: 400
-                ]
+                Log.logger(Log.WARN, logId, "Pago de platillo.", "La venta ya ha sido pagada.", "data: ${data}")
+                return TypeError.existingRegister(logId)
             }
             def orderItem = OrderItem.createCriteria().get {
                 eq("customerOrder.id", sale.customerOrder.id)
                 eq("status", true)
-                eq("uuid", orderItemUuid)
+                eq("uuid", data.orderItemUuid)
             }
 
             if (!orderItem) {
-                return [
-                    resp: [success: false, message: "Platillo no encontrado en la orden"],
-                    status: 404
-                ]
+                return TypeError.informationNotFound(logId)
             }
 
             if (orderItem.payed) {
-                return [
-                    resp: [success: false, message: "Este platillo ya ha sido pagado"],
-                    status: 400
-                ]
+                Log.logger(Log.WARN, logId, "Pago de platillo.", "El platillo ya ha sido pagado.", "data: ${data}")
+                return TypeError.existingRegister(logId)
             }
 
             orderItem.payed = true
@@ -197,11 +218,12 @@ class SaleService {
                 sale.save(flush: true)
             }
 
+            Log.logger(Log.INFO, logId, "Pago de platillo.", "Platillo pagado exitosamente.", "data: ${data}")
             return [
-                resp: [
+                data: [
                     success: true,
                     message: "Platillo pagado exitosamente",
-                    data: orderItems.collect { item ->
+                    data: orderItem.collect { item ->
                         [
                             dishName: item.dish?.name ?: "Plato desconocido",
                             quantity: item.quantity,
@@ -213,21 +235,18 @@ class SaleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al procesar el pago del platillo."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Pago de platillo.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def payAllSalesForUser(userUuid) {
+    def payAllSalesForUser(userUuid, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Llegada al servicio.", "usuario: ${userUuid}")
             def user = User.findByUuid(userUuid)
             if (!user) {
-                return [
-                    resp: [success: false, message: "Usuario no encontrado"],
-                    status: 404
-                ]
+                Log.logger(Log.WARN, logId, "Pago de todas las ventas.", "No se encontro al usuario solicitado.", "usuario: ${userUuid}")
+                return TypeError.informationNotFound(logId)
             }
 
             def pendingSales = Sale.createCriteria().list {
@@ -238,10 +257,8 @@ class SaleService {
             }
 
             if (!pendingSales) {
-                return [
-                    resp: [success: false, message: "No hay ventas pendientes para este usuario"],
-                    status: 400
-                ]
+                Log.logger(Log.WARN, logId, "Pago de todas las ventas.", "No hay ventas pendientes para este usuario.", "usuario: ${userUuid}")
+                return TypeError.informationNotFound(logId)
             }
 
             def totalAmount = pendingSales.sum { it.total }
@@ -250,10 +267,21 @@ class SaleService {
             pendingSales.each { sale ->
                 sale.status = 'Paid'
                 sale.save(flush: true)
+
+                def orderItems = OrderItem.createCriteria().list {
+                    eq("customerOrder", sale.customerOrder)
+                    eq("status", true)
+                }
+
+                orderItems.each { item ->
+                    item.payed = true
+                    item.save(flush: true)
+                }
             }
 
+            Log.logger(Log.INFO, logId, "Pago de todas las ventas.", "Ventas pagadas exitosamente", "usuario: ${userUuid}")
             return [
-                resp: [
+                data: [
                     success: true,
                     message: "Todas las órdenes han sido pagadas exitosamente",
                     data: [
@@ -266,75 +294,18 @@ class SaleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al procesar los pagos."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Pago de todas las ventas.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def mapUser(User user) {
-        [
-            username: user.username,
-        ]
-    }
-
-    def mapOrder(Sale sale) {
-        def orderItems = OrderItem.findAllByCustomerOrder(sale.customerOrder)
-        [
-            saleUuid: sale.uuid,
-            orderUuid: sale.customerOrder.uuid,
-            amount: sale.total,
-            orderStatus: sale.customerOrder.status,
-            dateCreated: sale.dateCreated,
-            daysPending: calculateDaysSince(sale.dateCreated),
-            items: orderItems.collect { item ->
-                [
-                    dishName: item.dish?.name ?: "Plato desconocido",
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    subtotal: item.quantity * item.unitPrice
-                ]
-            }
-        ]
-    }
-
-    def calculateDaysSince(Date date) {
-        if (!date) return 0
-        return ((new Date().time - date.time) / (1000 * 60 * 60 * 24)).intValue()
-    }
-
-    def parseDate(value) {
-        if (!value) return null
-
-        if (value instanceof Number || value.isLong()) {
-            return new Date(value as Long)
-        }
-
-        def formats = [
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy-MM-dd",
-            "yyyy/MM/dd HH:mm:ss",
-            "yyyy/MM/dd"
-        ]
-
-        for (f in formats) {
-            try {
-                return new SimpleDateFormat(f).parse(value.toString())
-            } catch (ignored) {}
-        }
-
-        throw new IllegalArgumentException("Formato de fecha inválido")
-    }
-
-    def createAutoSale(customerOrderId) {
+    def createAutoSale(customerOrderUuid, logId) {
         try {
-            def order = CustomerOrder.findById(customerOrderId)
+            Log.logger(Log.INFO, logId, "Creación de ventas.", "Llegada al servicio.", "orden: ${customerOrderUuid}")
+            def order = CustomerOrder.findByUuid(customerOrderUuid)
             if (!order) {
-                return [
-                    resp: [success: false, message: "Orden no encontrada"],
-                    status: 404
-                ]
+                Log.logger(Log.WARN, logId, "Creación de ventas.", "No se encontro la orden solicitada.", "orden: ${customerOrderUuid}")
+                return TypeError.informationNotFound(logId)
             }
             def items = OrderItem.findAllByCustomerOrder(order)
             def total = items.sum { it.unitPrice * it.quantity } ?: 0.0
@@ -343,129 +314,92 @@ class SaleService {
                 total: total
             ]).save(flush: true, failOnError: true)
             
+            Log.logger(Log.INFO, logId, "Creación de ventas.", "Venta creada de forma exitosa.", "orden: ${customerOrderUuid}")
             return [
-                resp: [success: true, message: "Venta creada correctamente", data: newSale.uuid],
+                data: [success: true, message: "Venta creada correctamente", data: newSale.uuid],
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al crear la venta."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Creación de ventas.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def getOneSaleInfo(uuid) {
+    def getOneSaleInfo(uuid, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Obtener información de venta.", "Llegada al servicio.", "venta: ${uuid}")
             def sale = Sale.findByUuid(uuid)
             
             if (!sale) {
-                return [
-                    resp: [success: false, message: "Venta no encontrada"],
-                    status: 404
-                ]
+                Log.logger(Log.INFO, logId, "Obtener información de venta.", "No se encontro la venta solicitada.", "venta: ${uuid}")
+                return TypeError.informationNotFound(logId)
             }
                         
             def response = mapOrder(sale)
+            Log.logger(Log.INFO, logId, "Obtener información de venta.", "Información obtenida exitosamente.", "venta: ${uuid}", "info: ${response}")
             return [
-                resp: [success: true, message: "Venta obtenida de manera correcta", data: response],
+                data: [success: true, message: "Venta obtenida de manera correcta", data: response],
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al conseguir la venta."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Obtener información de venta.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def getUserSalesByDateRange(startDate, endDate, auth) {
+    def getUserSalesByDateRange(data, auth, logId) {
         try {
-            def start = parseDate(startDate)
-            def end = parseDate(endDate)
-            if (start > end) {
-                return [
-                    resp: [success: false, message: "La fecha de inicio no puede ser mayor a la fecha de fin"],
-                    status: 400
-                ]
-            }
+            Log.logger(Log.INFO, logId, "Obtener compras en un rango de fechas.", "Llegada al servicio.", "data: ${data}")
             def list = Sale.createCriteria().list {
                 customerOrder {
                     eq("user", auth)
                 }
-                between("dateCreated", start, end)
+                between("dateCreated", new Date(data.startDate as long), new Date(data.endDate as long))
                 order("dateCreated", "desc")
             }.collect { sale -> mapOrder(sale) }
+            Log.logger(Log.INFO, logId, "Obtener compras en un rango de fechas.", "compras obtenidas exitosamente.", "data: ${data}")
             return [
-                resp: [success: true, message: "Ventas del rango de ${start} a ${end} obtenidas correctamente", data: list],
+                data: [success: true, message: "Ventas del rango especifico obtenidas exitosamente", data: list],
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al conseguir las ventas en el rango especifico."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Obtener compras en un rango de fechas.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def getSalesByUser(auth, typeSale) {
+    def getSalesByUser(auth, typeSale, logId) {
         try {
-            def listOfSales
-            if ( typeSale == 1 ) {
-                listOfSales = Sale.createCriteria().list {
-                    customerOrder {
-                        eq("user", auth)
-                    }
-                    eq("status", "Pending")
-                    order("dateCreated", "desc")
-                }.collect { sale -> mapOrder(sale) }
-            }
-            if ( typeSale == 2 ) {
-                listOfSales = Sale.createCriteria().list {
-                    customerOrder {
-                        eq("user", auth)
-                    }
-                    eq("status", "Paid")
-                    order("dateCreated", "desc")
-                }.collect { sale -> mapOrder(sale) }
-            } 
-            if ( typeSale == 3 ) {
-                listOfSales = Sale.createCriteria().list {
-                    customerOrder {
-                        eq("user", auth)
-                    }
-                    order("dateCreated", "desc")
-                }.collect { sale -> mapOrder(sale) }
-            }
+            Log.logger(Log.INFO, logId, "Obtener compras de un usuario.", "Llegada al servicio.", "type: ${typeSale}")
+            def listOfSales = Sale.createCriteria().list {
+                customerOrder {
+                    eq("user", auth)
+                }
+                if (typeSale != "all") {
+                    eq("status", typeSale)
+                }
+                order("dateCreated", "desc")
+            }.collect { sale -> mapOrder(sale) }
+
+            Log.logger(Log.INFO, logId, "Obtener compras de un usuario.", "Ventas obtenidas exitosamente.", "type: ${typeSale}", "ventas: ${listOfSales}")
             return [
-                resp: [success: true, message: "Compras del usuario obtenidas correctamente", data: listOfSales],
+                data: [success: true, message: "Compras del usuario obtenidas correctamente", data: listOfSales],
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al conseguir las compras del usuario."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Obtener compras de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
-    def getUserSpendingChart(startDate, endDate, auth) {
+    def getUserSpendingChart(data, auth, logId) {
         try {
-            def start = parseDate(startDate)
-            def end = parseDate(endDate)
-            
-            if (start > end) {
-                return [
-                    resp: [success: false, message: "La fecha de inicio no puede ser mayor a la fecha de fin"],
-                    status: 400
-                ]
-            }
-
+            Log.logger(Log.INFO, logId, "Obtener gastos de usuario.", "Llegada al servicio.", "data: ${data}")
             def sales = Sale.createCriteria().list {
                 customerOrder {
                     eq("user", auth)
                 }
-                between("dateCreated", start, end)
+                between("dateCreated", new Date(data.startDate as long), new Date(data.endDate as long))
                 order("dateCreated", "asc")
             }
 
@@ -493,8 +427,9 @@ class SaleService {
             def daysWithPurchases = dailyData.size()
             def averagePerDay = daysWithPurchases > 0 ? (totalSpent / daysWithPurchases) : 0
 
+            Log.logger(Log.INFO, logId, "Obtener gastos de usuario.", "Gastos obtenidos exitosamente.", "data: ${data}")
             return [
-                resp: [
+                data: [
                     success: true,
                     message: "Gastos obtenidos correctamente",
                     data: [
@@ -511,10 +446,8 @@ class SaleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: "Error al conseguir la grafica de gastos."],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Obtener gastos de usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 }

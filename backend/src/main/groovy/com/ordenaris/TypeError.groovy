@@ -95,4 +95,8 @@ public class TypeError {
     static HashMap externalPermissionMissing(String logId, String data) {
         return [data: [success:false, message: String.format("Solo es posible realizar esta acción sobre usuarios con %s.", data), id:logId], status: 412];
     }
+
+    static HashMap permissionMissing(String data, String logId) {
+        return [data: [success:false, message: String.format("Solo usuarios con rol %s pueden acceder a este recurso.", data), id:logId], status: 403];
+    }
 }

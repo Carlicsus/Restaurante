@@ -6,8 +6,9 @@ import com.ordenaris.order.OrderItem
 import grails.gorm.transactions.Transactional
 import com.ordenaris.finance.Sale
 import java.time.LocalTime
-import com.ordenaris.Log
 import java.sql.Time
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Transactional
 class ShoppingCartService {
@@ -62,7 +63,7 @@ class ShoppingCartService {
 
     def listOrderShoppingCart(data, logId) {
         try{
-            Log.logger(Log.INFO, logId, "Listado de carritos.", "Llega al servicio.", "params: $params")
+            Log.logger(Log.INFO, logId, "Listado de carritos.", "Llega al servicio.", "params: $data")
 
             def size = data.max ? data.max as Integer : 10
             def offset = data.offset ? data.offset as Integer : 0
@@ -78,12 +79,12 @@ class ShoppingCartService {
             }
 
             def totalCarts = ShoppingCart.createCriteria().count(shoppingCartCriteria.curry(data, query, userList))
-            Log.logger(Log.INFO, logId, "Listado de carritos.", "Se listaron los carritos.", "params: $params")
+            Log.logger(Log.INFO, logId, "Listado de carritos.", "Se listaron los carritos.", "params: $data")
             return [resp: [success: true, shoppingCarts: listCarts, total: totalCarts], status: 200]    
         }
         catch (e) {
             Log.logger(Log.ERROR, logId, "Listado de carritos.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -91,11 +92,15 @@ class ShoppingCartService {
         try{
             Log.logger(Log.INFO, logId, "Consultar carrito de compras.", "Llega al servicio.", "auth: ${auth.username}")
             def user = User.get(auth.id)
+            if (!user){
+                Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "El usuario no ha sido encontrado.", "params: $data")
+                return TypeError.missingParameter(user, logId)
+            }
             def shoppingCarts = ShoppingCart.findByUser(user)
             if(!shoppingCarts){
+                Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "El carrito de compras esta vacio.", "params: $data")
                 return [resp: [success: true, message: "El carrito de compras se encuentra vacío :)"], status: 200]
             }
-
             def size = data.max ? data.max as Integer : 10
             def offset = data.offset ? data.offset as Integer : 0
             def sort = data.sort ?: "dateCreated"
@@ -115,7 +120,7 @@ class ShoppingCartService {
         }
         catch (e) {
             Log.logger(Log.ERROR, logId, "Consultar carrito de compras.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -124,8 +129,8 @@ class ShoppingCartService {
             Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Llega al servicio.", "data: $data, auth: ${auth.username}")
             def user = User.get(auth.id)
             if(!user){
-                Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Se lista el carrito de compras.", "data: $data, auth: ${auth.username}")
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 400]
+                Log.logger(Log.INFO, logId, "Crear carrito de compras.", "Usuario no encontrado", "data: $data, auth: ${auth.username}")
+                return TypeError.missingParameter(user, logId)
             }
             def shoppingCart = ShoppingCart.findByUser(user)
             def dish 
@@ -140,7 +145,7 @@ class ShoppingCartService {
                 dish = Dish.findByUuid(item.dishUuid)
                 if(!dish){
                     Log.logger(Log.INFO, logId, "Crear carrito de compras.", "No existe el platillo que se quiere agregar en el shopping cart", "data: $data, auth: ${auth.username}")
-                    return [resp: [success: false, message: "El platillo no existe"], status: 400]
+                    return TypeError.missingParameter(dish, logId)
                 }
             }
             if(shoppingCartItems == []){
@@ -212,7 +217,7 @@ class ShoppingCartService {
         }
         catch (e) {
             Log.logger(Log.ERROR, logId, "Crear carrito de compras.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }    
     }
     
@@ -311,7 +316,7 @@ class ShoppingCartService {
         }
         catch(e){
             Log.logger(Log.ERROR, logId, "Sumar cantidad del platillo.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -342,7 +347,7 @@ class ShoppingCartService {
         }
         catch(e){
             Log.logger(Log.ERROR, logId, "Restar cantidad del platillo.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -417,7 +422,7 @@ class ShoppingCartService {
         }
         catch (e) {
             Log.logger(Log.ERROR, logId, "Agregar nuevo platillo.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }      
     }
 
@@ -440,7 +445,7 @@ class ShoppingCartService {
         }
         catch (e) {
             Log.logger(Log.ERROR, logId, "Eliminar platillo.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success:false, message: e.getMessage()], status: 500]
+            return TypeError.internalError(logId)
         }
     }
 }

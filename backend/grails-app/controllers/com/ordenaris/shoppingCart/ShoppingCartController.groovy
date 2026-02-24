@@ -4,6 +4,7 @@ import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
 import grails.plugin.springsecurity.SpringSecurityService
 import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Secured(['isAuthenticated()'])
 class ShoppingCartController {
@@ -35,7 +36,7 @@ class ShoppingCartController {
         for (item in data){
                 if (!item.dishUuid) {
                     Log.logger(Log.INFO, logId, "Crear carrito de compras.", "No se recibe el uuid del platillo.", "data: ${data}")
-                    return respond([success: false, message: "Falta el uuid del platillo"], status: 400)
+                    return TypeError.missingParameter(item.dishUuid, logId)
                 }
                 if (!item.quantityDish || item.quantityDish <= 0) {
                     Log.logger(Log.INFO, logId, "Crear carrito de compras.", "El numero de platillos no puede ser menor a 0 o ser 0.", "data: ${data}")
@@ -57,11 +58,11 @@ class ShoppingCartController {
         Log.logger(Log.INFO, logId, "Editar estatus del carrito.", "Inicia Solicitud.", "json: $data")
         if (!data.uuidSC) {
             Log.logger(Log.INFO, logId, "Editar estatus del carrito.", "No viene el carrito.", "json: $data")
-            return respond([success: false, message: "Falta el UUID del carrito de compras"], status: 400)
+            return TypeError.missingParameter(data.uuidSC, logId)
         }
         if(!request.JSON.orderTime && data.status=="Finished"){
             Log.logger(Log.INFO, logId, "Editar estatus del carrito.", "No se ingreso el horario en la orden.", "json: $data")
-            return respond([success: false, message: "Necesita ingresar el horario en el que quiere necesita su orden"], status: 400)
+            return TypeError.missingParameter(request.JSON.orderTime, logId)
         }
 
         def serviceResponse = shoppingCartService.editStatusShoppingCart(data, request.JSON.commentUser, request.JSON.orderTime, logId) 

@@ -6,6 +6,7 @@ import grails.rest.*
 import grails.converters.*
 import java.time.LocalTime
 import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Secured(['isAuthenticated()'])
 class OrdersModuleController {

@@ -8,24 +8,23 @@ import com.ordenaris.finance.SaleService
 import java.time.LocalTime
 import java.sql.Time
 import java.time.format.DateTimeFormatter
-import com.ordenaris.Log
 import java.time.ZoneId
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Transactional
 class OrderModuleService {
     def saleService
+
     def mapOrder = { CustomerOrder order ->
         def orderResult = [
             uuid: order.uuid,
             status: order.status,
+            user: order.user?.username,
             orderTime: order.orderTime.format("HH:mm"),
             dateCreated: order.dateCreated,
-            lastUpdated: order.lastUpdated,
-            user: [
-                names: order.user?.names,
-                lastNames: order.user?.lastNames,
-            ],
-            items: order.orderItems.collect { item ->
+            totalItems: order.orderItems?.size() ?: 0,
+            dishes: order.orderItems.collect { item ->
                 [
                     uuid: item.uuid,
                     quantityDish: item.quantity,
@@ -82,17 +81,7 @@ class OrderModuleService {
         def userList = params.list('users')
         def listCustomerOrders = CustomerOrder.createCriteria().list(max: size, offset: offset, orderCriteria.curry(params, query, userList, sort, orderMode))
         .collect { order ->
-            return [
-                uuid: order.uuid,
-                status: order.status,
-                user: order.user?.username,
-                orderTime: order.orderTime?.getTime(),
-                completedTime: order.completedTime?.getTime(),
-                dateCreated: order.dateCreated?.getTime(),
-                commentUser: order.commentUser,
-                commentChef: order.commentChef,
-                totalItems: order.orderItems?.size() ?: 0
-            ]
+            mapOrder(order)
         }
         def totalCustomerOrders = CustomerOrder.createCriteria().count(orderCriteria.curry(params, query, userList))   
         Log.logger(Log.INFO, logId, "Consultar las ordenes.", "Fin de la solicitud, ordenes listadas.", "params: $params")
@@ -102,10 +91,11 @@ class OrderModuleService {
 
     def listOrdersByUser(data, userId, logId) {
         try {
-            Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "Llega al servicio.", "params: $params")
+            Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "Llega al servicio.", "params: $data")
             def user = User.get(userId)
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 400]
+                Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "El usuario no ha sido encontrado.", "params: $params")
+                return TypeError.missingParameter(user)
             }
             def size = data.max ? data.max as Integer : 10
             def offset = data.offset ? data.offset as Integer : 0
@@ -118,27 +108,16 @@ class OrderModuleService {
 
             def listCustomerOrders = CustomerOrder.createCriteria().list(max: size, offset: offset, orderCriteria.curry(data, query, userList, sort, orderMode))
             .collect { order ->
-                return [
-                    uuid: order.uuid,
-                    status: order.status,
-                    user: order.user?.username,
-                    orderTime: order.orderTime?.getTime(),
-                    completedTime: order.completedTime?.getTime(),
-                    dateCreated: order.dateCreated?.getTime(),
-                    commentUser: order.commentUser,
-                    commentChef: order.commentChef,
-                    totalItems: order.orderItems?.size() ?: 0
-                ]
+                mapOrder(order)
             }
-            
             def totalCustomerOrders = CustomerOrder.createCriteria().count(orderCriteria.curry(data, query, userList))
 
-            Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "Fin de la solicitud, ordenes listadas.", "params: $params")
+            Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "Fin de la solicitud, ordenes listadas.", "params: $data")
             return [resp: [success: true, message: 'Ordenes listadas', data: listCustomerOrders, total: totalCustomerOrders],status: 200]
         }
         catch (e) {
             Log.logger(Log.ERROR, logId, "Consultar ordenes usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success: false, message: e.message],status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -190,21 +169,18 @@ class OrderModuleService {
                 }
                 else{
                     def orderItem = new OrderItem([
-                            unitPrice: dish.cost, 
-                            dish: dish.id, 
-                            quantity: order.quantityDish, 
-                            customerOrder:customerOrder.id
-                            ]).save(flush: true, failOnError: true)
+                        unitPrice: dish.cost, 
+                        dish: dish.id, 
+                        quantity: order.quantityDish, 
+                        customerOrder:customerOrder.id
+                        ]).save(flush: true, failOnError: true)
                 }
             }
             customerOrder.refresh()
             return [resp: [success: true, message: 'Orden creada', order: mapOrder(customerOrder)],status: 200]
         } catch (e) {
             Log.logger(Log.ERROR, logId, "Crear nueva orden.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+            return TypeError.internalError(logId)
         }
     }
     
@@ -278,7 +254,7 @@ class OrderModuleService {
             return [resp: [success: true, message: 'Orden editada', order: mapOrder(order)],status: 200]
         }
         catch(e){
-            return [resp: [success: false, message: e.message],status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -304,7 +280,7 @@ class OrderModuleService {
             Log.logger(Log.INFO, logId, "Editar orden.", "Se ha actualizado tu orden.", "platillo: $orderItems")
             return [resp: [success: true, message: "Se ha actualizado tu orden.", order: mapOrder(order)], status: 200]            
         } catch (e) {
-            return [resp: [success: false, message: e.message],status: 500]
+            return TypeError.internalError(logId)
         }
     }       
 
@@ -350,7 +326,7 @@ class OrderModuleService {
             }
         } catch (e) {
             Log.logger(Log.ERROR, logId, "Editar el estatus.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
-            return [resp: [success: false, message: e.message],status: 500]
+            return TypeError.internalError(logId)
         }
     }
 
@@ -454,10 +430,7 @@ class OrderModuleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+            return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
 

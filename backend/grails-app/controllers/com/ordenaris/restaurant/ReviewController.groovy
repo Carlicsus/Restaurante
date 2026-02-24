@@ -48,6 +48,7 @@ class ReviewController {
     def statisticsDish() {
         def dishUuid = params.dishUuid
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Estadisticas platillo.", "Inicia Solicitud.", "dish: ${dishUuid}")
         if (!dishUuid) {
             return respond(TypeError.missingParameter("platillo", logId, response))
         }
@@ -61,6 +62,7 @@ class ReviewController {
         def auth = springSecurityService.currentUser
         def data = request.JSON
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Crear Reseña.", "Inicia Solicitud.", "data: ${data}")
         if (!auth.id) {
             return respond(TypeError.missingParameter("Identificador del usuario", logId, response))
         }
@@ -89,6 +91,7 @@ class ReviewController {
         def auth = springSecurityService.currentUser
         def reviewUuid = params.reviewUuid
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Actualizar Status de Reseña.", "Inicia Solicitud.", "data: { review: ${reviewUuid}, status: ${params.status} }")
         if (!reviewUuid) {
             return respond(TypeError.missingParameter("review", logId, response))
         }
@@ -106,6 +109,7 @@ class ReviewController {
         def data = request.JSON
         def reviewUuid = params.reviewUuid
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Editar Reseña.", "Inicia Solicitud.", "data: ${data}")
         if (!reviewUuid) {
             return respond(TypeError.missingParameter("review", logId, response))
         }

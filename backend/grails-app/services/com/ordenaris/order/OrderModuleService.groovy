@@ -8,24 +8,23 @@ import com.ordenaris.finance.SaleService
 import java.time.LocalTime
 import java.sql.Time
 import java.time.format.DateTimeFormatter
-import com.ordenaris.Log
 import java.time.ZoneId
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 @Transactional
 class OrderModuleService {
     def saleService
+
     def mapOrder = { CustomerOrder order ->
         def orderResult = [
             uuid: order.uuid,
             status: order.status,
+            user: order.user?.username,
             orderTime: order.orderTime.format("HH:mm"),
             dateCreated: order.dateCreated,
-            lastUpdated: order.lastUpdated,
-            user: [
-                names: order.user?.names,
-                lastNames: order.user?.lastNames,
-            ],
-            items: order.orderItems.collect { item ->
+            totalItems: order.orderItems?.size() ?: 0,
+            dishes: order.orderItems.collect { item ->
                 [
                     uuid: item.uuid,
                     quantityDish: item.quantity,
@@ -73,8 +72,7 @@ class OrderModuleService {
     }
 
     def listOrders(params, logId) {
-        Log.logger(Log.INFO, logId, "Consultar las ordenes.", "Llega al servicio.", ":D")
-        
+        Log.logger(Log.INFO, logId, "Consultar las ordenes.", "Llega al servicio.", "params: $params")
         def size = params.max ? params.max as Integer : 10
         def offset = params.offset ? params.offset as Integer : 0
         def sort = params.sort ?: "dateCreated"
@@ -83,30 +81,21 @@ class OrderModuleService {
         def userList = params.list('users')
         def listCustomerOrders = CustomerOrder.createCriteria().list(max: size, offset: offset, orderCriteria.curry(params, query, userList, sort, orderMode))
         .collect { order ->
-            return [
-                uuid: order.uuid,
-                status: order.status,
-                user: order.user?.username,
-                orderTime: order.orderTime?.getTime(),
-                completedTime: order.completedTime?.getTime(),
-                dateCreated: order.dateCreated?.getTime(),
-                commentUser: order.commentUser,
-                commentChef: order.commentChef,
-                totalItems: order.orderItems?.size() ?: 0
-            ]
+            mapOrder(order)
         }
         def totalCustomerOrders = CustomerOrder.createCriteria().count(orderCriteria.curry(params, query, userList))   
-        Log.logger(Log.INFO, logId, "Consultar las ordenes.", "Fin de la solicitud, ordenes listadas.", ":D")
+        Log.logger(Log.INFO, logId, "Consultar las ordenes.", "Fin de la solicitud, ordenes listadas.", "params: $params")
     
         return [resp: [success: true, message: 'Ordenes listadas', data: listCustomerOrders,total: totalCustomerOrders],status: 200]
     }
 
     def listOrdersByUser(data, userId, logId) {
         try {
-            Log.logger(Log.INFO, logId, "Consultar ordenes.", "Llega al servicio.", ":D")
+            Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "Llega al servicio.", "params: $data")
             def user = User.get(userId)
             if (!user) {
-                return [resp: [success: false, message: "Usuario no encontrado"], status: 400]
+                Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "El usuario no ha sido encontrado.", "params: $params")
+                return TypeError.missingParameter(user)
             }
             def size = data.max ? data.max as Integer : 10
             def offset = data.offset ? data.offset as Integer : 0
@@ -119,51 +108,32 @@ class OrderModuleService {
 
             def listCustomerOrders = CustomerOrder.createCriteria().list(max: size, offset: offset, orderCriteria.curry(data, query, userList, sort, orderMode))
             .collect { order ->
-                return [
-                    uuid: order.uuid,
-                    status: order.status,
-                    user: order.user?.username,
-                    orderTime: order.orderTime?.getTime(),
-                    completedTime: order.completedTime?.getTime(),
-                    dateCreated: order.dateCreated?.getTime(),
-                    commentUser: order.commentUser,
-                    commentChef: order.commentChef,
-                    totalItems: order.orderItems?.size() ?: 0
-                ]
+                mapOrder(order)
             }
-            
             def totalCustomerOrders = CustomerOrder.createCriteria().count(orderCriteria.curry(data, query, userList))
 
-            Log.logger(Log.INFO, logId, "Consultar ordenes.", "Fin de la solicitud, ordenes listadas.", ":D")
+            Log.logger(Log.INFO, logId, "Consultar ordenes usuario.", "Fin de la solicitud, ordenes listadas.", "params: $data")
             return [resp: [success: true, message: 'Ordenes listadas', data: listCustomerOrders, total: totalCustomerOrders],status: 200]
         }
         catch (e) {
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Consultar ordenes usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
     def newOrder(data, auth, orderTime, commentUser, logId) {
         try {
-            Log.logger(Log.INFO, logId, "Crear nueva orden.", "Llega al serivicio.", "data: $data")
+            Log.logger(Log.INFO, logId, "Crear nueva orden.", "Llega al servicio.", "data: $data")
             def localNow = LocalTime.now(java.time.ZoneId.of("America/Mexico_City"))
             def now = Time.valueOf(localNow)
             def user = User.get(auth.id)
             if (!user) {
                 Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se encontro al usuario.", "data: $data")
-                return [
-                    resp: [success: false, message: 'Usuario no encontrado'], 
-                    status: 400
-                ]
+                return [resp: [success: false, message: 'Usuario no encontrado'], status: 400]
             }
             if(orderTime < localNow.plusHours(1)) {
                 Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se puede pedir nada una hora antes de su hora actual.", "data: $data")
-                return [
-                    resp:[success:false, message: "Lo sentimos no se puede pedir su orden en ese horario"],
-                    status: 400
-                ]            
+                return [resp:[success:false, message: "Lo sentimos no se puede pedir su orden en ese horario"],status: 400]            
             }
             if(commentUser == "") commentUser = null            
             def customerOrder = new CustomerOrder([user:auth.id, orderTime:Time.valueOf(orderTime), commentUser: commentUser]).save(flush: true, failOnError: true)
@@ -172,10 +142,7 @@ class OrderModuleService {
                 def dish = Dish.findByUuid(order.dishUuid)
                 if (!dish) {
                     Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se encuentra el platillo de la orden.", "data: $data")
-                    return [
-                        resp: [success: false, message: "Platillo no encontrado"],
-                        status: 400
-                    ]
+                    return [resp: [success: false, message: "Platillo no encontrado"],status: 400]
                 }
                 if(dish.availableDishes != -1){
                     if (dish.availableDishes == 0) {
@@ -202,101 +169,107 @@ class OrderModuleService {
                 }
                 else{
                     def orderItem = new OrderItem([
-                            unitPrice: dish.cost, 
-                            dish: dish.id, 
-                            quantity: order.quantityDish, 
-                            customerOrder:customerOrder.id
-                            ]).save(flush: true, failOnError: true)
+                        unitPrice: dish.cost, 
+                        dish: dish.id, 
+                        quantity: order.quantityDish, 
+                        customerOrder:customerOrder.id
+                        ]).save(flush: true, failOnError: true)
                 }
             }
             customerOrder.refresh()
-            return [
-                resp: [success: true, message: 'Orden creada', order: mapOrder(customerOrder)],
-                status: 200
-            ]
+            return [resp: [success: true, message: 'Orden creada', order: mapOrder(customerOrder)],status: 200]
         } catch (e) {
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+            Log.logger(Log.ERROR, logId, "Crear nueva orden.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
     
-    def addDishOrder(pathParams, requestBody, auth){
+    def addDishOrder(pathParams, requestBody, auth, logId){
         try{
             def user = User.get(auth.id)
+            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Llega al servicio.", "json: $requestBody")
             if (!user) {
-                return [resp:[success: false, message: "Usuario no encontrado"], status: 404]
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Usuario no encontrado.", "json: $requestBody")
+                return [resp:[success: false, message: "Usuario no encontrado."], status: 404]
             }
             def order = CustomerOrder.findByUuid(pathParams.uuidOrder)
             if (!order) {
-                return [resp:[success: false, message: "Orden no encontrada"], status: 404]
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Orden no encontrada.", "json: $requestBody")
+                return [resp:[success: false, message: "Orden no encontrada."], status: 404]
+            }
+            if (order.status == "Finished") {
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Esta orden ya esta finalizada.", "estatus orden: ${order.status}")
+                return [resp: [success: false, message: "No se puede editar una orden que ya ha sido finalizada"], status: 400]
+            }
+            if (order.status == "Cancelled") {
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Esta orden ya esta cancelada.", "estatus orden: ${order.status}")
+                return [resp: [success: false, message: "No se puede editar una orden que ya ha sido cancelada"], status: 400]
             }
             def existingItems = OrderItem.findAllByCustomerOrder(order)
-            def existingDishUuids = orderItem.dish.uuid
+            def existingDishUuids = existingItems.dish.uuid
             def searchDish = requestBody.uuidDish
             def dish = Dish.findByUuid(requestBody.uuidDish)
-            if (!dish){return [resp: [success: false, message: "No existe ese platillo"],status: 404]
+            if (!dish){
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "No existe ese platillo.", "json: $requestBody")
+                return [resp: [success: false, message: "No existe ese platillo"],status: 404]
             }
             def now = Time.valueOf(LocalTime.now(java.time.ZoneId.of("America/Mexico_City")))
             def thirtyMinutesBefore = new Time(order.orderTime.time - (30 * 60 * 1000))
             if(now >= thirtyMinutesBefore){
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "No se pueden agregar platillos 30 min antes del horario.", "json: $requestBody")
                 return [resp: [success: false, message: "No se pueden agregar platillos 30 min antes del horario"], status: 400]
             }
             if(searchDish in existingDishUuids){
-                for(item in orderItem){
-                    if(item.dish.uuid == dish.uuid ){                        
+                for(item in existingItems){
+                    if(item.dish.uuid == dish.uuid ){       
+                        Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Hay coincidencias en los platillos.", "Platillo: $item") 
                         def newQuantityDish = item.quantity + requestBody.quantityDish
                         if(newQuantityDish > 5){
+                            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Se excede el maximo de 5 por carrito.", "json: $requestBody")
                             return [resp: [success: false, message: "No se pueden agregar mas platillos al carrito, excede el maximo de 5 por carrito."], status: 404]
                         }
-                        if(dish.availableDishes != -1){
-                            if(item.dish.availableDishes < newQuantityDish){
-                                return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
-                            }
+                        if(dish.availableDishes != -1 && item.dish.availableDishes < newQuantityDish){
+                            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "No hay suficientes platillos para añadir al carrito.", "json: $requestBody")
+                            return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
                         }
                         item.quantity = newQuantityDish
                         item.save()
+                        Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Se agrego la nueva cantidad .", "Platillo: $item")
                     }
                 }
             }else{
-                // hacer for
-                if(requestBody.quantityDish==null){
-                    return [resp: [success: true, message: "Orden agregada al carrito de compras"], status: 201]
-                }
                 dish = Dish.findByUuid(requestBody.uuidDish)
-                if(dish.availableDishes != -1 && dish.availableDishes < newQuantityDish){
+                if(dish.availableDishes != -1 && dish.availableDishes < requestBody.quantityDish){
                     return [resp: [success: false, message: "No hay suficientes platillos para añadir al carrito."], status: 404]
                 }
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Se agrego la nueva cantidad.", "Platillo: $dish")
                 def newOrderItem = new OrderItem([
-                    unitPrice: dish.cost, 
+                    unitPrice: dish.cost,
                     dish: dish.id, 
                     quantity: requestBody.quantityDish, 
                     customerOrder:order.id
                 ]).save(flush: true, failOnError: true)
+                Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Se ha agregado el platillo a la orden.", "Platillo: $dish")
             }
-            return [
-                resp: [success: true, message: 'Orden editada', order: mapOrder(order)],
-                status: 200
-            ]
+            return [resp: [success: true, message: 'Orden editada', order: mapOrder(order)],status: 200]
         }
         catch(e){
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+            return TypeError.internalError(logId)
         }
     }
 
-    def editOrder(pathParams, requestBody) {
+    def editOrder(pathParams, requestBody, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Editar orden.", "Llega el servicio.", "json: $requestBody")
             def order = CustomerOrder.findByUuid(pathParams.uuidOrder)
             if (!order) {
-                return [resp:[success: false, message: "Orden no encontrada o no existe"], status: 400]
+                Log.logger(Log.INFO, logId, "Editar orden.", "Orden no encontrada.", "json: $requestBody")
+                return [resp:[success: false, message: "Orden no encontrada."], status: 400]
             }
             def dish = Dish.findByUuid(requestBody.uuidDish)
             if (!dish) {
-                return [resp: [success: false, message: "Platillo no encontrado"], status: 400]
+                Log.logger(Log.INFO, logId, "Editar orden.", "Platillo no encontrado.", "json: $requestBody")
+                return [resp: [success: false, message: "Platillo no encontrado."], status: 400]
             }
             def orderItems = new OrderItem([
                 unitPrice: dish.cost,
@@ -304,14 +277,16 @@ class OrderModuleService {
                 quantity: requestBody.quantityDish,
                 customerOrder: order.id
             ]).save(flush: true, failOnError: true)
-            return [resp: [success: true, message: "Se ha actualizado tu orden", order: mapOrder(order)], status: 200]            
+            Log.logger(Log.INFO, logId, "Editar orden.", "Se ha actualizado tu orden.", "platillo: $orderItems")
+            return [resp: [success: true, message: "Se ha actualizado tu orden.", order: mapOrder(order)], status: 200]            
         } catch (e) {
-            return [resp: [success: false, message: e.message],status: 500]
+            return TypeError.internalError(logId)
         }
     }       
 
-    def editOrderStatus(data, completedTime, commentChef) {
+    def editOrderStatus(data, completedTime, commentChef, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Editar el estatus.", "Llega al servicio.", "data: $data")
             def order = CustomerOrder.findByUuid(data.uuidOrder)
             if (!order) return [resp: [success: false, message: "Orden no encontrada"], status: 400]
             if (order.status == "Queue" && data.status == "Finished") return [resp: [success: false, message: "No se puede saltar el paso de preparacion de la orden, necesita primero que este en preparacion para poder finalizarla"], status: 400]
@@ -320,27 +295,38 @@ class OrderModuleService {
             if (order.status == "Preparing" && data.status in ["Cancelled", "Queue"]) return [resp: [success: false, message: "No se puede editar una orden que ya esta siendo preparada"], status: 400]
             if (data.status in ["Cancelled", "Preparing", "Queue", "Finished"]) {
                 if (data.status == "Finished") {
-                    saleService.createAutoSale(order.id)
+                    Log.logger(Log.INFO, logId, "Editar el estatus.", "Tiene un estatus de finalizado.", "data: $data")
+                    def sale = saleService.createAutoSale(order.uuid, logId)
+                    if(sale.status != 200){
+                        Log.logger(Log.INFO, logId, "Editar el estatus.", "Error al crear la venta, no se puede finalizar.", "data: $data")
+                        return [resp: [success: false, message: 'Ocurrio un error al crear la venta, no se puede finalizar su orden'],status: 400]
+                    }
                     order.commentChef = commentChef
                     order.completedTime = Time.valueOf(completedTime)
                     order.save(flush: true, failOnError: true)
+                    Log.logger(Log.INFO, logId, "Editar el estatus.", "Se ha finalizado su orden y se creo la venta.", "data: $data")
                 }
                 if (data.status == "Cancelled") {
+                    Log.logger(Log.INFO, logId, "Editar el estatus.", "Tiene un estatus de cancelado.", "data: $data")
                     if (!commentChef){
+                        Log.logger(Log.INFO, logId, "Editar el estatus.", "No se encontro el comentario del chef.", "data: $data")
                         return [resp: [success: false, message: 'Se necesita la razon por la cual quiere cancelar la orden.'],status: 404]
                     }
                     else{
                         order.commentChef = commentChef
                         order.completedTime = null
                         order.save(flush: true, failOnError: true)
+                        Log.logger(Log.INFO, logId, "Editar el estatus.", "Se ha cancelado la orden con exito.", "data: $data")
                     }
                 }
                 order.status = data.status
                 order.save(flush: true, failOnError: true)
+                Log.logger(Log.INFO, logId, "Editar el estatus.", "Se ha actualizado el estatus de la orden.", "data: $data")
                 return [resp: [success: true, message: 'Estado de la orden actualizado a ' + data.status, order:mapOrder(order)],status: 200]
             }
         } catch (e) {
-            return [resp: [success: false, message: e.message],status: 500]
+            Log.logger(Log.ERROR, logId, "Editar el estatus.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            return TypeError.internalError(logId)
         }
     }
 
@@ -444,10 +430,7 @@ class OrderModuleService {
                 status: 200
             ]
         } catch (e) {
-            return [
-                resp: [success: false, message: e.message],
-                status: 500
-            ]
+            return [resp: [success:false, message: e.getMessage()], status: 500]
         }
     }
 

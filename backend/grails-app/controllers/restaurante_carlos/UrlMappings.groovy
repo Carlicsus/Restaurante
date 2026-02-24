@@ -148,7 +148,7 @@ class UrlMappings {
                         uuid(matches: /^[a-fA-F0-9]{32}/)
                     }
                     get "/get-user-schedule"(controller: "schedule", action: "getScheduleInfo")
-                    post "/create-schedule"(controller: "schedule", action: "createSchedule")
+                    post "/create-schedule"(controller: "schedule", action: "createUserSchedule")
                     patch "/change-working-hours"(controller: "schedule", action: "changeWorkingHours")
                     patch "/change-availability/$status"(controller: "schedule", action: "changeAvailability"){
                         constraints {
@@ -175,13 +175,13 @@ class UrlMappings {
                 get "/date"(controller: "sale", action: "getUserSalesByDateRange")
                 post "/user-expenses-chart"(controller: "sale", action: "getUserSpendingChart")
                 get "/pending"(controller: "sale", action: "getSalesByUser") {
-                    typeSale = 1
+                    typeSale = "Pending"
                 }
                 get "/paid"(controller: "sale", action: "getSalesByUser") {
-                    typeSale = 2
+                    typeSale = "Paid"
                 }
                 get "/all"(controller: "sale", action: "getSalesByUser") {
-                    typeSale = 3
+                    typeSale = "all"
                 }
                 get "/$saleUuid"(controller: "sale", action: "getOneSaleInfo"){
                     constraints {
@@ -199,6 +199,9 @@ class UrlMappings {
                     group "/edit/$uuidItem",{
                         patch "/dish"(controller: "ordersModule", action: "editOrder")
                         patch "/reject"(controller: "ordersModule", action: "rejectDish")
+                        constraints{
+                            uuidItem(matches: /^[a-fA-F0-9]{32}/)
+                        }
                     }
                     patch "/addDish"(controller: "ordersModule", action: "addDishOrder")
                     patch "/cancel"(controller: "ordersModule", action: "editOrderStatus") {
@@ -218,6 +221,9 @@ class UrlMappings {
                         patch "/approve"(controller: "ordersModule", action: "approveRejection")
                         patch "/cancel"(controller: "ordersModule", action: "cancelRejection")
                     }
+                    constraints {
+                        uuidOrder(matches: /^[a-fA-F0-9]{32}/)
+                    }
                 }
             }
             group "/shoppingCart", {
@@ -227,14 +233,29 @@ class UrlMappings {
                 group "/$uuidSC", {
                     get "/info"(controller: "shoppingCart", action: "shoppingCartInfo")
                     post "/addItem"(controller: "shoppingCart", action: "addItemShoppingCart")
-                    delete "/deleteItem/$uuidItem"(controller: "shoppingCart", action: "deleteItemShoppingCart")
-                    put "/addNumberDish/$uuidItem"(controller:"shoppingCart", action:"addNumberDish")
-                    put "/restNumberDish/$uuidItem"(controller:"shoppingCart", action:"restNumberDish")
+                    delete "/deleteItem/$uuidItem"(controller: "shoppingCart", action: "deleteItemShoppingCart"){
+                        constraints{
+                            uuidItem(matches: /^[a-fA-F0-9]{32}/)
+                        }
+                    }
+                    put "/addNumberDish/$uuidItem"(controller:"shoppingCart", action:"addNumberDish"){
+                        constraints{
+                            uuidItem(matches: /^[a-fA-F0-9]{32}/)
+                        }
+                    }
+                    put "/restNumberDish/$uuidItem"(controller:"shoppingCart", action:"restNumberDish"){
+                        constraints{
+                            uuidItem(matches: /^[a-fA-F0-9]{32}/)
+                        }
+                    }
                     patch "/finish"(controller: "shoppingCart", action: "editStatusShoppingCart"){
                         status = "Finished"
                     }
                     delete "/delete"(controller: "shoppingCart", action: "editStatusShoppingCart"){
                         status = "Delete"
+                    }
+                    constraints {
+                        uuidSC(matches: /^[a-fA-F0-9]{32}/)
                     }
                 }
             }

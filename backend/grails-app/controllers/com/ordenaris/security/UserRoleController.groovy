@@ -1,7 +1,8 @@
 package com.ordenaris.security
 
-import grails.rest.*
 import grails.plugin.springsecurity.annotation.Secured
+import com.ordenaris.Log
+import com.ordenaris.TypeError
 
 class UserRoleController {
 
@@ -11,25 +12,37 @@ class UserRoleController {
 
     @Secured(['ROLE_ADMIN'])
     def getRolesByUser() {
-        def response = userRoleService.getRolesByUser(params.uuidUser)
-        return respond(response.resp, status: response.status)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Obtener todos los roles de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+
+        def response = userRoleService.getRolesByUser(params.uuidUser, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
     def assignRole() {
-        def response = userRoleService.assignRole(params.uuidUser, params.uuidRole)
-        return respond(response.resp, status: response.status)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Asignar un rol a un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+
+        def response = userRoleService.assignRole(params.uuidUser, params.uuidRole, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
     def changeRole() {
-        def response = userRoleService.changeRole(params.uuidUser, params.uuidRole, params.uuidNewRole)
-        return respond(response.resp, status: response.status)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Cambiar un rol de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+
+        def response = userRoleService.changeRole(params.uuidUser, params.uuidRole, params.uuidNewRole, logId)
+        return respond(response.data, status: response.status)
     }
 
     @Secured(['ROLE_ADMIN'])
     def removeRole() {
-        def response = userRoleService.removeRole(params.uuidUser, params.uuidRole)
-        return respond(response.resp, status: response.status)
+        def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
+        Log.logger(Log.INFO, logId, "Remover un rol a un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+        
+        def response = userRoleService.removeRole(params.uuidUser, params.uuidRole, logId)
+        return respond(response.data, status: response.status)
     }
 }

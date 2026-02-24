@@ -18,16 +18,16 @@ class ReviewService {
             ],
             comment: review.comment,
             rating: review.rating,
-            dateCreated: review.dateCreated,
+            dateCreated: review.dateCreated.getTime(),
         ]
         
     }
     def listReviews(dishUuid, page, max, rating, logId) {
         try {
-            Log.logger(Log.INFO, logId, "Listado de resenias.", "Llegada al servicio.", "params: { dish: ${dishUuid}, rating: ${rating} }")
+            Log.logger(Log.INFO, logId, "Listado de Resenias.", "Llegada al servicio.", "params: { dish: ${dishUuid}, rating: ${rating} }")
             def dish = Dish.findByUuid(dishUuid)
             if (!dish) {
-                Log.logger(Log.WARN, logId, "Listado de resenias.", "Platillo no encontrado.", "params: { dish: ${dishUuid}, rating: ${rating} }")
+                Log.logger(Log.WARN, logId, "Listado de Resenias.", "Platillo no encontrado.", "params: { dish: ${dishUuid}, rating: ${rating} }")
                 return TypeError.informationNotFound(logId)
             }
             Integer offset = page * max - max
@@ -43,26 +43,27 @@ class ReviewService {
             }
 
             if(reviews.isEmpty()) {
-                Log.logger(Log.INFO, logId, "Listado de resenias.", "Platillo sin resenias.", "params: { dish: ${dishUuid}, rating: ${rating} }")
+                Log.logger(Log.INFO, logId, "Listado de Resenias.", "Platillo sin resenias.", "params: { dish: ${dishUuid}, rating: ${rating} }")
                 return [
                     data: [success: true, data: [dish: [message: 'No hay reseñas para listar', dishName: dish.name, dishUuid: dish.uuid], reviews: []]],
                     status: 200
                 ]
             }else {
                 def reviewsMapper = reviews.collect { review -> mapReview(review) }
-                Log.logger(Log.INFO, logId, "Listado de resenias.", "Resenias devueltas de manera exitosa.", "params: { dish: ${dishUuid}, rating: ${rating} }", "Reseñas: ${reviews.size()}")
+                Log.logger(Log.INFO, logId, "Listado de Resenias.", "Resenias devueltas de manera exitosa.", "params: { dish: ${dishUuid}, rating: ${rating} }", "Reseñas: ${reviews.size()}")
                 return [
                     data: [success: true, data: [dish: [message: 'Reseñas listadas', dishName: reviews[0].dish.name, dishUuid: reviews[0].dish.uuid], reviews: reviewsMapper]],
                     status: 200
                 ]
             }
         } catch (e) {
-            Log.logger(Log.ERROR, logId, "Listado de resenias.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
+            Log.logger(Log.ERROR, logId, "Listado de Resenias.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }
     def statisticsDish(dishUuid, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Estadisticas Platillo.", "Llegada al servicio.", "dish: ${dishUuid}")
             def totalReviews = Review.createCriteria().count {
                 dish {
                     eq("uuid", dishUuid)
@@ -89,6 +90,7 @@ class ReviewService {
                     eq("rating", rating as Float)
                 }
             }
+            Log.logger(Log.INFO, logId, "Estadisticas Platillo.", "Estadisticas obtenidas correctamente.", "dish: ${dishUuid}", "Promedio: ${avgRating}, Total: ${totalReviews}, Puntuaciones: ${ratingsBreakdown}")
             return [
                 data: [
                     success: true,
@@ -104,20 +106,25 @@ class ReviewService {
                 status: 200
             ]
         } catch (e) {
+            Log.logger(Log.ERROR, logId, "Estadisticas Platillo.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }
     def createReview(data, auth, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Crear Reseña.", "Llegada al servicio.", "data: ${data}")
             if (!auth) {
+                Log.logger(Log.WARN, logId, "Crear Reseña.", "No hay un usuario.", "data: ${data}")
                 return TypeError.noPermissions(logId)
             }
             def dish = Dish.findByUuid(data.dishUuid)
             if (!dish) {
+                Log.logger(Log.WARN, logId, "Crear Reseña.", "No se ha encontrado el platillo.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             def orders = CustomerOrder.findAllByUserAndStatus(auth, "Finished")
             if (!orders) {
+                Log.logger(Log.WARN, logId, "Crear Reseña.", "No se han encontrado ordenes relacionadas al usuario.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             def items = OrderItem.createCriteria().list {
@@ -125,6 +132,7 @@ class ReviewService {
                 eq("dish", dish)
             }
             if (!items) {
+                Log.logger(Log.WARN, logId, "Crear Reseña.", "No se ha encontrado el platillo en las ordenes del usuario.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             
@@ -135,6 +143,7 @@ class ReviewService {
             }
             
             if (review) {
+                Log.logger(Log.WARN, logId, "Crear Reseña.", "Ya existe una reseña del usuario asignada de este platillo.", "data: ${data}")
                 return TypeError.existingRegister(logId)
             }
             
@@ -145,57 +154,73 @@ class ReviewService {
                 rating: data.rating
             ]).save(flush: true, failOnError: true)
             
+            Log.logger(Log.INFO, logId, "Crear Reseña.", "Reseña creada con exito.", "data: ${data}", "Reseña: ${newReview}")
             return [data: [success: true, data: [message: 'Reseña creada', review: mapReview(newReview)]], status: 201]
         } catch (Exception e) {
+            Log.logger(Log.ERROR, logId, "Crear Reseña.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }
     def statusReview(reviewUuid, status, auth, logId) {
         try {
+            Log.logger(Log.INFO, logId, "Actualizar Status de Reseña.", "Llegada al servicio.", "data: { review: ${reviewUuid}, status: ${status} }")
             def review = Review.findByUuid(reviewUuid)
             if (!review) {
+                Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "No se encontro la reseña.", "data: { review: ${reviewUuid}, status: ${status} }")
                 return TypeError.informationNotFound(logId)
             }
             if (status == 2) {
                 if (review.user.id != auth.id) {
+                    Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "No se cuenta con permisos para borrar la reseña.", "data: { review: ${reviewUuid}, status: ${status} }")
                     return TypeError.noPermissions(logId)
                 }
             }
             if (status in [0, 1]) {
                 if (!auth.authorities*.authority.contains('ROLE_ADMIN')) {
-                    return TypeError.noPermissions(logId)
+                    Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "Solo usuarios con 'ROLE_ADMIN' puden activar/desactivar reseñas.", "data: { review: ${reviewUuid}, status: ${status} }")
+                    return TypeError.permissionMissing("[ROLE_ADMIN]", logId)
                 }
             }
             if (review.status == 2) {
+                Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "La reseña ha sido eliminada.", "data: { review: ${reviewUuid}, status: ${status} }")
                 return TypeError.informationNotFound(logId)
             }
             if (review.status == status) {
+                Log.logger(Log.WARN, logId, "Actualizar Status de Reseña.", "La reseña ya cuenta con este status.", "data: { review: ${reviewUuid}, status: ${status} }")
                 return TypeError.existingRegister(logId)
             }
             review.status = status
             review.save()
+            Log.logger(Log.INFO, logId, "Actualizar Status de Reseña.", "Reseña actualizada correctamente.", "data: { review: ${reviewUuid}, status: ${status} }", "review : ${review}")
             return [data: [success: true, data: [message: "Estado de la reseña actualizado.", review: review.uuid]], status: 200]
         } catch (e) {
+            Log.logger(Log.ERROR, logId, "Actualizar Status de Reseña.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }
     def editReview(reviewUuid, data, auth, logId) {
-        try {            
+        try {
+            Log.logger(Log.INFO, logId, "Editar Reseña.", "Llegada al servicio.", "data: ${data}")
             def review = Review.findByUuid(reviewUuid)
             if (!review) {
+                Log.logger(Log.WARN, logId, "Editar Reseña.", "No se encontro la reseña.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             if (review.status !=1) {
+                Log.logger(Log.WARN, logId, "Editar Reseña.", "La reseña no esta disponible.", "data: ${data}")
                 return TypeError.informationNotFound(logId)
             }
             if (review.user.id != auth.id) {
+                Log.logger(Log.WARN, logId, "Editar Reseña.", "No se cuenta con permisos para editar la reseña.", "data: ${data}")
                 return TypeError.noPermissions(logId)
             }
             review.comment = (data.comment != null) ? data.comment : review.comment
             review.rating = data.rating as Float
             review.save(flush: true, failOnError: true)
+            Log.logger(Log.INFO, logId, "Editar Reseña.", "Reseña editada correctamente.", "data: ${data}")
             return [data: [success: true, data: [message: 'Reseña actualizada', review: mapReview(review)]], status: 200]
         } catch (e) {
+            Log.logger(Log.ERROR, logId, "Editar Reseña.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.message}", "stacktrace: ${e.stackTrace.take(10).join('\n')}")
             return TypeError.internalError(logId)
         }
     }

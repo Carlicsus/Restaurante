@@ -1,9 +1,6 @@
 package com.ordenaris.security
 
-import grails.rest.*
-import grails.converters.*
 import grails.plugin.springsecurity.annotation.Secured
-import grails.plugin.springsecurity.userdetails.GrailsUser
 import java.nio.file.Files
 import org.springframework.web.multipart.MultipartHttpServletRequest
 import com.ordenaris.Constants
@@ -19,7 +16,7 @@ class UserController {
     @Secured(['permitAll'])
     def register() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${Log.sanitize(request.JSON)}")
 
         if (!request.JSON.username) {
             return respond(TypeError.missingParameter("nombre de usuario", logId, response))
@@ -85,7 +82,7 @@ class UserController {
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
     def paginateUsers() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Paginar usuarios.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Paginar usuarios.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         if (!params.page) {
             return respond(TypeError.missingParameter("pagina", logId, response))
@@ -123,7 +120,7 @@ class UserController {
     @Secured(['ROLE_ADMIN'])
     def changeStatus() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Cambiar status.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Cambiar status.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def response = userService.changeStatus(params, logId)
         return respond(response.data, status: response.status)
@@ -132,7 +129,7 @@ class UserController {
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
     def getUserInfo() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Obtener información de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Obtener información de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def response = userService.getUserInfo(params.uuid, logId)
         return respond(response.data, status: response.status)
@@ -141,7 +138,7 @@ class UserController {
     @Secured(['ROLE_ADMIN'])
     def changeUserCrd() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Cambiar crd de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         if (!request.JSON.newCrd) {
             return respond(TypeError.missingParameter("nueva crd", logId, response))
@@ -163,7 +160,7 @@ class UserController {
     @Secured(['isAuthenticated()'])
     def updateChangeCrdRequest(){
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def user = springSecurityService.currentUser
 
@@ -174,7 +171,7 @@ class UserController {
     @Secured(['isAuthenticated()'])
     def changeProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
         
         if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
             return respond(TypeError.incorrectFormat("request", "un form-data", logId, response))
@@ -211,7 +208,7 @@ class UserController {
     @Secured(['isAuthenticated()'])
     def getProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def user = springSecurityService.currentUser
 
@@ -229,7 +226,7 @@ class UserController {
     @Secured(['ROLE_ADMIN'])
     def changeUserProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
             return respond(TypeError.incorrectFormat("request", "un form-data", logId, response))
@@ -265,7 +262,7 @@ class UserController {
     @Secured(['ROLE_ADMIN'])
     def getUserProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}")
+        Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
         def responseService = userService.getUserProfilePicture(params.uuid, logId)
         if( responseService.status != 200 ) {

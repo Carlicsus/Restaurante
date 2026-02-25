@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartHttpServletRequest
 import com.ordenaris.Constants
 import com.ordenaris.Log
 import com.ordenaris.TypeError
+import com.ordenaris.Conf
+import com.ordenaris.Constants
 
 class UserController {
 	static responseFormats = ['json', 'xml']
@@ -66,8 +68,10 @@ class UserController {
             return respond(TypeError.incorrectFormat("apellidos", "sin espacios al principio ni al final", logId, response))
         }
 
-        if (!request.JSON.email.endsWith('@utxicotepec.edu.mx')) {
-            return respond(TypeError.invalidData("email", logId, response))
+        def validEmails =  Conf.findConfiguration(Constants.VALID_EMAILS).split(", ").toList()
+
+        if (!validEmails.any { request.JSON.email.endsWith(it) }) {
+            return respond(TypeError.incorrectFormat("correo", "un correo con uno de los siguientes dominios ${validEmails}", logId, response))
         }
 
         if (!(request.JSON.crd.securePassword())) {
@@ -171,7 +175,7 @@ class UserController {
     @Secured(['isAuthenticated()'])
     def changeProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+        Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Iniciando la solicitud.", "params: ${params}")
         
         if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
             return respond(TypeError.incorrectFormat("request", "un form-data", logId, response))
@@ -226,7 +230,7 @@ class UserController {
     @Secured(['ROLE_ADMIN'])
     def changeUserProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+        Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}")
 
         if (!(request instanceof org.springframework.web.multipart.MultipartHttpServletRequest)) { 
             return respond(TypeError.incorrectFormat("request", "un form-data", logId, response))

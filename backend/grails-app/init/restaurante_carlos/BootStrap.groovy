@@ -8,9 +8,12 @@ import com.ordenaris.security.UserRole
 import com.ordenaris.schedule.Schedule
 import com.ordenaris.restaurant.Dish
 import com.ordenaris.restaurant.MenuType
-import java.time.LocalTime
-import java.sql.Time
+import java.time.LocalTime 
+import java.sql.Time 
 class BootStrap {
+
+    def SettingsService
+
     def init = { servletContext ->
         String.metaClass.soloNumeros = {
             def expresion = '^[0-9]*$' 
@@ -190,6 +193,9 @@ class BootStrap {
             ).save(failOnError: true)
                 
         }
+
+        SettingsService.registerInitData()
+        SettingsService.updateInfoDB("Actualizando settings")
 
     }
     def destroy = {

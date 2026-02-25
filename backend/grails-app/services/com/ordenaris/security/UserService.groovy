@@ -18,17 +18,15 @@ class UserService {
 
     def users = { params, orderColumn = null, sort = null ->
         if (params.enabled) {
-            eq("enabled", enabled.toBoolean())
+            eq("enabled", params.enabled.toBoolean())
         }
-
         if (params.locked) {
-            eq("accountLocked", locked.toBoolean())
+            eq("accountLocked", params.locked.toBoolean())
         }
-
         if (params.query) {
             or {
-                like("username", "%${query}%")
-                like("email", "%${query}%")
+                like("username", "%${params.query}%")
+                like("email", "%${params.query}%")
             }
         }
 
@@ -111,29 +109,29 @@ class UserService {
                 def status = params.status.equals("active")
 
                 if (user.enabled == status) {
-                    Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene la cuenta ${(user.enabled ? "activada" : "desactivada")}", "params: ${params}" )     
+                    Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene el status solicitado.", "params: ${params}", "enabled: ${user.enabled}")
                     return TypeError.existingRegister(logId)
                 } 
                 
                 user.enabled = status
                 user.save(flush: true)
 
-                Log.logger( Log.INFO, logId, "Cambiar status.", "Se ${(user.enabled ? "activo" : "desactivo")} la cuenta con exito", "params: ${params}", "user: [uuid: ${user.uuid}, username: ${user.username}]" )
-                return [ data: [success: true, data: [message:"La cuenta de ${user.names} ${user.lastNames} ha sido ${(user.enabled ? "activada" : "desactivada")}"]], status: 200 ]
+                Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}", "enabled: ${user.enabled}")
+                return [ data: [success: true, data: "La cuenta de " + user.names + " " + user.lastNames + " ha sido " + (user.enabled ? "activada" : "desactivada")], status: 200 ]
             }
 
             def status = params.status.equals("block")
 
             if (user.accountLocked == status) {
-                Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene la cuenta ${(user.accountLocked ? "bloqueada" : "desbloqueada")}", "params: ${params}" )     
+                Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene el status solicitado.", "params: ${params}", "accountLocked: ${user.accountLocked}")     
                 return TypeError.existingRegister(logId)
             } 
 
             user.accountLocked = status
             user.save(flush: true)
 
-            Log.logger( Log.INFO, logId, "Cambiar status.", "Se ${(user.accountLocked ? "bloqueo" : "desbloqueo")} la cuenta con exito", "params: ${params}", "user: [uuid: ${user.uuid}, username: ${user.username}]" )
-            return [ data: [success: true, data: [message:"La cuenta de ${user.names} ${user.lastNames} ha sido ${(user.accountLocked ? "bloqueada" : "desbloqueada")}"]], status: 200 ]
+            Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}", "accountLocked: ${user.accountLocked}")
+            return [ data: [success: true, data: "La cuenta de " + user.names + " " + user.lastNames + " ha sido " + (user.accountLocked ? "bloqueada" : "desbloqueada")], status: 200 ]
 
         } catch(e) {
             Log.logger( Log.ERROR, logId, "Cambiar status.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
@@ -214,7 +212,7 @@ class UserService {
             user.save(flush: true)
 
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Se cambio la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}], fileExtension: ${extractExtension(file.originalFilename)}")
-            return [ data: [success: true, data: [message:"Se guardo con exito la foto de perfil"]], status: 200 ]
+            return [ data: [success: true, data: "Se guardo con exito la foto de perfil"], status: 200 ]
             
         } catch(e) {
             Log.logger( Log.ERROR, logId, "Cambiar foto de perfil.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
@@ -227,7 +225,6 @@ class UserService {
             Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Servicio para obtener foto de perfil personal.", "user: [uuid: ${user.uuid}, username: ${user.username}]")
 
             if (user.profileImagePath) {
-                println user.profileImagePath
                 def pathImage = Paths.get(grailsApplication.config.repository, user.profileImagePath)
                 if (Files.exists(pathImage)) {
                     Log.logger( Log.INFO, logId, "Obtener foto de perfil.", "Se consulto la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}]", "fileExtension: ${extractExtension(pathImage.toString())}")
@@ -241,7 +238,7 @@ class UserService {
             return [ data: [success: true, data: [image: pathDefaultImage.toFile()]], status: 200 ]
 
         } catch(e) {
-            Log.logger( Log.ERROR, logId, "Cambiar foto de perfil.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            Log.logger( Log.ERROR, logId, "Obtener foto de perfil.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
             return TypeError.internalError(logId)
         }
     }
@@ -270,7 +267,7 @@ class UserService {
             user.save(flush: true)
 
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Se cambio la foto de perfil de un usuario con exito.", "uuid: ${uuid}, fileExtension: ${extractExtension(file.originalFilename)}")
-            return [ data: [success: true, data: [message:"Se guardó con éxito la foto de perfil."]], status: 200 ]
+            return [ data: [success: true, data: "Se guardó con éxito la foto de perfil."], status: 200 ]
 
         } catch(e) {
             Log.logger( Log.ERROR, logId, "Cambiar foto de perfil de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
@@ -291,7 +288,7 @@ class UserService {
             if (user.profileImagePath) {
                 def pathImage = Paths.get(grailsApplication.config.repository, user.profileImagePath)
                 if (Files.exists(pathImage)) {
-                    Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Se consulto la foto de perfil del usurio con exito.", "uuid: ${uuid}", "fileExtension: ${extractExtension(pathImage.toString())}")
+                    Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Se consulto la foto de perfil del usuario con exito.", "uuid: ${uuid}", "fileExtension: ${extractExtension(pathImage.toString())}")
                     return [ data: [success: true, data: [image: pathImage.toFile()]], status: 200 ]
                 }
             }
@@ -302,32 +299,32 @@ class UserService {
             return [ data: [success: true, data: [image: pathDefaultImage.toFile()]], status: 200 ]
 
         } catch(e) {
-            Log.logger( Log.ERROR, logId, "Cambiar foto de perfil de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            Log.logger( Log.ERROR, logId, "Obtener foto de perfil de un usuario.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
             return TypeError.internalError(logId)
         }
     }
 
     def updateChangeCrdRequest(user, params, logId){
         try {
-            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Servicio para actulizar la solicitud de cambio de crd personal.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Servicio para actualizar la solicitud de cambio de crd personal.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
 
             def status = params.status.equals("request")
 
             if (user.registerType == RegisterTypeUser.GOOGLE) {
-                Log.logger( Log.WARN, logId, "Cambiar crd de un usuario.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible solicitar el cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
+                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible solicitar el cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
                 return TypeError.conflictByRegisterType(logId)
             }
 
             if (user.requestChangeCrd == status) {
-                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "El usuario ya realizo la ${(user.accountLocked ? "solicitud" : "cancelacion")} de su cambio de crd", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")     
+                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "El usuario ya realizo la solicitud/cancelacion de su cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")     
                 return TypeError.existingRegister(logId)
             }
 
             user.requestChangeCrd = status
             user.save(flush: true)
 
-            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Se ${(user.requestChangeCrd ? "solicito" : "cancelo")} el cambio de crd con exito", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}", "requestChangeCrd: ${user.requestChangeCrd}")
-            return [ data: [success: true, data: [message: (user.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " tu cambio de contraseña"]], status: 200 ]
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Se actualizo la solicitud de cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}", "requestChangeCrd: ${user.requestChangeCrd}")
+            return [ data: [success: true, message: (user.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " tu cambio de contraseña"], status: 200 ]
 
         } catch(e) {
             Log.logger( Log.ERROR, logId, "Actualizar la solicitud de cambio de crd personal.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )

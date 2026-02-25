@@ -13,8 +13,7 @@ beans = {
 
     userIdClaimProvider(UserIdClaimProvider)
 
-    multipartResolver(MaxFileUploadSizeResolver) {
-    }
+    multipartResolver(MaxFileUploadSizeResolver)
 
     oauthUserDetailsService(DefaultOauthUserDetailsService) {
         authManagerService = ref('authManagerService')

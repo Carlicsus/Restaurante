@@ -42,7 +42,7 @@ class RoleController {
         }
 
         if (!(request.JSON.authority.roleFormat())) {
-            return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empieze con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
+            return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empiece con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
         }
 
         def response = roleService.createNewRole(request.JSON.authority, logId)
@@ -63,7 +63,7 @@ class RoleController {
         }
 
         if (!(request.JSON.authority.roleFormat())) {
-            return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empieze con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
+            return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empiece con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
         }
 
         def response = roleService.changeAuthority(params.uuid, request.JSON.authority, logId)

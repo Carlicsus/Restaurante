@@ -17,6 +17,10 @@ import java.security.SecureRandom
 import com.ordenaris.RegisterTypeUser
 import com.ordenaris.security.User
 import com.ordenaris.Log
+import com.ordenaris.Conf
+import com.ordenaris.Constants
+import java.util.List
+import com.ordenaris.RegisterTypeUser
 
 @Slf4j
 @CompileStatic
@@ -44,8 +48,10 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             throw new UsernameNotFoundException("Google no regreso un email")
         }
 
-        if (!oauthProfile.email.endsWith('@utxicotepec.edu.mx')) {
-            throw new UsernameNotFoundException("Solo se permiten cuentas institucionales")
+        List<String> validEmails =  Conf.findConfiguration(Constants.VALID_EMAILS).split(", ").toList()
+
+        if (!validEmails.any { String email -> oauthProfile.email.endsWith(email) }) {
+            throw new UsernameNotFoundException("Solo se permiten los correos ${validEmails}")
         }
 
         return validateUser(oauthProfile, logId)
@@ -57,6 +63,11 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             
             User domainUser = findUserByEmail(profile.email)
             if (domainUser) {
+
+                if (domainUser.registerType != RegisterTypeUser.GOOGLE) {
+                    Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuentafue registrada por credenciales, por lo cual no es posible continuar con la autenticación por este medio.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                    throw new InsufficientAuthenticationException("La cuenta fue registrada por credenciales, favor de continuar la auntenticacion por ese medio")
+                }
 
                 if (domainUser.accountLocked) {
                     Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuenta se encuentra bloqueada", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
@@ -82,8 +93,15 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
                 )  
             }
 
+            String usernameExtracted = extractUsername(profile.email)
+            User existingRegister = findUserByUsername(usernameExtracted)
+            if(existingRegister){
+                Integer num = new Random().nextInt(9000) + 1000
+                usernameExtracted += "${num}"
+            }
+
             User user = new User(
-                username: extractUsername(profile.email),
+                username: usernameExtracted,
                 crd: generateSecureCrd(),
                 email: profile.email,
                 names: profile.firstName ?: "",
@@ -124,5 +142,10 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
     @CompileDynamic
     protected User findUserByEmail(String email) {
         User.findByEmail(email)
+    }
+
+    @CompileDynamic
+    protected User findUserByUsername(String username) {
+        User.findByUsername(username)
     }
 }

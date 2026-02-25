@@ -113,14 +113,14 @@ class ScheduleService {
             def isWorking = params.status.equals("working")
 
             if (user.schedule.isWorking == isWorking) {
-                Log.logger(Log.WARN, logId, "Cambiar disponibilidad.", "El usuario ya cuenta con el estatus ${user.schedule.isWorking ? "trabajando" : "no trabajando"}.", "uuidUser: ${params.uuidUser}, status: ${params.status}")
+                Log.logger(Log.WARN, logId, "Cambiar disponibilidad.", "El usuario ya cuenta con el estatus solicitado.", "uuidUser: ${params.uuidUser}, status: ${params.status}, isWorking: ${user.schedule.isWorking}")
                 return TypeError.existingRegister(logId)
             }
 
             user.schedule.isWorking = isWorking
             user.schedule.save(flush: true)
 
-            Log.logger(Log.INFO, logId, "Cambiar disponibilidad.", "Se cambio el status a ${user.schedule.isWorking ? "trabajando" : "no trabajando"} con exito.", "uuidUser: ${params.uuidUser}, status: ${params.status}", "user: [uuid: ${user.uuid}, schedule: [isWorking: ${user.schedule.isWorking}]]")
+            Log.logger(Log.INFO, logId, "Cambiar disponibilidad.", "Se cambio el status con exito.", "uuidUser: ${params.uuidUser}, status: ${params.status}", "isWorking: ${user.schedule.isWorking}")
             return [ data: [success: true], status: 200 ]
 
         } catch(e) {
@@ -187,7 +187,7 @@ class ScheduleService {
         try {
             Log.logger(Log.INFO, logId, "Consultar si hay algun chef disponible.", "Servicio para consultar si hay algun chef disponible en este momento.")
 
-            def now = Time.valueOf(LocalTime.now(java.time.ZoneId.of("UTC-6")))
+            def now = Time.valueOf(LocalTime.now(java.time.ZoneId.of("America/Mexico_City")))
 
             def isAnyAvailable = Schedule.createCriteria().count {
                 eq("isWorking", true)
@@ -213,4 +213,5 @@ class ScheduleService {
             isWorking     : schedule.isWorking
         ]
     }
+
 }

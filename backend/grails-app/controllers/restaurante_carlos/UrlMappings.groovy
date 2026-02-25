@@ -145,7 +145,7 @@ class UrlMappings {
                 get "/is-any-chef-available"(controller: "schedule", action: "isAnyChefAvailable")
                 group "/user/$uuidUser", {
                     constraints{
-                        uuid(matches: /^[a-fA-F0-9]{32}/)
+                        uuidUser(matches: /^[a-fA-F0-9]{32}/)
                     }
                     get "/get-user-schedule"(controller: "schedule", action: "getScheduleInfo")
                     post "/create-schedule"(controller: "schedule", action: "createUserSchedule")
@@ -160,6 +160,10 @@ class UrlMappings {
                     }
                     delete "/delete-schedule"(controller: "schedule", action: "deleteSchedule")
                 }
+            }
+
+            group "/settings",{
+                put"/update-information"(controller: "settings", action: "updateInfoDB")
             }
             
             group "/sale", {

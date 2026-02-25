@@ -8,10 +8,6 @@ grails:
   gorm:
     reactor:
       events: false
-  controllers:
-    upload:
-      maxFileSize: 10485760
-      maxRequestSize: 10485760
 
 info:
   app:
@@ -19,22 +15,10 @@ info:
     version: "@info.app.version@"
     grailsVersion: "@info.app.grailsVersion@"
 
-server:
-  servlet:
-    multipart:
-      max-file-size: 2MB
-      max-request-size: 2MB
-  tomcat:
-    max-http-post-size: 10485760
-
 spring:
   groovy:
     template:
       check-template-location: false
-  servlet:
-    multipart:
-      max-file-size: 2MB 
-      max-request-size: 2MB
 
 # customize Spring Boot Actuator end-points
 management:
@@ -115,3 +99,18 @@ grails:
     upload:
       maxFileSize: 10485760
       maxRequestSize: 10485760
+---
+server:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  tomcat:
+    max-swallow-size: 10485760
+    max-http-post-size: 10485760
+---
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB 

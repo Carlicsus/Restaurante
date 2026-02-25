@@ -110,7 +110,7 @@ class RoleService {
 
             role.delete(flush: true)
 
-            Log.logger( Log.WARN, logId, "Eliminar un rol.", "Se elimino el rol con exito.", "uuid: ${uuid}")
+            Log.logger( Log.INFO, logId, "Eliminar un rol.", "Se elimino el rol con exito.", "uuid: ${uuid}")
             return [ data  : [success: true], status: 200 ]
 
         } catch(e) {

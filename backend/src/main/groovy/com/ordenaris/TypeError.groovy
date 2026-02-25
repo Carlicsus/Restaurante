@@ -24,7 +24,7 @@ public class TypeError {
 
     static HashMap contentTooLarge(String logId, OutputAwareHttpServletResponse response) {
         response.setStatus(413)
-        return [success:false, message: String.format("El tamaño maximo de caraga es de 10MB."), id:logId];
+        return [success:false, message: String.format("El tamaño maximo de carga es de 10MB."), id:logId];
     }
  
     static HashMap noPermissions(String logId) {
@@ -85,7 +85,7 @@ public class TypeError {
     }
  
     static HashMap preconditionRequired(String logId) {
-        return [data: [success:false, message: String.format("No se a realizado una solicitud previa para realizar esta acción."), id:logId], status: 428];
+        return [data: [success:false, message: String.format("No se ha realizado una solicitud previa para realizar esta acción."), id:logId], status: 428];
     }
  
     static HashMap relationshipConflict(String logId) {

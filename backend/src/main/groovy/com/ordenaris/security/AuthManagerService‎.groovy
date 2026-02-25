@@ -14,18 +14,19 @@ import com.ordenaris.Log
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.authentication.InternalAuthenticationServiceException
+import com.ordenaris.RegisterTypeUser
 
 @Service
 class AuthManagerService{
 
     UserDetails loadUserByUsername(String username) throws UsernameNotFoundException, DataAccessException {
-        return loadUserByUsername(username)
+        return userDetailsService.loadUserByUsername(username)
     }
 
     @Transactional(readOnly = true)
     AuthManagerBean loadUserByUsername(Authentication authentication, String logId) throws UsernameNotFoundException {
         try {
-            Log.logger( Log.INFO, logId, "Loggin por Credenciales.", "Servicio para validar a un usuario del sistema.", "username: ${authentication.name}")
+            Log.logger( Log.INFO, logId, "Login por Credenciales.", "Servicio para validar a un usuario del sistema.", "username: ${authentication.name}")
 
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder()
 
@@ -34,12 +35,17 @@ class AuthManagerService{
 
             User user = findUserByUsernameOrEmail(username)
             if (!user) {
-                Log.logger( Log.WARN, logId, "Loggin por Credenciales.", "Usuario no registrado en el sistema.", "username: ${authentication.name}")
+                Log.logger( Log.WARN, logId, "Login por Credenciales.", "Usuario no registrado en el sistema.", "username: ${authentication.name}")
                 throw new BadCredentialsException("Credenciales inválidas")
             }
 
+            if (user.registerType != RegisterTypeUser.CREDENTIALS) {
+                Log.logger( Log.WARN, logId, "Login por Credenciales.", "La cuentafue registrada con google, por lo cual no es posible continuar con la autenticación por este medio.", "username: ${authentication.name}")
+                throw new InsufficientAuthenticationException("La cuenta fue registrada con google, porfavor de continuar por ese medio")
+            }
+
             if (!passwordEncoder.matches(crd, user.crd)) {
-                Log.logger( Log.WARN, logId, "Loggin por Credenciales.", "El usuario ingreso mal sus credenciales.", "username: ${authentication.name}")
+                Log.logger( Log.WARN, logId, "Login por Credenciales.", "El usuario ingreso mal sus credenciales.", "username: ${authentication.name}")
                 throw new BadCredentialsException("Credenciales inválidas")
             }
 
@@ -50,16 +56,16 @@ class AuthManagerService{
             }
 
             if (user.accountLocked) {
-                Log.logger( Log.WARN, logId, "Loggin por Credenciales.", "La cuenta se encuentra bloqueada.", "username: ${authentication.name}")
+                Log.logger( Log.WARN, logId, "Login por Credenciales.", "La cuenta se encuentra bloqueada.", "username: ${authentication.name}")
                 throw new DisabledException("Tu cuenta debe ser desbloqueada por un administrador")
             }
 
             if (!authorities) {
-                Log.logger( Log.WARN, logId, "Loggin por Credenciales.", "La cuenta no cuenta con roles asignados por un administrador.", "username: ${authentication.name}")
+                Log.logger( Log.WARN, logId, "Login por Credenciales.", "La cuenta no cuenta con roles asignados por un administrador.", "username: ${authentication.name}")
                 throw new InsufficientAuthenticationException("Tu cuenta no tiene roles asignados")
             }
 
-            Log.logger( Log.INFO, logId, "Loggin por Credenciales.", "Loggin exitoso.", "username: ${authentication.name}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
+            Log.logger( Log.INFO, logId, "Login por Credenciales.", "Login exitoso.", "username: ${authentication.name}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
             return new AuthManagerBean(
                 user.username,     
                 user.crd,
@@ -74,7 +80,7 @@ class AuthManagerService{
         } catch(BadCredentialsException | DisabledException | InsufficientAuthenticationException e) {
             throw e
         } catch(e) {
-            Log.logger( Log.ERROR, logId, "Loggin por Google.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            Log.logger( Log.ERROR, logId, "Login por Credenciales.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
             throw new InternalAuthenticationServiceException("Se ha producido un error interno. Inténtelo de nuevo más tarde.")
         }
     }

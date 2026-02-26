@@ -15,8 +15,8 @@ class RoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Listar todos los roles.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = roleService.listAllRoles(logId)
-        return respond(response.data, status: response.status)
+        def responseService = roleService.listAllRoles(logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -24,8 +24,8 @@ class RoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Obtener informacion de un rol.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = roleService.getRoleInfo(params.uuid, logId)
-        return respond(response.data, status: response.status)
+        def responseService = roleService.getRoleInfo(params.uuid, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -45,8 +45,8 @@ class RoleController {
             return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empiece con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
         }
 
-        def response = roleService.createNewRole(request.JSON.authority, logId)
-        return respond(response.data, status: response.status)
+        def responseService = roleService.createNewRole(request.JSON.authority, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -66,8 +66,8 @@ class RoleController {
             return respond(TypeError.incorrectFormat("autoridad", "una autoridad que empiece con la palabra exacta 'ROLE_', solo tener mayúsculas y no contener espacios usar '_' en su lugar", logId, response))
         }
 
-        def response = roleService.changeAuthority(params.uuid, request.JSON.authority, logId)
-        return respond(response.data, status: response.status)
+        def responseService = roleService.changeAuthority(params.uuid, request.JSON.authority, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -75,7 +75,7 @@ class RoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Eliminar un rol.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = roleService.deleteRole(params.uuid, logId)
-        return respond(response.data, status: response.status)
+        def responseService = roleService.deleteRole(params.uuid, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 }

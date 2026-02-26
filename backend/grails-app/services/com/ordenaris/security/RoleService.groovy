@@ -54,7 +54,7 @@ class RoleService {
             }
 
             def role = new Role(authority)
-            role.save(flush: true)
+            role.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Crear un nuevo rol.", "Rol creado exitosamente.", "authority: ${authority}", "role: [uuid: ${role.uuid}, authority: ${role.authority}]")
             return [ data  : [success: true, data: mapRole(role)], status: 201 ]
@@ -82,7 +82,7 @@ class RoleService {
             }
 
             role.authority = authority
-            role.save(flush: true)
+            role.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Cambiar la autoridad de un rol.", "Se cambio la autoridad correctamente.", "uuid: ${uuid}, authority: ${authority}", "role: [uuid: ${role.uuid}, authority: ${role.authority}]")
             return [ data  : [success: true, data: mapRole(role)], status: 200 ]
@@ -108,7 +108,7 @@ class RoleService {
                 return TypeError.relationshipConflict(logId)
             }
 
-            role.delete(flush: true)
+            role.delete(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Eliminar un rol.", "Se elimino el rol con exito.", "uuid: ${uuid}")
             return [ data  : [success: true], status: 200 ]

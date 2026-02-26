@@ -3,7 +3,7 @@ package com.ordenaris.security
 import grails.gorm.transactions.Transactional
 
 import grails.util.Holders
-import com.ordenaris.RegisterTypeUser
+import com.ordenaris.enums.RegisterTypeUser
 import com.ordenaris.Log
 import com.ordenaris.TypeError
 
@@ -59,7 +59,7 @@ class UserService {
             )
 
             user.accountLocked = true
-            user.save(flush: true)
+            user.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Usuario registrado correctamente.", "data: ${Log.sanitize(data)}", "Nuevo usuario: ${user}")
             return [ data: [success: true], status:201 ]
@@ -114,7 +114,7 @@ class UserService {
                 } 
                 
                 user.enabled = status
-                user.save(flush: true)
+                user.save(flush: true, failOnError: true)
 
                 Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}", "enabled: ${user.enabled}")
                 return [ data: [success: true, data: "La cuenta de " + user.names + " " + user.lastNames + " ha sido " + (user.enabled ? "activada" : "desactivada")], status: 200 ]
@@ -128,7 +128,7 @@ class UserService {
             } 
 
             user.accountLocked = status
-            user.save(flush: true)
+            user.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}", "accountLocked: ${user.accountLocked}")
             return [ data: [success: true, data: "La cuenta de " + user.names + " " + user.lastNames + " ha sido " + (user.accountLocked ? "bloqueada" : "desbloqueada")], status: 200 ]
@@ -209,7 +209,7 @@ class UserService {
             file.transferTo(targetPath.toFile())
 
             user.profileImagePath = "uploads/profile/${filename}"
-            user.save(flush: true)
+            user.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil.", "Se cambio la foto de perfil personal con exito.", "user: [uuid: ${user.uuid}, username: ${user.username}], fileExtension: ${extractExtension(file.originalFilename)}")
             return [ data: [success: true, data: "Se guardo con exito la foto de perfil"], status: 200 ]
@@ -264,7 +264,7 @@ class UserService {
             file.transferTo(targetPath.toFile())
 
             user.profileImagePath = "uploads/profile/${filename}"
-            user.save(flush: true)
+            user.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Cambiar foto de perfil de un usuario.", "Se cambio la foto de perfil de un usuario con exito.", "uuid: ${uuid}, fileExtension: ${extractExtension(file.originalFilename)}")
             return [ data: [success: true, data: "Se guardó con éxito la foto de perfil."], status: 200 ]
@@ -321,7 +321,7 @@ class UserService {
             }
 
             user.requestChangeCrd = status
-            user.save(flush: true)
+            user.save(flush: true, failOnError: true)
 
             Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Se actualizo la solicitud de cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}", "requestChangeCrd: ${user.requestChangeCrd}")
             return [ data: [success: true, message: (user.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " tu cambio de contraseña"], status: 200 ]

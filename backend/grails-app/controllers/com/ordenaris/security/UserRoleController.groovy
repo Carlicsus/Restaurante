@@ -15,8 +15,8 @@ class UserRoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Obtener todos los roles de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = userRoleService.getRolesByUser(params.uuidUser, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userRoleService.getRolesByUser(params.uuidUser, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -24,8 +24,8 @@ class UserRoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Asignar un rol a un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = userRoleService.assignRole(params.uuidUser, params.uuidRole, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userRoleService.assignRole(params.uuidUser, params.uuidRole, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -33,8 +33,8 @@ class UserRoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Cambiar un rol de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = userRoleService.changeRole(params.uuidUser, params.uuidRole, params.uuidNewRole, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userRoleService.changeRole(params.uuidUser, params.uuidRole, params.uuidNewRole, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -42,7 +42,7 @@ class UserRoleController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Remover un rol a un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
         
-        def response = userRoleService.removeRole(params.uuidUser, params.uuidRole, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userRoleService.removeRole(params.uuidUser, params.uuidRole, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 }

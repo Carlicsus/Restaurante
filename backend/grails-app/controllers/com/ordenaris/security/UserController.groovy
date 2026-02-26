@@ -7,7 +7,6 @@ import com.ordenaris.Constants
 import com.ordenaris.Log
 import com.ordenaris.TypeError
 import com.ordenaris.Conf
-import com.ordenaris.Constants
 
 class UserController {
 	static responseFormats = ['json', 'xml']
@@ -78,9 +77,9 @@ class UserController {
             return respond(TypeError.incorrectFormat("crd", "un crd sin espacios, tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]", logId, response))
         }
 
-        def response = userService.registerUser(request.JSON, logId)
+        def responseService = userService.registerUser(request.JSON, logId)
 
-        return respond(response.data, status: response.status)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
@@ -116,9 +115,9 @@ class UserController {
             return respond(TypeError.incorrectFormat("orden", "[asc, desc]", logId, response))
         }
 
-        def response = userService.paginateUsers(params, logId)
+        def responseService = userService.paginateUsers(params, logId)
 
-        return respond(response.data, status: response.status)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -126,8 +125,8 @@ class UserController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger( Log.INFO, logId, "Cambiar status.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = userService.changeStatus(params, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userService.changeStatus(params, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
@@ -135,8 +134,8 @@ class UserController {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger( Log.INFO, logId, "Obtener información de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def response = userService.getUserInfo(params.uuid, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userService.getUserInfo(params.uuid, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -156,9 +155,9 @@ class UserController {
             return respond(TypeError.incorrectFormat("nueva crd", "un crd sin espacios, tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]", logId, response))
         }
 
-        def response = userService.adminChangeCrd(params.uuid, request.JSON.newCrd, logId)
+        def responseService = userService.adminChangeCrd(params.uuid, request.JSON.newCrd, logId)
 
-        return respond(response.data, status: response.status)
+        return respond(responseService.data, status: responseService.status)
     }
     
     @Secured(['isAuthenticated()'])
@@ -168,8 +167,8 @@ class UserController {
 
         def user = springSecurityService.currentUser
 
-        def response = userService.updateChangeCrdRequest(user, params, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userService.updateChangeCrdRequest(user, params, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['isAuthenticated()'])
@@ -205,8 +204,8 @@ class UserController {
         
         def user = springSecurityService.currentUser
 
-        def response = userService.changeProfilePicture(user, file, logId)
-        return respond(response.data, status: response.status)
+        def responseService = userService.changeProfilePicture(user, file, logId)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['isAuthenticated()'])
@@ -258,9 +257,9 @@ class UserController {
             return respond(TypeError.incorrectFormat("archivo", "una imagen no mayor a 2MB", logId, response))
         }
 
-        def response = userService.changeUserProfilePicture(params.uuid, file, logId)
+        def responseService = userService.changeUserProfilePicture(params.uuid, file, logId)
 
-        return respond(response.data, status: response.status)
+        return respond(responseService.data, status: responseService.status)
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -278,5 +277,4 @@ class UserController {
         response.outputStream << responseService.data.data.image.bytes
         response.outputStream.flush()
     }
-
 }

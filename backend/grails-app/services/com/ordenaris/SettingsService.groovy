@@ -27,13 +27,10 @@ class SettingsService {
     def registerInitData(){
         Settings.withTransaction{
             try{
-                if(!Settings.findByIdentifier(Constants.VALID_EMAILS)) new Settings( [ identifier: Constants.VALID_EMAILS, data: "@ordenaris.com, @innovattia.com, @orquestia.com" ] ).save()
+                if(!Settings.findByIdentifier(Constants.VALID_EMAILS)) new Settings( [ identifier: Constants.VALID_EMAILS, data: "@ordenaris.com, @innovattia.com, @orquestia.com" ] ).save(failOnError: true)
             }catch(e){
                 Log.logger(Log.ERROR, null, "Inserción de data inicial.", "Ha ocurrido un error.", e.getMessage() )
             }
         }
-    }
-    def isValidToRetry = { data ->
-        return (servletContext["Conf"].find { key, value -> key.startsWith( Conf.PREFIX_CODE_ALLOWED  ) && value == data })
     }
 }

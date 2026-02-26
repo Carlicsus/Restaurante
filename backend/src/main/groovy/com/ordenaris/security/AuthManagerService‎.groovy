@@ -14,7 +14,7 @@ import com.ordenaris.Log
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.authentication.InternalAuthenticationServiceException
-import com.ordenaris.RegisterTypeUser
+import com.ordenaris.enums.RegisterTypeUser
 
 @Service
 class AuthManagerService{
@@ -40,7 +40,7 @@ class AuthManagerService{
             }
 
             if (user.registerType != RegisterTypeUser.CREDENTIALS) {
-                Log.logger( Log.WARN, logId, "Login por Credenciales.", "La cuentafue registrada con google, por lo cual no es posible continuar con la autenticación por este medio.", "username: ${authentication.name}")
+                Log.logger( Log.WARN, logId, "Login por Credenciales.", "La cuenta fue registrada con google, por lo cual no es posible continuar con la autenticación por este medio.", "username: ${authentication.name}")
                 throw new InsufficientAuthenticationException("La cuenta fue registrada con google, porfavor de continuar por ese medio")
             }
 

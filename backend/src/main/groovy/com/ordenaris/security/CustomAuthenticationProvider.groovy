@@ -20,7 +20,7 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
     @Override
     Authentication authenticate(Authentication authentication) throws AuthenticationException {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Loggin por Credenciales.", "Iniciando la solicitud.", "username: ${authentication.name}")
+        Log.logger( Log.INFO, logId, "Login por Credenciales.", "Iniciando la solicitud.", "username: ${authentication.name}")
 
         UserDetails user = authManagerService.loadUserByUsername(authentication, logId)
 

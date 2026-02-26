@@ -1,4 +1,4 @@
-package com.ordenaris
+package com.ordenaris.enums
 
 enum RegisterTypeUser{
     GOOGLE,

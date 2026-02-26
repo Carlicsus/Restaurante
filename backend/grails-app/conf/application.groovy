@@ -23,7 +23,7 @@ grails.plugin.springsecurity.filterChain.chainMap = [
 
 // JWT CONFIG
 grails.plugin.springsecurity.rest.token.storage.jwt.useSignedJwt = true
-grails.plugin.springsecurity.rest.token.storage.jwt.expiration = 86400
+grails.plugin.springsecurity.rest.token.storage.jwt.expiration = 28800
 grails.plugin.springsecurity.rest.token.generation.jwt.algorithm = 'HS256'
 
 // Use Bearer Token

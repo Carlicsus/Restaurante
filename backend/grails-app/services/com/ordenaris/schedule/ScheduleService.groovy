@@ -51,7 +51,7 @@ class ScheduleService {
                 user: user,
                 entryTime: entry,
                 exitTime: exit
-            ).save(flush: true)
+            ).save(flush: true, failOnError: true)
 
             Log.logger(Log.INFO, logId, "Crear un horario a un usuario.", "Horario creado exitosamente.", "uuidUser: ${uuidUser}, entry: ${entry}, exit:${exit}", "user: [uuid: ${user.uuid}, schedule: ${user.schedule}]")
             return [ data: [success: true], status: 201 ]
@@ -84,7 +84,7 @@ class ScheduleService {
 
             user.schedule.entryTime = entry
             user.schedule.exitTime = exit
-            user.schedule.save(flush: true)
+            user.schedule.save(flush: true, failOnError: true)
 
             Log.logger(Log.INFO, logId, "Cambiar horario laboral.", "Se cambio el horario laboral exitosamente.", "uuidUser: ${uuidUser}, entry: ${entry}, exit:${exit}", "user: [uuid: ${user.uuid}, schedule: [entryTime: ${user.schedule.entryTime}, exitTime: ${user.schedule.exitTime}]]")
             return [ data: [success: true], status: 200 ]
@@ -118,7 +118,7 @@ class ScheduleService {
             }
 
             user.schedule.isWorking = isWorking
-            user.schedule.save(flush: true)
+            user.schedule.save(flush: true, failOnError: true)
 
             Log.logger(Log.INFO, logId, "Cambiar disponibilidad.", "Se cambio el status con exito.", "uuidUser: ${params.uuidUser}, status: ${params.status}", "isWorking: ${user.schedule.isWorking}")
             return [ data: [success: true], status: 200 ]
@@ -170,9 +170,8 @@ class ScheduleService {
             }
 
             user.schedule = null
-            user.save(flush: true)
-
-            schedule.delete(flush: true)
+            schedule.delete(flush: true, failOnError: true)
+            user.save(flush: true, failOnError: true)
 
             Log.logger(Log.INFO, logId, "Eliminar un horario.", "Se elimino el horario con exito.", "uuidUser: ${uuidUser}", "user: [uuid: ${user.uuid}, schedule: ${user.schedule}]")
             return [ data: [success: true], status: 200 ]

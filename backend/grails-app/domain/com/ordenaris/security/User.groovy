@@ -3,7 +3,7 @@ package com.ordenaris.security
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import grails.compiler.GrailsCompileStatic
-import com.ordenaris.RegisterTypeUser
+import com.ordenaris.enums.RegisterTypeUser
 import com.ordenaris.schedule.Schedule
 
 @GrailsCompileStatic

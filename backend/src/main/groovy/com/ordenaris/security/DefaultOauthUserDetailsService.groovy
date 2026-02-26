@@ -14,13 +14,12 @@ import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.authentication.InternalAuthenticationServiceException
 import java.security.SecureRandom
-import com.ordenaris.RegisterTypeUser
+import com.ordenaris.enums.RegisterTypeUser
 import com.ordenaris.security.User
 import com.ordenaris.Log
 import com.ordenaris.Conf
 import com.ordenaris.Constants
 import java.util.List
-import com.ordenaris.RegisterTypeUser
 
 @Slf4j
 @CompileStatic
@@ -36,7 +35,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
     @Override
     OauthUser loadUserByUserProfile(CommonProfile profile, Collection<GrantedAuthority> defaultRoles) throws UsernameNotFoundException {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Loggin por Google.", "Iniciando la solicitud.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+        Log.logger( Log.INFO, logId, "Login por Google.", "Iniciando la solicitud.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
 
         if (!(profile instanceof OAuth20Profile)) {
             throw new UsernameNotFoundException("Perfil OAuth no compatible")
@@ -59,18 +58,18 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
     protected OauthUser validateUser(OAuth20Profile profile, String logId) {
         try {
-            Log.logger( Log.INFO, logId, "Loggin por Google.", "Servicio para validar a un usuario de google.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+            Log.logger( Log.INFO, logId, "Login por Google.", "Servicio para validar a un usuario de google.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
             
             User domainUser = findUserByEmail(profile.email)
             if (domainUser) {
 
                 if (domainUser.registerType != RegisterTypeUser.GOOGLE) {
-                    Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuentafue registrada por credenciales, por lo cual no es posible continuar con la autenticación por este medio.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                    Log.logger( Log.WARN, logId, "Login por Google.", "La cuenta fue registrada por credenciales, por lo cual no es posible continuar con la autenticación por este medio.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
                     throw new InsufficientAuthenticationException("La cuenta fue registrada por credenciales, favor de continuar la auntenticacion por ese medio")
                 }
 
                 if (domainUser.accountLocked) {
-                    Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuenta se encuentra bloqueada", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                    Log.logger( Log.WARN, logId, "Login por Google.", "La cuenta se encuentra bloqueada", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
                     throw new LockedException("Tu cuenta debe ser desbloqueada por un administrador")
                 }
 
@@ -79,11 +78,11 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
                     .collect { (GrantedAuthority) new SimpleGrantedAuthority(it.authority) }
 
                 if (!roles) {
-                    Log.logger( Log.WARN, logId, "Loggin por Google.", "La cuenta no cuenta con roles asignados por un administrador.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                    Log.logger( Log.WARN, logId, "Login por Google.", "La cuenta no cuenta con roles asignados por un administrador.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
                     throw new InsufficientAuthenticationException("Tu cuenta no tiene roles asignados por un administrador")
                 }
 
-                Log.logger( Log.INFO, logId, "Loggin por Google.", "Logeo exitoso", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${domainUser.uuid}, username: ${domainUser.username}]")
+                Log.logger( Log.INFO, logId, "Login por Google.", "Logeo exitoso", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${domainUser.uuid}, username: ${domainUser.username}]")
                 return new OauthManagerBean(
                     domainUser.username,
                     domainUser.crd,
@@ -94,10 +93,9 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             }
 
             String usernameExtracted = extractUsername(profile.email)
-            User existingRegister = findUserByUsername(usernameExtracted)
-            if(existingRegister){
+            while (findUserByUsername(usernameExtracted)) {
                 Integer num = new Random().nextInt(9000) + 1000
-                usernameExtracted += "${num}"
+                usernameExtracted = extractUsername(profile.email) + "${num}"
             }
 
             User user = new User(
@@ -115,13 +113,13 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
 
             user.save(flush: true, failOnError: true)
 
-            Log.logger( Log.INFO, logId, "Loggin por Google.", "Se registro un nuevo usuario de google en espera de autorización por admin", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
+            Log.logger( Log.INFO, logId, "Login por Google.", "Se registro un nuevo usuario de google en espera de autorización por admin", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
             throw new LockedException("Usuario pendiente de autorizacion por administrador")
             
         } catch(LockedException | InsufficientAuthenticationException e) {
             throw e
         } catch(e) {
-            Log.logger( Log.ERROR, logId, "Loggin por Google.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            Log.logger( Log.ERROR, logId, "Login por Google.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
             throw new InternalAuthenticationServiceException("Se ha producido un error interno. Inténtelo de nuevo más tarde.")
         }
     }

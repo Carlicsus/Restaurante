@@ -374,14 +374,15 @@ class UserService {
 
     def mapUser(user) {
         return [
-            uuid          : user.uuid,
-            username      : user.username,
-            email         : user.email,
-            names         : user.names,
-            lastNames     : user.lastNames,
-            enabled       : user.enabled,
-            accountLocked : user.accountLocked,
-            registerType  : user.registerType
+            uuid             : user.uuid,
+            username         : user.username,
+            email            : user.email,
+            names            : user.names,
+            lastNames        : user.lastNames,
+            enabled          : user.enabled,
+            accountLocked    : user.accountLocked,
+            requestChangeCrd : user.requestChangeCrd,
+            registerType     : user.registerType
         ]
     }
 

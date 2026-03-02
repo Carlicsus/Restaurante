@@ -275,9 +275,13 @@ class UrlMappings {
                     delete "/delete"(controller: "review", action: "statusReview"){ status = 2 }
                     patch "/deactivate"(controller: "review", action: "statusReview"){ status = 0 }
                     patch "/activate"(controller: "review", action: "statusReview"){ status = 1 }
-                    patch "/edit"(controller: "review", action: "editReview")
                     constraints {
                         reviewUuid(matches: /^[a-fA-F0-9]{32}/)
+                    }
+                }
+                patch "/$dishUuid/edit"(controller: "review", action: "editReview"){
+                    constraints {
+                        dishUuid(matches: /^[a-fA-F0-9]{32}/)
                     }
                 }
             }

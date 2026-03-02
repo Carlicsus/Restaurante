@@ -45,7 +45,7 @@ public class TypeError {
     }
  
     static HashMap invalidData(String data, String logId) {
-        return [data: [success:false, message: String.format("El dato %s es inválido.", data), id:logId], status: 403];
+        return [data: [success:false, message: String.format("El dato %s es inválido.", data).toString(), id:logId], status: 403];
     }
  
     static HashMap invalidData(String data, String logId, OutputAwareHttpServletResponse response) {
@@ -98,5 +98,14 @@ public class TypeError {
 
     static HashMap permissionMissing(String data, String logId) {
         return [data: [success:false, message: String.format("Solo usuarios con rol %s pueden acceder a este recurso.", data), id:logId], status: 403];
+    }
+    
+    static HashMap resourceNotAvaliable(String data, String logId) {
+        return [data: [success:false, message: String.format("No es posible realizar esta accion temporalmente debido a %s.", data), id:logId], status: 410];
+    }
+ 
+    static HashMap resourceNotAvaliable(String data, String logId, OutputAwareHttpServletResponse response) {
+        response.setStatus(410)
+        return [success:false, message: String.format("No es posible realizar esta accion temporalmente debido a %s.", data), id:logId];
     }
 }

@@ -14,172 +14,178 @@ class OrdersModuleController {
 	def orderModuleService
     def scheduleService
     SpringSecurityService springSecurityService    
+    private static final List<String> VALID_STATUSES = ["Cancelled", "Preparing", "Queue", "Finished"]
+    
+    
+    @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
+    def listOrderByChef() {
+        def auth = springSecurityService.principal
+        if (!auth || !auth.id) {
+            return respond([success: false, message: "Usuario no autenticado"], status: 401)
+        }
+        def serviceResponse = orderModuleService.listOrderByChef(auth)
+        return respond(serviceResponse.data, status: serviceResponse.status)
+    }
 
+    @Secured(['isAuthenticated()'])
     def listOrders(){
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Consultar las ordenes.", "Inicia Solicitud.", "params: $params")
         def serviceResponse = orderModuleService.listOrders(params, logId)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
+        return respond(serviceResponse.data, status: serviceResponse.status)
     }
 
+    @Secured(['ROLE_USER', 'ROLE_ADMIN', 'ROLE_FINANCE'])
     def listOrdersByUser(){
         def auth = springSecurityService.principal
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Consultar ordenes.", "Inicia Solicitud.", "params: $params")
         if (!auth.id) {
             Log.logger(Log.INFO, logId, "No se puede acceder a este contenido.", "Inicia Solicitud.", "params: $params")
-            return respond([success: false, message: "Inicia sesion para acceder a este contenido"], status: 400)
+            return respond(TypeError.missingParameter("usuario", logId, response))
         }
         def serviceResponse = orderModuleService.listOrdersByUser(params, auth.id, logId)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
+        return respond(serviceResponse.data, status: serviceResponse.status)
     }
 
+    @Secured(['isAuthenticated()'])
     def newOrder(){
         def data = request.JSON.order
-        def auth = springSecurityService.principal   
+        def auth = springSecurityService.principal  
         def orderTime = request.JSON.orderTime
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Crear nueva orden.", "Inicia Solicitud.", "data: $data")
         for (item in data){
             if(!item){
-                Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se recibe nada.", "data: $data")
-                return respond([success: false, message: "Datos invalidos"], status: 400)
+                Log.logger(Log.ERROR, logId, "Crear nueva orden.", "No se recibe nada.", "data: $data")
+                return respond(TypeError.missingParameter("item", logId, response))
             }
             if(!item.dishUuid){
-                Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se recibe el uuid del platillo.", "data: $data")
-                return respond([success: false, message: "Falta el uuid del platillo"], status: 400)
+                Log.logger(Log.ERROR, logId, "Crear nueva orden.", "No se recibe el uuid del platillo.", "data: $data")
+                return respond(TypeError.missingParameter("platillo de la orden", logId, response))
             }
             if(!item.quantityDish || item.quantityDish <= 0){
-                Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se pueden ingresar esas cantidades en la cantidad del platillo.", "data: $data")
-                return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0"], status: 400)
+                Log.logger(Log.ERROR, logId, "Crear nueva orden.", "No se pueden ingresar esas cantidades en la cantidad del platillo.", "data: $data")
+                return respond(TypeError.incorrectFormat("cantidad de platillos", "numero > a 0", logId, response))
             }
             if(item.quantityDish > 5){
-                Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se pueden agregar mas de 5 platillos por orden.", "data: $data")
-                return respond([success: false, message: "El numero de platillos no puede ser mayor a 5"], status: 400)
+                Log.logger(Log.ERROR, logId, "Crear nueva orden.", "No se pueden agregar mas de 5 platillos por orden.", "data: $data")
+                return respond(TypeError.incorrectFormat("cantidad de platillos", "numero <= a 5", logId, response))
             }
         }
-        if (!scheduleService.isAnyChefAvailable()) {
-            Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se puede crear una orden fuera del horario laboral del chef.", "data: $data")
-            return respond([success: false, message: "Lo sentimos, la cocina está cerrada en este momento. No hay chefs disponibles."], status: 409) 
+        def chefAvailable = scheduleService.isAnyChefAvailable()
+        if (!chefAvailable) {
+            Log.logger(Log.ERROR, logId, "Crear nueva orden.", "No se puede crear una orden fuera del horario laboral del chef.", "data: $data")
+            return respond(TypeError.resourceNotAvaliable("horario del chef", logId, response))
         }
         if (!orderTime) {
-            Log.logger(Log.INFO, logId, "Crear nueva orden.", "No se recibe el horario.", "data: $data")
-            return respond([success: false, message: "El horario de la orden es obligatorio"], status: 400)
+            Log.logger(Log.ERROR, logId, "Crear nueva orden.", "No se recibe el horario.", "data: $data")
+            return respond(TypeError.missingParameter("Horario de pedido", logId, response))
         }
-        orderTime = LocalTime.parse(orderTime)
-
+        try {
+            orderTime = LocalTime.parse(orderTime)
+        } catch (Exception e) {
+            return respond(TypeError.incorrectFormat("Horario de pedido", "formato de hora (HH:mm:ss)", logId, response))
+        }
         def serviceResponse = orderModuleService.newOrder(data, auth, orderTime, request.JSON.commentUser, logId)
-        return respond(serviceResponse.resp, status: serviceResponse.status) 
+        return respond(serviceResponse.data, status: serviceResponse.status)
     }
-
+    
+    @Secured(['ROLE_USER', 'ROLE_ADMIN', 'ROLE_FINANCE'])
     def addDishOrder(){
         def pathParams = params
         def requestBody = request.JSON
-        def auth = springSecurityService.principal 
+        def auth = springSecurityService.principal
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Inicia Solicitud.", "json: $requestBody")  
         if (!pathParams.uuidOrder) {
-            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Falta el UUID de la orden.", "json: $requestBody") 
-            return respond([success: false, message: "Falta el UUID de la orden."], status: 400)
+            Log.logger(Log.ERROR, logId, "Añadiendo nuevo platillo.", "Falta el UUID de la orden.", "json: $requestBody")
+            return respond(TypeError.missingParameter("orden", logId, response))
         }
         if (!requestBody.uuidDish) {
-            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "Falta el ID del nuevo platillo.", "json: $requestBody")
-            return respond([success: false, message: "Falta el ID del nuevo platillo."], status: 400)
+            Log.logger(Log.ERROR, logId, "Añadiendo nuevo platillo.", "Falta el ID del nuevo platillo.", "json: $requestBody")
+            return respond(TypeError.missingParameter("platillo", logId, response))
         }
         if (!requestBody.quantityDish || requestBody.quantityDish < 1) {
-            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "El numero de platillos no puede ser menor a 0 o ser 0.", "json: $requestBody")
-            return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0."], status: 400)
+            Log.logger(Log.ERROR, logId, "Añadiendo nuevo platillo.", "El numero de platillos no puede ser menor a 0 o ser 0.", "json: $requestBody")
+            return respond(TypeError.incorrectFormat("cantidad de platillos", "numero > a 0", logId, response))
         }
         if (requestBody.quantityDish > 5) {
-            Log.logger(Log.INFO, logId, "Añadiendo nuevo platillo.", "El numero de platillos no puede ser mayor a 5.", "json: $requestBody")
-            return respond([success: false, message: "El numero de platillos no puede ser mayor a 5."], status: 400)
+            Log.logger(Log.ERROR, logId, "Añadiendo nuevo platillo.", "El numero de platillos no puede ser mayor a 5.", "json: $requestBody")
+            return respond(TypeError.incorrectFormat("cantidad de platillos", "numero <= a 5", logId, response))
         }
         def serviceResponse = orderModuleService.addDishOrder(pathParams, requestBody, auth, logId)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
+        return respond(serviceResponse.data, status: serviceResponse.status)
     }
 
+    @Secured(['ROLE_USER', 'ROLE_ADMIN', 'ROLE_FINANCE'])
     def editOrder(){
-        def auth = springSecurityService.principal
         def pathParams = params
         def requestBody = request.JSON
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Editar orden.", "Inicia Solicitud.", "json: $requestBody")
-        if (!requestBody){
-            if (!pathParams.uuidOrder || !pathParams.uuidItem ) {
-                if (!pathParams.uuidOrder) {
-                    Log.logger(Log.INFO, logId, "Editar orden.", "Falta el UUID de la orden.", "json: $requestBody")
-                    return respond([success: false, message: "Falta el UUID de la orden."], status: 400)
-                }
-                if (!pathParams.uuidItem) {
-                    Log.logger(Log.INFO, logId, "Editar orden.", "Falta el UUID del platillo en la orden.", "json: $requestBody")
-                    return respond([success: false, message: "Falta el UUID del platillo en la orden."], status: 400)
-                }
-            }
-            Log.logger(Log.INFO, logId, "Editar orden.", "Faltan los datos para editar la orden.", "json: $requestBody")
-            return respond([success: false, message: "Faltan los datos para editar la orden."], status: 400)
+        if (!pathParams.uuidOrder) {
+            Log.logger(Log.ERROR, logId, "Editar orden.", "Falta el UUID de la orden.", "json: $requestBody")
+            return respond(TypeError.missingParameter("orden", logId, response))
+        }
+        if (!pathParams.uuidItem) {
+            Log.logger(Log.ERROR, logId, "Editar orden.", "Falta el UUID del platillo en la orden.", "json: $requestBody")
+            return respond(TypeError.missingParameter("platillo en orden", logId, response))
+        }
+        if (!requestBody) {
+            Log.logger(Log.ERROR, logId, "Editar orden.", "Faltan los datos para editar la orden.", "json: $requestBody")
+            return respond(TypeError.missingParameter("datos de orden", logId, response))
         }
         if (!requestBody.uuidDish) {
-            Log.logger(Log.INFO, logId, "Editar orden.", "Falta el UUID del nuevo platillo.", "json: $requestBody")
-            return respond([success: false, message: "Falta el UUID del nuevo platillo."], status: 400)
+            Log.logger(Log.ERROR, logId, "Editar orden.", "Falta el UUID del nuevo platillo.", "json: $requestBody")
+            return respond(TypeError.missingParameter("nuevo platillo en orden", logId, response))
         }
         if (!requestBody.quantityDish || requestBody.quantityDish < 1) {
-            Log.logger(Log.INFO, logId, "Editar orden.", "El numero de platillos no puede ser menor a 0 o ser 0.", "json: $requestBody")
-            return respond([success: false, message: "El numero de platillos no puede ser menor a 0 o ser 0."], status: 400)
+            Log.logger(Log.ERROR, logId, "Editar orden.", "El numero de platillos no puede ser menor a 0 o ser 0.", "json: $requestBody")
+            return respond(TypeError.incorrectFormat("numero de platillos", "numero > a 0", logId, response))
         }
         if (requestBody.quantityDish > 5) {
-            Log.logger(Log.INFO, logId, "Editar orden.", "El numero de platillos no puede ser mayor a 5.", "json: $requestBody")
-            return respond([success: false, message: "El numero de platillos no puede ser mayor a 5."], status: 400)
+            Log.logger(Log.ERROR, logId, "Editar orden.", "El numero de platillos no puede ser mayor a 5.", "json: $requestBody")
+            return respond(TypeError.incorrectFormat("numero de platillos", "numero <= a 5", logId, response))
         }
-        
+       
         def serviceResponse = orderModuleService.editOrder(pathParams, requestBody, logId)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
+        return respond(serviceResponse.data, status: serviceResponse.status)
     }
-
+    
+    @Secured(['isAuthenticated()'])
     def editOrderStatus(){
-        def auth = springSecurityService.principal
         def data = params
         def requestBody = request.JSON
         def completedTime = null
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Editar el estatus.", "Inicia Solicitud.", "data: $data")
+        if (!data.uuidOrder) {
+            Log.logger(Log.ERROR, logId, "Editar el estatus.", "Falta el UUID de la orden.", "data: $data")
+            return respond(TypeError.missingParameter("orden", logId, response))
+        }
+        if (!data.status) {
+            Log.logger(Log.ERROR, logId, "Editar el estatus.", "Falta el nuevo estado de la orden.", "data: $data")
+            return respond(TypeError.missingParameter("estatus", logId, response))
+        }
+        if (!(data.status in VALID_STATUSES)) {
+            Log.logger(Log.ERROR, logId, "Editar el estatus.", "Estado de orden invalido.", "data: $data")
+            return respond(TypeError.incorrectFormat("estatus", "${VALID_STATUSES}", logId, response))
+        }
         if (data.status == "Finished" ) {
             if (!requestBody.completedTime) {
-                    Log.logger(Log.INFO, logId, "Editar el estatus.", "El horario de entrega es obligatorio para finalizar la orden.", "data: $data")
-                    return respond([success: false, message: "El horario de entrega es obligatorio para finalizar la orden."], status: 400)
+                    Log.logger(Log.ERROR, logId, "Editar el estatus.", "El horario de entrega es obligatorio para finalizar la orden.", "data: $data")
+                    return respond(TypeError.missingParameter("Horario de entrega", logId, response))
                 }
-            completedTime = LocalTime.parse(requestBody.completedTime)
+            try {
+                completedTime = LocalTime.parse(requestBody.completedTime)
+            } catch (Exception e) {
+                return respond(TypeError.incorrectFormat("Horario de entrega", "formato de hora (HH:mm:ss)", logId, response))
+            }
         }
-        if (!data.uuidOrder) {
-            Log.logger(Log.INFO, logId, "Editar el estatus.", "Falta el UUID de la orden.", "data: $data")
-            return respond([success: false, message: "Falta el UUID de la orden."], status: 400)
-        }
-        if (!data.status) {
-            Log.logger(Log.INFO, logId, "Editar el estatus.", "Falta el nuevo estado de la orden.", "data: $data")
-            return respond([success: false, message: "Falta el nuevo estado de la orden."], status: 400)
-        }
-        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Finished"])) {
-            Log.logger(Log.INFO, logId, "Editar el estatus.", "Estado de orden invalido.", "data: $data")
-            return respond([success: false, message: "Estado de orden invalido."], status: 400)
-        }
+ 
         def serviceResponse = orderModuleService.editOrderStatus(data, completedTime, requestBody.commentChef, logId)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
-    }
-
-    def cancelOrder(){
-        def auth = springSecurityService.principal
-        def comment = request.JSON
-        def data = params
-        if (!data.uuidOrder) {
-            return respond([success: false, message: "Falta el UUID de la orden"], status: 400)
-        }
-        if (!data.status) {
-            return respond([success: false, message: "Falta el nuevo estado de la orden"], status: 400)
-        }
-        if (!(data.status in ["Cancelled", "Preparing", "Queue", "Finished"])) {
-            return respond([success: false, message: "Estado de orden invalido"], status: 400)
-        }
-        def serviceResponse = orderModuleService.cancelOrder(data, comment)
-        return respond(serviceResponse.resp, status: serviceResponse.status)
+        return respond(serviceResponse.data, status: serviceResponse.status)
     }
 
     @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])

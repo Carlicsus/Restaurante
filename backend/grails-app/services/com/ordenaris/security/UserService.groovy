@@ -1,15 +1,16 @@
 package com.ordenaris.security
 
 import grails.gorm.transactions.Transactional
-
 import grails.util.Holders
-import com.ordenaris.enums.RegisterTypeUser
-import com.ordenaris.Log
-import com.ordenaris.TypeError
-
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
+import com.ordenaris.enums.RegisterTypeUser
+import com.ordenaris.Log
+import com.ordenaris.TypeError
+import com.ordenaris.Conf
+import com.ordenaris.Constants
 
 @Transactional
 class UserService {
@@ -94,13 +95,13 @@ class UserService {
         }
     }
 
-    def changeStatus(params, logId) {
+    def changeStatus(params, currentUser, logId) {
         try {
-            Log.logger( Log.INFO, logId, "Cambiar status.", "Servicio para cambiar status de usuarios.", "params: ${params}")
+            Log.logger( Log.INFO, logId, "Cambiar status.", "Servicio para cambiar status de usuarios.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]")
 
             def user = User.findByUuid(params.uuid)
             if (!user) {
-                Log.logger( Log.WARN, logId, "Cambiar status.", "Usuario no encontrado.", "params: ${params}")
+                Log.logger( Log.WARN, logId, "Cambiar status.", "Usuario no encontrado.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]")
                 return TypeError.informationNotFound(logId)
             } 
 
@@ -109,28 +110,33 @@ class UserService {
                 def status = params.status.equals("active")
 
                 if (user.enabled == status) {
-                    Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene el status solicitado.", "params: ${params}", "enabled: ${user.enabled}")
+                    Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene el status solicitado.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]", "enabled: ${user.enabled}")
                     return TypeError.existingRegister(logId)
                 } 
                 
                 user.enabled = status
                 user.save(flush: true, failOnError: true)
 
-                Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}", "enabled: ${user.enabled}")
+                Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]", "enabled: ${user.enabled}")
                 return [ data: [success: true, data: "La cuenta de " + user.names + " " + user.lastNames + " ha sido " + (user.enabled ? "activada" : "desactivada")], status: 200 ]
+            }
+
+            if(!currentUser.authorities*.authority.contains('ROLE_ADMIN')){
+                Log.logger( Log.WARN, logId, "Cambiar status.", "Solo administradores pueden bloquear o desbloquear usuarios.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]")
+                return TypeError.noPermissions(logId)
             }
 
             def status = params.status.equals("block")
 
             if (user.accountLocked == status) {
-                Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene el status solicitado.", "params: ${params}", "accountLocked: ${user.accountLocked}")     
+                Log.logger( Log.WARN, logId, "Cambiar status.", "El usuario ya tiene el status solicitado.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]", "accountLocked: ${user.accountLocked}")     
                 return TypeError.existingRegister(logId)
             } 
 
             user.accountLocked = status
             user.save(flush: true, failOnError: true)
 
-            Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}", "accountLocked: ${user.accountLocked}")
+            Log.logger( Log.INFO, logId, "Cambiar status.", "Se cambio el status de la cuenta con exito.", "params: ${params}, currentUser: [uuid: ${currentUser.uuid}, username: ${currentUser.username}]", "accountLocked: ${user.accountLocked}")
             return [ data: [success: true, data: "La cuenta de " + user.names + " " + user.lastNames + " ha sido " + (user.accountLocked ? "bloqueada" : "desbloqueada")], status: 200 ]
 
         } catch(e) {
@@ -304,30 +310,64 @@ class UserService {
         }
     }
 
-    def updateChangeCrdRequest(user, params, logId){
+    def updateChangeCrdRequest(currentUser, status, email, logId){
         try {
-            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Servicio para actualizar la solicitud de cambio de crd personal.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Servicio para actualizar la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
 
-            def status = params.status.equals("request")
+            if (!currentUser) {
+                def configValue = Conf.findConfiguration(Constants.VALID_EMAILS)
+                if (!configValue) {
+                    Log.logger(Log.ERROR, logId, "Actualizar la solicitud de cambio de crd.", "Configuración VALID_EMAILS no encontrada.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
+                    return TypeError.internalError(logId)
+                }
 
-            if (user.registerType == RegisterTypeUser.GOOGLE) {
-                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible solicitar el cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")
+                def validEmails = configValue.split(", ").toList()
+                if (!validEmails.any { email.endsWith(it) }) {
+                    Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "El dominio del email no es valido.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
+                    return TypeError.invalidData("correo", logId)
+                }
+
+                def user = User.findByEmail(email)
+                if (!user) {
+                    Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "Usuario no encontrado.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
+                    return TypeError.invalidData("correo", logId)
+                }
+
+                if (user.registerType == RegisterTypeUser.GOOGLE) {
+                    Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible continuar con la solicitud.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
+                    return TypeError.invalidData("correo", logId)
+                }
+
+                if (user.requestChangeCrd == status) {
+                    Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "Ya se realizo la solicitud/cancelacion de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")     
+                    return TypeError.invalidData("correo", logId)
+                }
+
+                user.requestChangeCrd = status
+                user.save(flush: true, failOnError: true)
+
+                Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Se actualizo la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, currentUsername: ${currentUser?.currentUsername}], status: ${status}, email: ${email}", "requestChangeCrd: ${user.requestChangeCrd}")
+                return [ data: [success: true, message: "Solicitaste el cambio de contraseña"], status: 200 ]
+            }
+
+            if (currentUser.registerType == RegisterTypeUser.GOOGLE) {
+                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "La cuenta fue registrada con una cuenta de google, por lo cual no es posible continuar con la solicitud.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
                 return TypeError.conflictByRegisterType(logId)
             }
 
-            if (user.requestChangeCrd == status) {
-                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd personal.", "El usuario ya realizo la solicitud/cancelacion de su cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}")     
+            if (currentUser.requestChangeCrd == status) {
+                Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "Ya se realizo la solicitud/cancelacion de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")     
                 return TypeError.existingRegister(logId)
             }
 
-            user.requestChangeCrd = status
-            user.save(flush: true, failOnError: true)
+            currentUser.requestChangeCrd = status
+            currentUser.save(flush: true, failOnError: true)
 
-            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Se actualizo la solicitud de cambio de crd.", "user: [uuid: ${user.uuid}, username: ${user.username}], params: ${params}", "requestChangeCrd: ${user.requestChangeCrd}")
-            return [ data: [success: true, message: (user.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " tu cambio de contraseña"], status: 200 ]
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Se actualizo la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, currentUsername: ${currentUser?.currentUsername}], status: ${status}, email: ${email}", "requestChangeCrd: ${currentUser.requestChangeCrd}")
+            return [ data: [success: true, message: (currentUser.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " el cambio de contraseña"], status: 200 ]
 
         } catch(e) {
-            Log.logger( Log.ERROR, logId, "Actualizar la solicitud de cambio de crd personal.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
+            Log.logger( Log.ERROR, logId, "Actualizar la solicitud de cambio de crd.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )
             return TypeError.internalError(logId)
         }
     }

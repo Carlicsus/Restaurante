@@ -4,6 +4,7 @@ import com.ordenaris.security.DefaultOauthUserDetailsService
 import com.ordenaris.security.AuthManagerService
 import com.ordenaris.security.CustomAuthenticationProvider
 import com.ordenaris.security.CustomRestAuthenticationFailureHandler
+import com.ordenaris.security.CustomAccessTokenJsonRenderer
 import com.ordenaris.security.MaxFileUploadSizeResolver
 import org.springframework.web.multipart.commons.CommonsMultipartResolver
 
@@ -20,6 +21,8 @@ beans = {
     }
 
     restAuthenticationFailureHandler(CustomRestAuthenticationFailureHandler)
+
+    accessTokenJsonRenderer(CustomAccessTokenJsonRenderer)
 
     authManagerService(AuthManagerService)
 

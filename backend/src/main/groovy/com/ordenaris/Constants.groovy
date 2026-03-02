@@ -5,5 +5,5 @@ public class Constants {
 
     public static final long MAX_SIZE = 2 * 1024 * 1024
 
-    public static String VALID_EMAILS = "VALID_EMAILS"
+    public static String VALID_EMAIL_DOMAINS = "VALID_EMAIL_DOMAINS"
 }

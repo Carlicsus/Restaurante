@@ -120,12 +120,14 @@ class UserController {
         return respond(responseService.data, status: responseService.status)
     }
 
-    @Secured(['ROLE_ADMIN'])
+    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
     def changeStatus() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger( Log.INFO, logId, "Cambiar status.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def responseService = userService.changeStatus(params, logId)
+        def user = springSecurityService.currentUser
+
+        def responseService = userService.changeStatus(params, user, logId)
         return respond(responseService.data, status: responseService.status)
     }
 
@@ -160,14 +162,29 @@ class UserController {
         return respond(responseService.data, status: responseService.status)
     }
     
-    @Secured(['isAuthenticated()'])
+    @Secured(['permitAll'])
     def updateChangeCrdRequest(){
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
-        Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd personal.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
+        Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")
 
-        def user = springSecurityService.currentUser
+        def statusIsRequest = "request".equals(params.status)
+        def currentUser = springSecurityService.currentUser
 
-        def responseService = userService.updateChangeCrdRequest(user, params, logId)
+        if (!currentUser && !statusIsRequest) {
+            return respond(TypeError.noPermissions(logId, response))
+        }
+
+        if (!currentUser && statusIsRequest) {
+            if (!request.JSON.email) {
+                return respond(TypeError.missingParameter("correo", logId, response))
+            }
+
+            if (!(request.JSON.email instanceof String)) {
+                return respond(TypeError.incorrectFormat("correo", "una cadena de texto", logId, response))
+            }
+        }
+
+        def responseService = userService.updateChangeCrdRequest(currentUser, statusIsRequest, request.JSON.email, logId)
         return respond(responseService.data, status: responseService.status)
     }
 
@@ -262,7 +279,7 @@ class UserController {
         return respond(responseService.data, status: responseService.status)
     }
 
-    @Secured(['ROLE_ADMIN'])
+    @Secured(['ROLE_ADMIN', 'ROLE_FINANCE'])
     def getUserProfilePicture() {
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger( Log.INFO, logId, "Obtener foto de perfil de un usuario.", "Iniciando la solicitud.", "params: ${params}, JSON: ${request.JSON}")

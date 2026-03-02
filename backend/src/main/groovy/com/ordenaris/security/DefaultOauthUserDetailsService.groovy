@@ -13,6 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.authentication.InternalAuthenticationServiceException
+import org.springframework.security.core.AuthenticationException
 import java.security.SecureRandom
 import com.ordenaris.enums.RegisterTypeUser
 import com.ordenaris.security.User
@@ -47,12 +48,6 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             throw new UsernameNotFoundException("Google no regreso un email")
         }
 
-        List<String> validEmails =  Conf.findConfiguration(Constants.VALID_EMAILS).split(", ").toList()
-
-        if (!validEmails.any { String email -> oauthProfile.email.endsWith(email) }) {
-            throw new UsernameNotFoundException("Solo se permiten los correos ${validEmails}")
-        }
-
         return validateUser(oauthProfile, logId)
     }
 
@@ -60,6 +55,18 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
         try {
             Log.logger( Log.INFO, logId, "Login por Google.", "Servicio para validar a un usuario de google.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
             
+            String configValue = Conf.findConfiguration(Constants.VALID_EMAIL_DOMAINS)
+            if (!configValue) {
+                Log.logger(Log.ERROR, logId, "Login por Google.", "Configuración VALID_EMAIL_DOMAINS no encontrada.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                throw new InternalAuthenticationServiceException("Se ha producido un error interno. Inténtelo de nuevo más tarde.")
+            }
+
+            List<String> validEmailDomains = configValue.split(",").toList()
+            if (!validEmailDomains.any { String domain -> profile.email.endsWith(domain) }) {
+                Log.logger( Log.WARN, logId, "Login por Google.", "El dominio del email no es valido.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
+                throw new UsernameNotFoundException("Solo se permiten los siguientes dominios de correo ${validEmailDomains}")
+            }
+
             User domainUser = findUserByEmail(profile.email)
             if (domainUser) {
 
@@ -116,7 +123,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
             Log.logger( Log.INFO, logId, "Login por Google.", "Se registro un nuevo usuario de google en espera de autorización por admin", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}", "user: [uuid: ${user.uuid}, username: ${user.username}]")
             throw new LockedException("Usuario pendiente de autorizacion por administrador")
             
-        } catch(LockedException | InsufficientAuthenticationException e) {
+        } catch(AuthenticationException e) {
             throw e
         } catch(e) {
             Log.logger( Log.ERROR, logId, "Login por Google.", "Algo ha salido mal.", "error: ${e.class.simpleName} | message: ${e.getMessage()}", "stacktrace: ${e.stackTrace.take(10).join('\n')}" )

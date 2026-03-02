@@ -41,8 +41,20 @@ class UserService {
             Log.logger( Log.INFO, logId, "Registrar nuevo usuario.", "Servicio para registrar un nuevo usuario.", "data: ${Log.sanitize(data)}")
 
             if (User.findByUsername(data.username)) {
-                Log.logger( Log.WARN, logId, "Registrar nuevo usuario.", "Ya existe un usuario con el mismo nombre de usuario.", "data: ${Log.sanitize(data)}" )     
+                Log.logger( Log.WARN, logId, "Registrar nuevo usuario.", "Ya existe un usuario con el mismo nombre de usuario.", "data: ${Log.sanitize(data)}")     
                 return TypeError.existingRegister(logId)
+            }
+
+            def configValue = Conf.findConfiguration(Constants.VALID_EMAIL_DOMAINS)
+            if (!configValue) {
+                Log.logger(Log.ERROR, logId, "Registrar nuevo usuario.", "Configuración VALID_EMAIL_DOMAINS no encontrada.", "data: ${Log.sanitize(data)}")
+                return TypeError.internalError(logId)
+            }
+
+            def validEmailDomains = configValue.split(", ").toList()
+            if (!validEmailDomains.any { data.email.endsWith(it) }) {
+                Log.logger( Log.WARN, logId, "Registrar nuevo usuario.", "El dominio del email no es valido.", "data: ${Log.sanitize(data)}")
+                return TypeError.incorrectFormat("correo", "un correo con uno de los siguientes dominios ${validEmailDomains}", logId)
             }
 
             if (User.findByEmail(data.email)) {
@@ -315,14 +327,14 @@ class UserService {
             Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Servicio para actualizar la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
 
             if (!currentUser) {
-                def configValue = Conf.findConfiguration(Constants.VALID_EMAILS)
+                def configValue = Conf.findConfiguration(Constants.VALID_EMAIL_DOMAINS)
                 if (!configValue) {
-                    Log.logger(Log.ERROR, logId, "Actualizar la solicitud de cambio de crd.", "Configuración VALID_EMAILS no encontrada.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
+                    Log.logger(Log.ERROR, logId, "Actualizar la solicitud de cambio de crd.", "Configuración VALID_EMAIL_DOMAINS no encontrada.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
                     return TypeError.internalError(logId)
                 }
 
-                def validEmails = configValue.split(", ").toList()
-                if (!validEmails.any { email.endsWith(it) }) {
+                def validEmailDomains = configValue.split(", ").toList()
+                if (!validEmailDomains.any { email.endsWith(it) }) {
                     Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "El dominio del email no es valido.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
                     return TypeError.invalidData("correo", logId)
                 }

@@ -6,7 +6,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest
 import com.ordenaris.Constants
 import com.ordenaris.Log
 import com.ordenaris.TypeError
-import com.ordenaris.Conf
 
 class UserController {
 	static responseFormats = ['json', 'xml']
@@ -67,12 +66,6 @@ class UserController {
             return respond(TypeError.incorrectFormat("apellidos", "sin espacios al principio ni al final", logId, response))
         }
 
-        def validEmails =  Conf.findConfiguration(Constants.VALID_EMAILS).split(", ").toList()
-
-        if (!validEmails.any { request.JSON.email.endsWith(it) }) {
-            return respond(TypeError.incorrectFormat("correo", "un correo con uno de los siguientes dominios ${validEmails}", logId, response))
-        }
-
         if (!(request.JSON.crd.securePassword())) {
             return respond(TypeError.incorrectFormat("crd", "un crd sin espacios, tener entre 8 y 15 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial de esta lista [@!%*?&/]", logId, response))
         }
@@ -95,11 +88,11 @@ class UserController {
             return respond(TypeError.missingParameter("maximo", logId, response))
         }
 
-        if (!params.page.soloNumeros()) {
+        if (!params.page.onlyNumbers()) {
             return respond(TypeError.incorrectFormat("pagina", "numeros", logId, response))
         }
 
-        if (!params.max.soloNumeros()) {
+        if (!params.max.onlyNumbers()) {
             return respond(TypeError.incorrectFormat("maximo", "numeros", logId, response))
         }
 

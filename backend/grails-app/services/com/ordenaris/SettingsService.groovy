@@ -27,7 +27,7 @@ class SettingsService {
     def registerInitData(){
         Settings.withTransaction{
             try{
-                if(!Settings.findByIdentifier(Constants.VALID_EMAILS)) new Settings( [ identifier: Constants.VALID_EMAILS, data: "@ordenaris.com, @innovattia.com, @orquestia.com" ] ).save(failOnError: true)
+                if(!Settings.findByIdentifier(Constants.VALID_EMAIL_DOMAINS)) new Settings( [ identifier: Constants.VALID_EMAIL_DOMAINS, data: "@ordenaris.com,@innovattia.com,@orquestia.com" ] ).save(failOnError: true)
             }catch(e){
                 Log.logger(Log.ERROR, null, "Inserción de data inicial.", "Ha ocurrido un error.", e.getMessage() )
             }

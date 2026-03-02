@@ -107,14 +107,14 @@ class ReviewController {
     def editReview() {
         def auth = springSecurityService.currentUser
         def data = request.JSON
-        def reviewUuid = params.reviewUuid
+        def dishUuid = params.dishUuid
         def logId = UUID.randomUUID().toString().replaceAll('\\-', '')
         Log.logger(Log.INFO, logId, "Editar Reseña.", "Inicia Solicitud.", "data: ${data}")
-        if (!reviewUuid) {
-            return respond(TypeError.missingParameter("review", logId, response))
+        if (!dishUuid) {
+            return respond(TypeError.missingParameter("platillo", logId, response))
         }
-        if (reviewUuid.size() != 32) {
-            return respond(TypeError.incorrectFormat("review", "UUID de 32 caracteres", logId, response))
+        if (dishUuid.size() != 32) {
+            return respond(TypeError.incorrectFormat("platillo", "UUID de 32 caracteres", logId, response))
         }
         if (data.rating == null || data.rating.toString() == "") {
             return respond(TypeError.missingParameter("rating", logId, response))
@@ -128,7 +128,7 @@ class ReviewController {
         if (data.comment?.size() > 500){
             return respond(TypeError.incorrectFormat("comentario", "menor a 500 caracteres", logId, response))
         }
-        def response = reviewService.editReview(reviewUuid, data, auth, logId)
+        def response = reviewService.editReview(dishUuid, data, auth, logId)
         return respond(response.data, status: response.status)
     }
 }

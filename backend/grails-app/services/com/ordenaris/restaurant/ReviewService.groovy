@@ -198,10 +198,11 @@ class ReviewService {
             return TypeError.internalError(logId)
         }
     }
-    def editReview(reviewUuid, data, auth, logId) {
+    def editReview(dishUuid, data, auth, logId) {
         try {
             Log.logger(Log.INFO, logId, "Editar Reseña.", "Llegada al servicio.", "data: ${data}")
-            def review = Review.findByUuid(reviewUuid)
+            def dish = Dish.findByUuid(dishUuid)
+            def review = Review.findByDishAndUser(dish, auth)
             if (!review) {
                 Log.logger(Log.WARN, logId, "Editar Reseña.", "No se encontro la reseña.", "data: ${data}")
                 return TypeError.informationNotFound(logId)

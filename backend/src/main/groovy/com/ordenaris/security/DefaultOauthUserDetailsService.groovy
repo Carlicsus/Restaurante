@@ -61,7 +61,7 @@ class DefaultOauthUserDetailsService implements OauthUserDetailsService {
                 throw new InternalAuthenticationServiceException("Se ha producido un error interno. Inténtelo de nuevo más tarde.")
             }
 
-            List<String> validEmailDomains = configValue.split(",").toList()
+            List<String> validEmailDomains = configValue.split(",").toList()*.trim()
             if (!validEmailDomains.any { String domain -> profile.email.endsWith(domain) }) {
                 Log.logger( Log.WARN, logId, "Login por Google.", "El dominio del email no es valido.", "email: ${profile.email} firstName: ${profile.firstName}, familyName: ${profile.familyName}")
                 throw new UsernameNotFoundException("Solo se permiten los siguientes dominios de correo ${validEmailDomains}")

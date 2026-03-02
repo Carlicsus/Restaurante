@@ -25,7 +25,7 @@ class CustomAuthenticationProvider implements AuthenticationProvider{
         UserDetails user = authManagerService.loadUserByUsername(authentication, logId)
 
         return new UsernamePasswordAuthenticationToken(
-            user,       
+            user,
             null,
             user.authorities
         )

@@ -51,7 +51,7 @@ class UserService {
                 return TypeError.internalError(logId)
             }
 
-            def validEmailDomains = configValue.split(", ").toList()
+            def validEmailDomains = configValue.split(",").toList()*.trim()
             if (!validEmailDomains.any { data.email.endsWith(it) }) {
                 Log.logger( Log.WARN, logId, "Registrar nuevo usuario.", "El dominio del email no es valido.", "data: ${Log.sanitize(data)}")
                 return TypeError.incorrectFormat("correo", "un correo con uno de los siguientes dominios ${validEmailDomains}", logId)
@@ -333,7 +333,7 @@ class UserService {
                     return TypeError.internalError(logId)
                 }
 
-                def validEmailDomains = configValue.split(", ").toList()
+                def validEmailDomains = configValue.split(",").toList()*.trim()
                 if (!validEmailDomains.any { email.endsWith(it) }) {
                     Log.logger( Log.WARN, logId, "Actualizar la solicitud de cambio de crd.", "El dominio del email no es valido.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}")
                     return TypeError.invalidData("correo", logId)
@@ -358,7 +358,7 @@ class UserService {
                 user.requestChangeCrd = status
                 user.save(flush: true, failOnError: true)
 
-                Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Se actualizo la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, currentUsername: ${currentUser?.currentUsername}], status: ${status}, email: ${email}", "requestChangeCrd: ${user.requestChangeCrd}")
+                Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Se actualizo la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}", "requestChangeCrd: ${user.requestChangeCrd}")
                 return [ data: [success: true, message: "Solicitaste el cambio de contraseña"], status: 200 ]
             }
 
@@ -375,7 +375,7 @@ class UserService {
             currentUser.requestChangeCrd = status
             currentUser.save(flush: true, failOnError: true)
 
-            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Se actualizo la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, currentUsername: ${currentUser?.currentUsername}], status: ${status}, email: ${email}", "requestChangeCrd: ${currentUser.requestChangeCrd}")
+            Log.logger( Log.INFO, logId, "Actualizar la solicitud de cambio de crd.", "Se actualizo la solicitud de cambio de crd.", "currentUser: [uuid: ${currentUser?.uuid}, username: ${currentUser?.username}], status: ${status}, email: ${email}", "requestChangeCrd: ${currentUser.requestChangeCrd}")
             return [ data: [success: true, message: (currentUser.requestChangeCrd ? "Solicitaste" : "Cancelaste") + " el cambio de contraseña"], status: 200 ]
 
         } catch(e) {

@@ -1,356 +1,455 @@
-    package com.ordenaris.restaurant
+package com.ordenaris.restaurant
 
-    import grails.rest.*
-    import grails.converters.*
-    import grails.plugin.springsecurity.annotation.Secured
-    import org.springframework.web.multipart.MultipartFile
-    import org.springframework.web.multipart.MultipartHttpServletRequest
+import com.ordenaris.Log
+import com.ordenaris.TypeError
+import grails.plugin.springsecurity.SpringSecurityService
+import grails.plugin.springsecurity.annotation.Secured
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.multipart.MultipartHttpServletRequest
+import grails.core.GrailsApplication
 
-    @Secured(['permitAll'])
-    class PlatilloController {
-        static responseFormats = ['json', 'xml']
-        def DishService
-        def ImageService  
 
-        def listDishes() {
-            def response = DishService.listDishes()
+class DishController {   
+        
+        static responseFormats = ['json', 'xml'] 
+        
+        def dishService
+        GrailsApplication grailsApplication
+
+
+        @Secured(['ROLE_USER', 'ROLE_CHEF', 'ROLE_ADMIN'])
+        def listActiveDishes() {
+            def response = dishService.listActiveDishes()
             return respond(response.resp, status: response.status)
         }
 
-        def newDish() { 
-            def data = request.JSON
-            Date availableDate = null
-            Integer availableDishes = null
-
-            if (!data.name) {
-                return respond([success: false, message: "El nombre es obligatorio"], status: 400)
-            }
-            
-            //if (data.name.soloNumeros()) { 
-              //  return respond([success: false, message: "El nombre debe contener letras y no solo numeros"], status: 400)
-           // }
-            if (data.name.size() > 80) { 
-                return respond([success: false, message: "El nombre no puede ser tan largo"], status: 400)
-            }
-            if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)){
-            return respond([success: false, message: "El nombre no debe contener números ni caracteres especiales"], status: 400)
-            }
-
-            if (!data.cost) {  
-                return respond([success: false, message: "El costo es obligatorio"], status: 400)
-            }
-
-            if (data.cost instanceof String && !data.cost.soloNumeros()) {
-                return respond([success: false, message: "El costo debe contener solo numeros"], status: 400)
-            }
-
-            Integer cost = data.cost.toInteger()
-
-            if (cost > 500) {
-                return respond([success:false, message:"El platillo no puede ser exageradamente caro"], status: 400)
-            }
-
-            if (data.availableDishes != null) {
-
-                if (data.availableDishes instanceof String && !data.availableDishes.soloNumeros()) {
-                    return respond([success: false, message: "Los platillos disponibles deben ser numeros"], status: 400)
-                }
-
-                availableDishes = data.availableDishes.toInteger()
-
-                if (availableDishes > 50) {
-                    return respond([success: false, message: "Los platillos no pueden exceder el limite"], status: 400)
-                }
-            }
-
-            if (!data.menuType) {  
-                return respond([success: false, message: "El campo menuType es obligatorio"], status: 400)
-            }
-            if (data.menuType.size() != 32) {
-                return respond([success: false, message: "El uuid del tipo menu es invalido"], status: 400)
-            }
-
-            if (!data.description) {  
-                return respond([success: false, message: "La descripcion es obligatoria"], status: 400)
-            }
-            if (data.description.soloNumeros()) {
-                return respond([success: false, message: "La descripcion debe contener letras y no solo numeros"], status: 400)
-            }
-            if (data.description.size() > 80) {
-                return respond([success: false, message: "La descripcion no puede ser tan larga"], status: 400)
-            }
-
-            if (data.availableDate) {
-                try {
-                    availableDate = new Date(data.availableDate as Long)
-                    if (availableDate < new Date()) {
-                        return respond([success: false, message: "La fecha disponible no puede ser una fecha pasada"], status: 400)
-                    }
-                } catch (Exception e) {
-                    return respond([success: false, message: "Formato de fecha invalido"], status: 400)
-                }
-            }
-
-            if (data.imageUrl && data.imageUrl.size() > 500) {
-                return respond([success: false, message: "La URL de la imagen no puede ser tan larga"], status: 400)
-            }
-            def response = DishService.newDish(
-                data.name,  
-                data.menuType,  
-                availableDate,  
-                cost,  
-                data.description,  
-                availableDishes ?: -1,
-                data.imageUrl
-            )
-
-            return respond(response.resp, status: response.status)
-        }
-        def dishInfo() {  
-            if (params.uuid.size() != 32) {
-                return respond([success: false, message: "El uuid es invalido"], status: 400)
-            }
-            if (!params.status){
-                return respond([success: false, message: "El status es obligatorio"], status: 400)
-
-            }
-            def response = dishService.dishInfo(params.uuid, params.status.toInteger())  
+        @Secured(['ROLE_CHEF', 'ROLE_ADMIN'])
+        def listAllDishes() {
+            def response = dishService.listAllDishes()
             return respond(response.resp, status: response.status)
         }
 
-        def editDish() {
-            def data = request.JSON
-
-            if (params.uuid?.size() != 32) {
-                return respond([success: false, mensaje: "El uuid es inválido"], status: 400)
-            }
-
-            if (data.containsKey('name')) {
-                data.name = data.name?.trim()
-
-                if (!data.name) {
-                    return respond([success: false, mensaje: "El nombre no puede estar vacío"], status: 400)
-                }
-                /*if (data.name.soloNumeros()) {
-                    return respond([success: false, mensaje: "El nombre debe contener letras"], status: 400)
-                }*/
-                if (data.name.size() > 80) {
-                    return respond([success: false, mensaje: "El nombre no puede ser tan largo"], status: 400)
-                }
-                if (!(data.name ==~ /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)){
-                return respond([success: false, mensaje: "El nombre no debe contener números"], status: 400)
-            }
-            }
-
-            if (data.containsKey('menuType')) {
-                if (!data.menuType) {
-                    return respond([success: false, mensaje: "El menuType no puede estar vacío"], status: 400)
-                }
-                if (data.menuType.size() != 32) {
-                    return respond([success: false, mensaje: "El uuid del tipo menú es inválido"], status: 400)
-                }
-            }
-
-            if (data.containsKey('cost')) {
-                if (data.cost instanceof String && !data.cost.soloNumeros()) {
-                    return respond([success: false, mensaje: "El costo debe contener solo números"], status: 400)
-                }
-            }
-
-            if (data.containsKey('description')) {
-                if (!data.description) {
-                    return respond([success: false, mensaje: "La descripción no puede estar vacía"], status: 400)
-                }
-                if (data.description.soloNumeros()) {
-                    return respond([success: false, mensaje: "La descripción debe contener letras"], status: 400)
-                }
-                if (data.description.size() > 100) {
-                    return respond([success: false, mensaje: "La descripción no puede ser tan larga"], status: 400)
-                }
-            }
-
-            def availableDate = null
-            if (data.containsKey('availableDate')) {
-                try {
-                    availableDate = new Date(data.availableDate as Long)
-                } catch (e) {
-                    return respond([success: false, mensaje: "Formato de fecha inválido"], status: 400)
-                }
-            }
-
-            if (data.containsKey('availableDishes')) {
-                if (data.availableDishes instanceof String && !data.availableDishes.soloNumeros()) {
-                    return respond([success: false, mensaje: "Los platillos disponibles deben ser números"], status: 400)
-                }
-            }
-
-            if (data.containsKey('imageUrl') && data.imageUrl?.size() > 500) {
-                return respond([success: false, mensaje: "La URL de la imagen no puede ser tan larga"], status: 400)
-            }
-
-            def response = DishService.editDish(
-                data.name,
-                data.menuType,
-                availableDate,
-                data.cost ? data.cost.toInteger() : null,
-                data.description,
-                data.availableDishes ? data.availableDishes.toInteger() : null,
-                data.imageUrl,
-                params.uuid
-            )
-
-            return respond(response.resp, status: response.status)
-        }
-
-        def editDishStatus() {
-            def response = DishService.editDishStatus(params.status, params.uuid)
-            return respond(response.resp, status: response.status)
-        }
-
-        def paginateDishes() {  
-            if (!params.page) {  
-                return respond([success: false, message: "La pagina no puede ir vacio"], status: 400)
-            }
-            if (!params.page.soloNumeros()) {  
-                return respond([success: false, message: "La pagina debe contener solo numeros"], status: 400)
-            }
-            if (!params.orderColumn) {  
-                return respond([success: false, message: "El orderColumn no puede ir vacio"], status: 400)
-            }
-            if (!(params.orderColumn in ["name", "status", "cost", "availableDate", "availableDishes"])) { 
-                return respond([success: false, message: "El orderColumn solo puede ser: name, status, cost, availableDate, availableDishes"], status: 400)
-            }
-            if (!params.order) {  
-                return respond([success: false, message: "El order no puede ir vacio"], status: 400)
-            }
-            if (!(params.order in ["asc", "desc"])) {  
-                return respond([success: false, message: "El order solo puede ser: asc, desc"], status: 400)
-            }
-            if (!params.max) {
-                return respond([success: false, message: "El max no puede ir vacio"], status: 400)
-            }
-            if (!params.max.soloNumeros()) {
-                return respond([success: false, message: "El max debe contener solo numeros"], status: 400)
-            }
-            if (!(params.max.toInteger() in [2, 5, 10, 20, 50, 100])) {
-                return respond([success: false, message: "El max puede ser solo: 2, 5, 10, 20, 50, 100"], status: 400)
-            }
-            println(params.availableDishes?.toInteger())
-            def response = DishService.paginateDishes(params.page.toInteger(), params.orderColumn, params.order, params.max.toInteger(), params.status?.toInteger(), params.availableDishes?.toInteger(), params.query)
-            return respond(response.resp, status: response.status)
-        }
-
-        def topDishesChart() {
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def newDish() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Crear platillo", "Inicia solicitud", "params: ${params}, json: ${request.JSON}")
             try {
+                def data = request.JSON
+                validateNewDishData(data)
+                def dishParams = buildNewDishParams(data)
+                def response = dishService.newDish(dishParams)
+                return respond(response.resp, status: response.status)
+            } catch (IllegalArgumentException e) {
+                Log.logger(Log.ERROR, logId, "Error en newDish", e.getMessage(), "params: ${request.JSON}")
+                return respond([success: false, message: "Datos inválidos para crear el platillo."], status: 400)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en newDish", e.getMessage(), "params: ${request.JSON}")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
+
+        private void validateNewDishData(def data) {
+            def result = DishValidationUtils.validateNewDishData(data, grailsApplication)
+            validateDishValidationResult(result)
+        }
+
+        private void validateDishValidationResult(def result) {
+            if (result instanceof Map && result.success == false) {
+                throw new IllegalArgumentException(result.message?.toString() ?: "Datos inválidos")
+            }
+        }
+
+        private Map buildNewDishParams(def data) {
+            return [
+                name: data.name.toString().trim(),
+                menuType: data.menuType,
+                availableDate: getAvailableDate(data.availableDate),
+                cost: data.cost, 
+                description: data.description.toString().trim(),
+                availableDishes: getAvailableDishes(data.availableDishes),
+                imageUrl: data.imageUrl
+            ]
+        }
+
+        private Date getAvailableDate(def availableDate) {
+            def normalizedAvailableDate = (availableDate != null && availableDate.toString().trim() && availableDate.toString().trim() != '-1') ? availableDate : null
+            if (normalizedAvailableDate == null) {
+                return null
+            }
+
+            def parsedDate = DishValidationUtils.validateAndParseAvailableDate(normalizedAvailableDate)
+            validateDishValidationResult(parsedDate)
+            return parsedDate as Date
+        }
+
+        private Integer getAvailableDishes(def availableDishes) {
+            return availableDishes != null ? DishValidationUtils.validateAvailableDishes(availableDishes, grailsApplication) : null
+        }
+
+        private Integer getCost(def cost) {
+            return DishValidationUtils.convertAndValidateCost(cost, grailsApplication)
+        }
+
+        private Integer parseStatusParam(def statusParam, boolean required = false) {
+            return DishValidationUtils.parseStatusParam(statusParam, required)
+        }
+
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def incrementAvailableDishes() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Incrementar disponibilidad platillo", "Inicia solicitud", "params: ${params}, json: ${request.JSON}")
+            try {
+                def data = request.JSON
+                def validationError = validateIncrementQuantity(data, grailsApplication)
+                if (validationError) {
+                    return respond([success: false, message: validationError], status: 400)
+                }
+                Integer quantity = data.quantity.toInteger()
+                def response = dishService.incrementAvailableDishes(params.uuid?.toString().trim(), quantity)
+                def resp = formatIncrementResponse(response.resp)
+                return respond(resp, status: response.status)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en incrementAvailableDishes", e.getMessage(), "params: { uuid: ${params.uuid}, quantity: ${request.JSON?.quantity} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
+
+        private String validateIncrementQuantity(def data, GrailsApplication grailsApplication) {
+            if (!data.quantity) {
+                return "La cantidad a aumentar es obligatoria"
+            }
+            if (data.quantity instanceof String && !data.quantity.onlyNumbers()) {
+                return "La cantidad debe ser un número"
+            }
+            Integer quantity
+            try {
+                quantity = data.quantity.toInteger()
+            } catch (e) {
+                return "La cantidad debe ser un número válido"
+            }
+            def minQuantity = grailsApplication.config.restaurant.dish.minQuantity
+            if (quantity < minQuantity) {
+                return "La cantidad debe ser mayor a 0"
+            }
+            return null
+        }
+
+        private Map formatIncrementResponse(Map resp) {
+            if (resp?.data) {
+                if (resp.data instanceof Map && resp.data.message) {
+                    resp.message = resp.data.message?.toString()
+                    resp.remove('data')
+                } else if (resp.data instanceof String) {
+                    resp.message = resp.data.toString()
+                    resp.remove('data')
+                }
+            }
+            if (resp?.message && resp.message instanceof Map) {
+                resp.message = resp.message.toString()
+            }
+            return resp
+        }
+    
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def dishInfo() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Info platillo", "Inicia solicitud", "params: { uuid: ${params.uuid}, status: ${params.status} }")
+            if (!params.uuid || params.uuid.toString().trim().size() != 32) {
+                Log.logger(Log.WARN, logId, "Info platillo", "UUID inválido", "uuid: ${params.uuid}")
+                return respond(TypeError.invalidData("uuid", logId), status: 403)
+            }
+            try {
+                def requestedStatus = parseStatusParam(params.status, false)
+                def response = dishService.dishInfo(params.uuid?.toString().trim(), requestedStatus)
+                return respond(response.resp, status: response.status)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en dishInfo", e.getMessage(), "params: { uuid: ${params.uuid}, status: ${params.status} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
+
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def editDish() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Editar platillo", "Inicia solicitud", "params: ${params}, json: ${request.JSON}")
+            try {
+                if (!params.uuid || !params.uuid.toString().trim()) {
+                    return respond([success: false, message: "UUID es requerido"], status: 400)
+                }
+                if (params.uuid.toString().trim().size() != 32) {
+                    return respond([success: false, message: "UUID inválido, debe tener 32 caracteres"], status: 400)
+                }
+                def data = request.JSON
+                validateEditDishData(data)
+                def dishParams = buildEditDishParams(data, params.uuid)
+                def response = dishService.editDish(dishParams)
+                if (response.status == 404) {
+                    return respond([success: false, message: "El platillo no existe"], status: 404)
+                }
+                return respond(response.resp, status: response.status)
+            } catch (IllegalArgumentException e) {
+                Log.logger(Log.ERROR, logId, "Error en editDish", e.getMessage(), "params: ${request.JSON?.toString()}")
+                return respond([success: false, message: "Datos inválidos para editar el platillo."], status: 400)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en editDish", e.getMessage(), "params: ${request.JSON?.toString()}")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
+
+        private void validateEditDishData(def data) {
+            if (data.name) validateDishValidationResult(DishValidationUtils.validateDishName(data.name, grailsApplication))
+            if (data.menuType) validateDishValidationResult(DishValidationUtils.validateMenuType(data.menuType))
+            if (data.containsKey('cost')) validateDishValidationResult(DishValidationUtils.validateDishCost(data.cost))
+            if (data.description) validateDishValidationResult(DishValidationUtils.validateDishDescription(data.description, grailsApplication))
+            if (data.availableDate != null) validateDishValidationResult(DishValidationUtils.validateAndParseAvailableDate(data.availableDate))
+            if (data.availableDishes != null) DishValidationUtils.validateAvailableDishes(data.availableDishes, grailsApplication)
+            if (data.imageUrl != null) validateDishValidationResult(DishValidationUtils.validateImageUrl(data.imageUrl, grailsApplication))
+        }
+
+        private Map buildEditDishParams(def data, def uuid) {
+            return [
+                uuid: uuid?.toString()?.trim(),
+                name: data.name != null ? data.name.toString().trim() : null,
+                menuType: data.menuType,
+                availableDate: data.availableDate != null ? getAvailableDate(data.availableDate) : null,
+                cost: data.cost ? DishValidationUtils.convertAndValidateCost(data.cost, grailsApplication) : null,
+                description: data.description != null ? data.description.toString().trim() : null,
+                availableDishes: data.availableDishes ? DishValidationUtils.validateAvailableDishes(data.availableDishes, grailsApplication) : null,
+                imageUrl: data.imageUrl != null ? data.imageUrl.toString().trim() : null
+            ]
+        }
+
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def editDishStatus() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Editar status platillo", "Inicia solicitud", "params: ${params}, json: ${request.JSON}")
+            try {
+                if (!params.uuid || params.uuid.toString().trim().size() != 32) {
+                    Log.logger(Log.WARN, logId, "Editar status platillo", "UUID inválido", "uuid: ${params.uuid}")
+                    return respond([success: false, message: "El UUID proporcionado no es válido. Debe tener exactamente 32 caracteres alfanuméricos."], status: 400)
+                }
+                def statusValue = parseStatusParam(params.status, true)
+                def response = dishService.editDishStatus(statusValue, params.uuid?.toString().trim())
+                return respond(response.resp, status: response.status)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en editDishStatus", e.getMessage(), "params: { uuid: ${params.uuid} }")
+                def msg = "Ha ocurrido un error, inténtalo más tarde."
+                def statusCode = 500
+                if (e.getMessage() == "El platillo no existe o está eliminado") {
+                    msg = e.getMessage()
+                    statusCode = 404
+                }
+                return respond([success: false, message: msg], status: statusCode)
+            }
+        }
+
+
+
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def paginateDishes() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Paginar platillos", "Entrada al servicio", "params: ${params}")
+            def errorMsg = validatePaginateParamsCustom(params, logId, grailsApplication)
+            if (errorMsg) {
+                return respond([success: false, message: errorMsg], status: 400)
+            }
+            params.orderColumn = getValidatedSortColumn(params.orderColumn, logId)
+            if (params.orderColumn == null) {
+                return respond([success: false, message: "orderColumn inválido"], status: 400)
+            }
+            Log.logger(Log.INFO, logId, "Paginar platillos", "Parámetros validados correctamente. Llamando a dishService.paginateDishes", "params: ${params}")
+            def response = dishService.paginateDishes(params)
+            return respond([success: true, data: response], status: 200)
+        }
+
+        private String validatePaginateParamsCustom(params, logId, GrailsApplication grailsApplication) {
+            def errorMsg = DishValidationUtils.validatePaginateDishesParams(params, logId, grailsApplication)
+            return errorMsg
+        }
+
+        private String getValidatedSortColumn(orderColumn, logId) {
+            def sortResult = com.ordenaris.restaurant.RestaurantConstants.validateSortColumn(orderColumn?.toString()?.trim())
+            if (sortResult.warning && sortResult.warning instanceof String && sortResult.warning.trim()) {
+                Log.logger(Log.WARN, logId, "Paginar platillos", "orderColumn inválido", "orderColumn: ${orderColumn}")
+                return null
+            }
+            return sortResult.column
+        }
+
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def topDishesChart() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Top platillos más vendidos", "Inicia solicitud", "params: { days: ${params.days}, limit: ${params.limit} }")
+            try {
+                if (params.days && !StringUtils.onlyNumbers(params.days?.toString())) {
+                    return respond([success: false, message: "El número de días debe ser un número"], status: 400)
+                }
+                if (params.limit && !StringUtils.onlyNumbers(params.limit?.toString())) {
+                    return respond([success: false, message: "El límite debe ser un número"], status: 400)
+                }
                 Integer days = params.days ? params.days.toInteger() : 7
                 Integer limit = params.limit ? params.limit.toInteger() : 10
-
                 if (days < 1) return respond([success: false, message: "El número de días debe ser mayor a 0"], status: 400)
                 if (limit < 1) return respond([success: false, message: "El límite debe ser mayor a 0"], status: 400)
-
-                def response = DishService.getTopDishesChart(days, limit)
+                def response = dishService.getTopDishesChart(days, limit)
                 return respond(response.resp, status: response.status)
-            } catch (NumberFormatException e) {
-                return respond([success: false, message: "Los parámetros deben ser números"], status: 400)
             } catch (e) {
-                return respond([success: false, message: "Error: ${e.getMessage()}"], status: 500)
+                Log.logger(Log.ERROR, logId, "Error en topDishesChart", e.getMessage(), "params: { days: ${params.days}, limit: ${params.limit} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
             }
         }
 
-    @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
-    def uploadDishImage() {
 
-        if (!params.uuid || params.uuid.size() != 32) {
-            return respond([success: false, message: "UUID inválido"], status: 400)
-        }
-
-        MultipartFile file = null
-        if (request instanceof MultipartHttpServletRequest) {
-            file = ((MultipartHttpServletRequest) request).getFile('image')
-        }
-
-        try {
-            def dish = Dish.findByUuid(params.uuid)
-            if (!dish) {
-                return respond([success: false, message: "Platillo no encontrado"], status: 404)
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def uploadDishImage() {
+            String logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Subida de imagen platillo", "Inicia solicitud", "params: { uuid: ${params.uuid} }")
+            try {
+                if (!params.uuid || params.uuid.toString().trim().size() != 32) {
+                    Log.logger(Log.WARN, logId, "Info platillo", "UUID inválido", "uuid: ${params.uuid}")
+                    return respond([success: false, message: "Access is denied"], status: 403)
+                }
+                MultipartFile file = extractImageFileFromRequest(request, logId)
+                if (!file) {
+                    return respond([success: false, message: "El archivo de imagen es requerido"], status: 400)
+                }
+                def response = dishService.saveDishImageByUuid(params.uuid.toString().trim(), file)
+                return respond(response.resp, status: response.status)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Subida de imagen platillo", "Error al subir imagen", e.getMessage())
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
             }
-
-            DishService.saveDishImage(dish, file)
-            return respond([success: true, message: "Imagen subida correctamente"], status: 200)
-        } catch (IllegalArgumentException e) {
-            return respond([success: false, message: e.message], status: 400)
-        } catch (e) {
-            return respond([success: false, message: "Error al subir imagen: ${e.message}"], status: 500)
-        }
-    }
-
-    def downloadDishImage() {
-        if (!params.fileName) {
-            return respond([success: false, message: "Falta el nombre del archivo"], status: 400)
         }
 
-        try {
-            File imageFile = DishService.resolveDishImageByFileName(params.fileName)
-
-            response.contentType = java.nio.file.Files.probeContentType(imageFile.toPath())
-            response.outputStream << imageFile.bytes
-            response.outputStream.flush()
-        } catch (Exception e) {
-            return respond([success: false, message: "Error al descargar imagen: ${e.message}"], status: 500)
-        }
-    }
-
-    @Secured(['ROLE_ADMIN', 'ROLE_CHEF', 'IS_AUTHENTICATED_FULLY'])
-    def deleteDishImage() {
-        if (!params.uuid || params.uuid.size() != 32) {
-            return respond([success: false, message: "UUID inválido"], status: 400)
-        }
-
-        try {
-            def dish = Dish.findByUuid(params.uuid)
-            if (!dish) {
-                return respond([success: false, message: "Platillo no encontrado"], status: 404)
+        private MultipartFile extractImageFileFromRequest(request, logId) {
+            if (request instanceof MultipartHttpServletRequest) {
+                def file = ((MultipartHttpServletRequest) request).getFile('image')
+                Log.logger(Log.INFO, logId, "Subida de imagen platillo", "Archivo recibido", "filename: ${file?.originalFilename}, size: ${file?.size}, contentType: ${file?.contentType}")
+                if (!file || file.empty) {
+                    Log.logger(Log.ERROR, logId, "Subida de imagen platillo", "Archivo de imagen es requerido o vacío")
+                    return null
+                }
+                return file
+            } else {
+                Log.logger(Log.ERROR, logId, "Subida de imagen platillo", "Request no es MultipartHttpServletRequest")
+                return null
             }
-
-            DishService.deleteDishImage(dish)
-            return respond([success: true, message: "Imagen eliminada"], status: 200)
-        } catch (Exception e) {
-            return respond([success: false, message: "Error al eliminar imagen: ${e.message}"], status: 500)
         }
-    }
 
-    def dishRankingByRating() {
-        def limit = params.limit ? params.limit.toInteger() : 10
-        def response = DishService.getDishRankingByRating(limit)
-        return respond(response.resp, status: response.status)
-    }
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def downloadDishImage() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Descargar imagen platillo", "Inicia solicitud", "params: { fileName: ${params.fileName} }")
+            try {
+                if (!params.fileName || !params.fileName.toString().trim()) {
+                    return respond([success: false, message: "El nombre del archivo es requerido"], status: 400)
+                }
+                if (!params.fileName.toString().trim().matches(RestaurantConstants.DISH_FILE_NAME_PATTERN)) {
+                    return respond([success: false, message: "El nombre del archivo debe ser alfanumérico y tener una extensión válida"], status: 400)
+                }
+                File imageFile = dishService.resolveDishImageByFileName(params.fileName.toString().trim())
+                response.contentType = java.nio.file.Files.probeContentType(imageFile.toPath())
+                response.outputStream << imageFile.bytes
+                response.outputStream.flush()
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en downloadDishImage", e.getMessage(), "params: { fileName: ${params.fileName} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
 
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def reloadDishImage() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Recargar imagen platillo", "Inicia solicitud", "params: { uuid: ${params.uuid} }")
+            try {
+                if (!params.uuid || !params.uuid.toString().trim()) {
+                    return respond([success: false, message: "El UUID del platillo es requerido"], status: 400)
+                }
+                MultipartFile file = null
+                if (request instanceof MultipartHttpServletRequest) {
+                    file = ((MultipartHttpServletRequest) request).getFile('image')
+                } else {
+                    return respond([success: false, message: "La petición debe ser form-data"], status: 400)
+                }
+                if (!file || file.empty) {
+                    return respond([success: false, message: "El archivo de imagen es requerido"], status: 400)
+                }
+                def response = dishService.reloadDishImageByUuid(params.uuid.toString().trim(), file)
+                Log.logger(Log.INFO, logId, "Recargar imagen platillo", "Respuesta de dishService", "response: ${response}")
+                return respond(response.resp, status: response.status)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en reloadDishImage", e.getMessage(), "params: { uuid: ${params.uuid} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
+
+        @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+        def deleteDishImage() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Eliminar imagen platillo", "Inicia solicitud", "params: { uuid: ${params.uuid} }")
+            try {
+                if (!params.uuid || !params.uuid.toString().trim()) {
+                    return respond([success: false, message: "El UUID del platillo es requerido"], status: 400)
+                }
+                def response = dishService.deleteDishImageByUuid(params.uuid.toString().trim())
+                Log.logger(Log.INFO, logId, "Eliminar imagen platillo", "Respuesta de dishService", "response: ${response}")
+                return respond(response?.resp ?: [success: true, message: "Imagen eliminada"], status: response?.status ?: 200)
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en deleteDishImage", e.getMessage(), "params: { uuid: ${params.uuid} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
+
+    @Secured(['ROLE_CHEF', 'isAuthenticated()'])
     def topSellingDishes() {
-        def limit = params.limit ? params.limit.toInteger() : 10
-        def response = DishService.getTopSellingDishes(limit)
+        if (params.limit) {
+            if (!StringUtils.onlyNumbers(params.limit?.toString())) {
+                return respond([success: false, message: "El límite debe ser un número"], status: 400)
+            }
+        }
+        def defaultLimit = grailsApplication.config.restaurant.dish.topDishesChartLimit
+        def limit = params.limit ? params.limit.toInteger() : defaultLimit
+        if (limit < 1) {
+            return respond([success: false, message: "El límite debe ser mayor a 0"], status: 400)
+        }
+        def response = dishService.getTopSellingDishes(limit)
         return respond(response.resp, status: response.status)
     }
 
-    def getDishImage() {
-        if (!params.uuid || params.uuid.size() != 32) {
-            return respond([success: false, message: "UUID inválido"], status: 400)
+    @Secured(['ROLE_CHEF', 'isAuthenticated()'])
+    def dishRankingByRating() {
+        if (params.limit) {
+            if (!StringUtils.onlyNumbers(params.limit?.toString())) {
+                return respond([success: false, message: "El límite debe ser un número"], status: 400)
+            }
         }
-
-        File imageFile
-
-        try {
-            imageFile = dishService.resolveDishImageByUuid(params.uuid)
-        } catch (Exception e) {
-            response.status = 404
-            return
+        def defaultLimit = grailsApplication.config.restaurant.dish.topDishesChartLimit
+        def limit = params.limit ? params.limit.toInteger() : defaultLimit
+        if (limit < 1) {
+            return respond([success: false, message: "El límite debe ser mayor a 0"], status: 400)
         }
-
-        response.contentType =
-                java.nio.file.Files.probeContentType(imageFile.toPath())
-
-        response.outputStream << imageFile.bytes
-        response.outputStream.flush()
-
-        return 
+        def response = dishService.getDishRankingByRating(limit)
+        return respond(response.resp, status: response.status)
     }
+
+        @Secured(['ROLE_USER', 'ROLE_CHEF', 'ROLE_ADMIN', 'isAuthenticated()'])
+        def getDishImage() {
+            def logId = UUID.randomUUID().toString().replaceAll('-', '')
+            Log.logger(Log.INFO, logId, "Obtener imagen platillo", "Inicia Solicitud", "params: { uuid: ${params.uuid} }")
+            if (!params.uuid || !params.uuid.toString().trim()) {
+                return respond([success: false, message: "El UUID del platillo es requerido"], status: 400)
+            }
+            try {
+                File imageFile = dishService.resolveDishImageByUuidPublic(params.uuid.toString().trim())
+                if (!imageFile || !imageFile.exists()) {
+                    return respond([success: false, message: "Imagen no encontrada"], status: 404)
+                }
+                response.contentType = java.nio.file.Files.probeContentType(imageFile.toPath())
+                response.outputStream << imageFile.bytes
+                response.outputStream.flush()
+            } catch (e) {
+                Log.logger(Log.ERROR, logId, "Error en getDishImage", e.getMessage(), "params: { uuid: ${params.uuid} }")
+                return respond([success: false, message: "Ha ocurrido un error, inténtalo más tarde."], status: 500)
+            }
+        }
 }
